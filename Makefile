@@ -11,13 +11,13 @@ dir:
 
 .PHONY : all
 
-train-wave-direction: train-wave-direction.cpp lib/electrodeMap.cpp
+train-wave-direction: bin/train-wave-direction.cpp lib/electrodeMap.cpp
 	$(CXX) $^ -o $(BUILD)/$@ $(INCLUDE_PATH) $(LIBS) -lpthread
 
 mouse_1d: mouse_1d_exp/mouse_1d.cpp mouse_1d_exp/worldstate.cpp
 	$(CXX) $^ -o $(BUILD)/$@ $(INCLUDE_PATH) $(LIBS) -lpthread
 
-maxtwo-direction: maxtwo-direction.cpp lib/electrodeMap.cpp
+maxtwo-direction: bin/maxtwo-direction.cpp lib/electrodeMap.cpp
 	$(CXX) $^ -o $(BUILD)/$@ $(INCLUDE_PATH) $(LIBS) -lpthread
 
 

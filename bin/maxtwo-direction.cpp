@@ -7,7 +7,7 @@
 #include <vector>
 #include <unistd.h>
 #include <fstream>
-#include "lib/electrodeMap.h"
+#include "../lib/electrodeMap.h"
 
 using namespace std;
 using namespace maxlab;

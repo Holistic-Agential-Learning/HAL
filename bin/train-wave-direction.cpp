@@ -9,7 +9,7 @@
 #include <fstream>
 #include <assert.h>
 #include <limits.h>
-#include "lib/electrodeMap.h"
+#include "../lib/electrodeMap.h"
 #include <map>
 
 using namespace std;
