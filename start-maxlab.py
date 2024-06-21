@@ -222,7 +222,7 @@ if __name__ == '__main__':
     mx.send(mx.Event(0, 0, 0, "start subprocess"))
     mx.send(mx.StatusOut(1))
     try:
-        subprocess.run([f"./{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-']))])
+        subprocess.run([f"/build/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-']))])
     except KeyboardInterrupt:
         print("start-maxlab.py: ^C signalled")
     except Exception as err:
