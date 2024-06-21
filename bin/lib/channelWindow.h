@@ -3,7 +3,7 @@
 #include <string>
 #include <electrodeMap.h>
 #include <vector>
-#include "../maxlab_lib/include/maxlab/maxlab.h"
+#include <maxlab.h>
 #include <stdlib.h>
 #include <map>
 
