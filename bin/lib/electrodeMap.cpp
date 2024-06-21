@@ -6,6 +6,10 @@
 
 using namespace std;
 
+ElectrodeMap::ElectrodeMap() {
+    
+}
+
 
 ElectrodeMap::ElectrodeMap(const char *config_path) {
     cout << "about to read config" << endl;

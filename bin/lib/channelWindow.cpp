@@ -25,7 +25,11 @@ void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
 }
 
 FilteredFrameData ChannelWindow::get(int idx) {
-    
+    if (idx >= size || idx < 0) {
+        exit(1);
+    }
+
+    return window[idx];
 }
 
 int ChannelWindow::addEvent(maxlab::SpikeEvent se) {

@@ -17,6 +17,8 @@ typedef struct electrodeCoords  {
 class ElectrodeMap {
     public:
 
+        ElectrodeMap();
+
         /* Constructor
          * 
          * Takes in path of config file (created by MaxLab software) and parses 
