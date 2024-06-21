@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h>
-#include "../maxlab_lib/include/maxlab/maxlab.h"
+#include <maxlab.h>
 #include <signal.h>
 //#include <cassert>
 #include <vector>
