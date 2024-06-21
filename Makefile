@@ -1,30 +1,21 @@
 CXX = g++-11
-INCLUDE_PATH = -I./maxlab_lib/include -I./lib
-LIB_PATH = ./maxlab_lib/lib
-BUILD_PATH = ./build
+INCLUDE_PATH = -I/home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab/include/maxlab -I./lib
+LIBS = -L/home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab/lib -lmaxlab
+BUILD_PATH = ./_build
 EXAMPLE_PATH = ./examples
 
-all : closed-loop print-bursts stim-bursts experiment-input stim-burst-direction stim-burst-side mouse_1d
+all : mouse_1d maxtwo-direction train-wave-direction
 .PHONY : all
 
-closed-loop: closed-loop.cpp
-	$(CXX) $^ -o $@ -I$(INCLUDE_PATH) -L$(LIB_PATH) -lmaxlab_lib -lpthread
-	
-experiment-input: experiment-input.cpp
-	$(CXX) $^ -o $@ -I$(INCLUDE_PATH) -L$(LIB_PATH) -lmaxlab_lib -lpthread
-
 train-wave-direction: train-wave-direction.cpp lib/electrodeMap.cpp
-	$(CXX) $^ -o $@ -I$(INCLUDE_PATH) -L$(LIB_PATH) -lmaxlab_lib -lpthread
+	$(CXX) $^ -o $(BUILD_PATH)/$@ $(INCLUDE_PATH) $(LIBS) -lpthread
 
 mouse_1d: mouse_1d_exp/mouse_1d.cpp mouse_1d_exp/worldstate.cpp
-	$(CXX) $^ -o $@ -I$(INCLUDE_PATH) -L$(LIB_PATH) -lmaxlab_lib -lpthread
-
-general: general.cpp lib/electrodeMap.cpp
-	$(CXX) $^ -o $@ -I$(INCLUDE_PATH) -L$(LIB_PATH) -lmaxlab_lib -lpthread
+	$(CXX) $^ -o $(BUILD_PATH)/$@ $(INCLUDE_PATH) $(LIBS) -lmaxlab_lib -lpthread
 
 maxtwo-direction: maxtwo-direction.cpp lib/electrodeMap.cpp
-	$(CXX) $^ -o $@ -I$(INCLUDE_PATH) -L$(LIB_PATH) -lmaxlab_lib -lpthread
+	$(CXX) $^ -o $(BUILD_PATH)/$@ $(INCLUDE_PATH) $(LIBS) -lmaxlab_lib -lpthread
 
 
 clean :
-	rm -r closed-loop print-bursts stim-bursts experiment-input stim-burst-direction stim-burst-side mouse_1d general maxtwo-direction
+	rm -r $(BUILD_PATH)/*
