@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__
+__pycache__/*
+examples/.DS_Store
+*.o
+maxlab_lib/.DS_Store
+maxlab/__pycache__
+maxlab/__pycache__/*
+**.vscode
