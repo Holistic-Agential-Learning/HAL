@@ -27,6 +27,14 @@ ElectrodeMap::ElectrodeMap(const char *config_path) {
     fclose(file);
 }
 
+bool ElectrodeMap::exists(int channelNo) {
+    if (emap.count(channelNo) == 1) {
+        return true;
+    } 
+
+    return false;
+}
+
 electrodeCoords ElectrodeMap::get(int channelNo) {
     if(emap.count(channelNo) == 1){
         electrodeCoords ecoords = emap[channelNo];

@@ -28,6 +28,17 @@ class ElectrodeMap {
          */
         ElectrodeMap(const char *config_path);
 
+        /* exists
+         *
+         * Checks if a channel number exists in the config
+         * 
+         * Parameters:
+         *      - channelNo: integer representing the channel to check
+         * 
+         * Returns: bool indicating whether a channel is in the config
+         */
+        bool exists(int channelNo);
+
         /* get
          * 
          * Gets the positional data of an electrode given its channel number
