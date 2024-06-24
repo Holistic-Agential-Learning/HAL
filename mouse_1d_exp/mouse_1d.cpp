@@ -2,10 +2,15 @@
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h>
-#include <maxlab.h>
+// #include "maxlab.h"
 #include <signal.h>
-//#include <cassert>
 #include <vector>
+#include <unistd.h>
+#include <fstream>
+#include <assert.h>
+#include <limits.h>
+#include "hal.h"
+#include <map>
 
 #include "worldstate.h"
 
@@ -15,141 +20,51 @@ using namespace maxlab;
 
 
 
-
-//THIS FIRST CHUNK OF CODE IS JUST COPIED FROM STIM-BURST-SIDE. NEEDS TO BE CLEANED UP...
-#define SYS_START_BUFFER 100000
-#define TOTAL_ELECTRODES 1019
-#define MIN_FRAMES 2000
-#define WINDOW 200
-#define FRAMES_PER_SEC 20000
+#define SYS_START_BUFFER 5 * FRAMES_PER_SEC
+#define TOTAL_ELECTRODES emap.size()
+#define MIN_FRAMES 0.1 * FRAMES_PER_SEC
+#define WINDOW 0.01 * FRAMES_PER_SEC
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
 
+int FRAMES_PER_SEC = 20000;
 
+float get_avg_side(vector<FilteredFrameData> frameWindow, ElectrodeMap emap);
+float framesToSeconds(int frames);
+bool runExperiment(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world, bool maxlab);
+int get_max_element(vector<int> v);
+void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world);
+
+
+/* signal_interrupt_handler
+ * 
+ * Closes the DataStreamer when ^c is signalled.
+ * 
+ */
 void signal_interrupt_handler(int sig) {
-    cout << "^C signalled!" << endl;
+    cout << " signalled!" << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     exit(sig);
 }
 
 
+void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world) {
+    // Open data stream and check that no errors occurred
+    maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
-
-
-void print_starting_location(vector<const SpikeEvent *> spikeEvents, vector<int> spikeCounts) {
-    int sum = 0;
-    int count = 0;
-    for (int i = 0; i < spikeEvents.size() / 4; i++) {
-        // cout << "getting frame " << i << endl;
-        const SpikeEvent *event = spikeEvents[i];
-        for (int j = 0; j < spikeCounts[i]; j++) {
-            // cout << "getting channel " << event[j].channel << endl;
-            sum += event[j].channel % CHIP_WIDTH;
-            count++;
-        }
-    }
-    cout << count << " spikes on first quarter of window" << endl;
-    cout << "First half of spike window starting side: " << (float) sum / (float) count << endl;
-    sum = 0;
-    count = 0;
-    for (int i = spikeEvents.size() / 4 * 3; i < spikeEvents.size(); i++) {
-        const SpikeEvent *event = spikeEvents[i];
-        for (int j = 0; j < spikeCounts[i]; j++) {
-            sum += event[j].channel % CHIP_WIDTH;
-            count++;
-        }
-    }
-
-    cout << count << " spikes on fourth quarter of window" << endl;
-    cout << "Second half of spike window starting side: " << (float) sum / (float) count << endl;
-
-}
-
-/* get_avg_side
- * 
- * Returns the average starting column of the spike events in a given window
- * 
- * Parameters:
- *      spikeEvents: window (vector) of SpikeEvent structs
- *      spikeCounts: vector (mirroring spikeEvents) of the number of spikes in 
- *                   the corresponding spikeEvent
- *  
- */
-float get_avg_side(vector<const SpikeEvent *> spikeEvents, vector<int> spikeCounts) {
-    float sum = 0;
-    float count = 0;
-    for (int i = 0; i < spikeEvents.size(); i++) {
-        const SpikeEvent *event = spikeEvents[i];
-        for (int j = 0; j < spikeCounts[i]; j++) {
-            // compute column coordinate and add to sum
-            sum += event[j].channel % CHIP_WIDTH; 
-            count++;
-        }
-    }
-
-    return sum / count;
-}
-
-/* get_side_diff
- * 
- * Returns the difference of the number of spikes on the left side of the chip 
- * and the right side of the chip. A positive integer indicates more spikes on 
- * the left side, and a positive integer indicates more spikes on the right.
- * 
- * Parameters:
- *      spikeEvents: window (vector) of SpikeEvent structs
- *      spikeCounts: vector (mirroring spikeEvents) of the number of spikes 
- *                   in the corresponding spikeEvent
- *  
- */
-int get_side_diff(vector<const SpikeEvent *> spikeEvents, vector<int> spikeCounts) {
-    int middle = CHIP_WIDTH / 2;
-    int result = 0;
-    for (int i = 0; i < spikeEvents.size(); i++) {
-
-        const SpikeEvent *event = spikeEvents[i];
-
-        for (int j = 0; j < spikeCounts[i]; j++) {
-            int location = event[j].channel % CHIP_WIDTH; 
-
-            // add one if on the left, subtract one if on the right
-            result += (location < middle) ? -1 : 1;
-        }
-    }
-
-    return result;
-}
-
-float framesToSeconds(int frames) {
-    float seconds = (float) frames / (float) FRAMES_PER_SEC;
-    return seconds;
-}
-
-
-
-
-
-void run_stim_burst_side(WorldState * world){
-    // default process 1200000 frames (1 minute)
-    // sleep(600+15);
-    int frames = 15*60*20000;
-    float threshold = 0.1;
-    
-    // if (argc >= 2) {
-    //     frames = stoi(argv[1]);
-    // } if (argc >= 3) {
-    //     threshold = stof(argv[2]);
-    // }
-
-    cout << "Processing " << framesToSeconds(frames) / 60 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
+    std::fstream file;
+    std::fstream alldata_file;
+    std::fstream rawdata_file;
+    file.open("data/side_test_" + to_string(well) + ".csv", std::fstream::out);
+    alldata_file.open("data/side_test_alldata" + to_string(well) + ".csv", std::fstream::out);
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
 
     // Keep in mind that start up causes a lot of spikes
 
-    // Open data stream and check that no errors occurred
-    maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
+
+    
     
     // don't record the system startup stuff
     for (int i = 0; i < SYS_START_BUFFER; i++) {
@@ -163,17 +78,46 @@ void run_stim_burst_side(WorldState * world){
     cout << "Finished buffer, looking for spikes..." << endl;
     // cout << threshold * TOTAL_ELECTRODES << endl;
 
-    int spikeWindowCount = 0;
+    // the number of frames where the spike count goes over the threshold
     int spikeFrameCount = 0;
+
+    ChannelWindow win = ChannelWindow(200, emap);
+    
+
+    // frame number representing the start of a burst
+    int burstStart = 0;
+
+    // frame number representing the end of a burst 
+    int burstEnd = 0;
+
+    /* the number of frames since the last frame where the spike count went over
+       the threshold */ 
     int noSpikeFrameCount = 0;
+
+    // sum of the spikes in the window
     int spikeCount = 0;
-    int lastSpike = 0;
+
+    // amount of blanking time
     int blanking = 0;
-    float startingLoc = 0;
-    int startingLocDiff = 0;
-    vector<int> spikeCountWindow;
-    vector<const SpikeEvent *> spikeEventWindow;
-    cout << "Initial vector size: " << spikeCountWindow.size() << endl;
+
+    // stores calculated average side at certain frames
+    vector<float> locs(5);
+
+    // spike count for each calculated location, mirroring locs
+    vector <int> burstSpikeCounts(5);
+
+    // number of locs that can be stored
+    int capacity = 5;
+
+    // number of locs that are currently being stored
+    int locCounter = 0;
+    
+    float monitoringLoc = 0;
+
+    // stores data for each frame in a 200-frame window
+    vector<FilteredFrameData> frameWindow;
+    cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
+
 
     // initialize the vector with 200 frames
     for (int i = 0; i < WINDOW; i++) {
@@ -186,13 +130,26 @@ void run_stim_burst_side(WorldState * world){
         }
         spikeCount += frameData.spikeCount;
 
-        spikeCountWindow.push_back(frameData.spikeCount);
-        spikeEventWindow.push_back(frameData.spikeEvents);
+        frameWindow.push_back(frameData);
     }
 
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
+        if (i == 0){
+            maxlab::verifyStatus(maxlab::sendSequence("before-training"));
+            cout << i << ": before training" << endl;
+
+        }
+        else if (i == (int)((float)(frames)/3)) {
+            maxlab::verifyStatus(maxlab::sendSequence("training"));
+            cout << i << ": training" << endl;
+        }
+        else if (i == (int)((float)(2*frames)/3)) {
+            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
+            cout << i << ": after training" << endl;
+        }
+
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
@@ -205,16 +162,15 @@ void run_stim_burst_side(WorldState * world){
 
         // const SpikeEvent *spike = frameData.spikeEvents;
 
-        int oldSpikeCount = spikeCountWindow[0];
+        int oldSpikeCount = frameWindow[0].spikeCount;
 
-        spikeCountWindow.erase(spikeCountWindow.begin());
-        spikeEventWindow.erase(spikeEventWindow.begin());
+        frameWindow.erase(frameWindow.begin());
         
         spikeCount -= oldSpikeCount; 
         spikeCount += frameData.spikeCount;
 
-        spikeCountWindow.push_back(frameData.spikeCount);
-        spikeEventWindow.push_back(frameData.spikeEvents);
+        frameWindow.push_back(frameData);
+
 
         if (blanking > 0) {
             blanking--;
@@ -222,47 +178,75 @@ void run_stim_burst_side(WorldState * world){
                 continue;
             }
         }
+
+        if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
+            monitoringLoc = get_avg_side(frameWindow, emap);
+            alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
+        }
    
+        if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
+            locs[locCounter] = get_avg_side(frameWindow, emap);
+            burstSpikeCounts[locCounter] = spikeCount;
+            locCounter++;
+        }
         
+        // if the current spike count is over the threshold
         if  (spikeCount > threshold * TOTAL_ELECTRODES) {
-            if (noSpikeFrameCount > 0 && spikeFrameCount == 0) {
-                // cout << "_____________________________" << endl;
-                // cout << i << ": Buffer lasting " << noSpikeFrameCount << " frames" << endl;
-                // print_starting_location(spikeEventWindow, spikeCountWindow);
-                startingLoc = get_avg_side(spikeEventWindow, spikeCountWindow);
-                startingLocDiff = get_side_diff(spikeEventWindow, spikeCountWindow);
+
+            // start of the burst
+            if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
+                locs[0] = get_avg_side(frameWindow, emap); // starting location
+                burstSpikeCounts[0] = spikeCount;
+                locCounter = 1;
+                burstStart = i;
             }
+            
             spikeFrameCount++; // spike at this frame
             noSpikeFrameCount = 0;
         } else {
-            // cout << (spikeWindowCount) << " vs " << (threshold * TOTAL_ELECTRODES) << endl;
-             
-            if (noSpikeFrameCount > 200) {
+
+            // burst is over
+            if (noSpikeFrameCount > FRAMES_PER_SEC) {
+
+                // burst is long enough to be significant
                 if (spikeFrameCount >= MIN_FRAMES) {
-                    cout << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << endl;
-                    float seconds = framesToSeconds(spikeFrameCount);
-                    cout << "Detected burst lasting " << seconds << " seconds (" << spikeFrameCount << " frames), starting at position " << startingLoc << endl;
-
-                    // edge case: startingLocDiff = 0 (right for now)
-                    int left = startingLocDiff < 0;
-                    string loc = left ? "left" : "right";
-                    int numSide = startingLocDiff * (left ? -1 : 1);
-
-                    cout << numSide << " extra spikes on the " << loc << " side" << endl;
-                    // print_starting_location(spikeEventWindow, spikeCountWindow);
-
-                    //NOTE: THIS SECTION HERE IS CHANGED FROM THE ORIGINAL!!!
-                    if (left) {
-                        //maxlab::verifyStatus(maxlab::sendSequence("stim_seq"));
-                        //cout << i << ": sent stimulation after burst of " << seconds << " seconds (" << spikeFrameCount << " frames)" << endl;
-                        //blanking = 8000;
-                        world->move_left();
+                    burstEnd = i-200;
+                    
+                    // // edge case: startingLocDiff = 0 (right for now)
+                    int left = locs[0] < locs[capacity - 1];
+                    string loc_string = left ? "left to right" : "right to left";
+                    file <<"BURST" << endl;
+                    file << burstStart + SYS_START_BUFFER + WINDOW << ", " << burstEnd + SYS_START_BUFFER + WINDOW << ", ";
+                    
+                    for(int m = 0; m < capacity; m++) {
+                        file << locs[m] << ", ";
                     }
-                    else{
-                        world->move_right();
+
+                    file << loc_string << endl << ", ,";
+                    for(int m = 0; m < capacity; m++) {
+                        file << burstSpikeCounts[m] << ", ";
                     }
-                    cout << "frame no: " << i << endl;
-                    //End change
+                    
+                    file << endl;
+
+                    //left to right stimulation
+                    //If in training phase
+                    if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
+                        if (left) {
+                            // maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
+                            // cout << i << ": sent left-to-right stimulation" << endl;
+                            world->move_right();
+                        } 
+                        else {
+                            // maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
+                            // cout << i << ": sent right-to-left stimulation" << endl;
+
+                            world->move_left();
+                        }
+
+                        blanking = 0.4 * FRAMES_PER_SEC;
+                    }
+                    
                 }      
                 spikeFrameCount = 0;
             }
@@ -272,6 +256,62 @@ void run_stim_burst_side(WorldState * world){
 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+    file.close();
+    alldata_file.close();
+}
+
+
+/* get_avg_side
+ * 
+ * Returns the average starting column of the spike events in a given window
+ * 
+ * Parameters:
+ *      frameWindow: vector of FilteredFrameData structs, representing a 
+ *                   200-frame window of frame data
+ *  
+ */
+float get_avg_side(vector<FilteredFrameData> frameWindow, ElectrodeMap emap) {
+
+    // used to make sure that each channel is only counted once
+    int channels[1024] = {0};
+    float sum = 0;
+    float count = 0;
+    for (int i = 0; i < frameWindow.size(); i++) {
+        const SpikeEvent *event = frameWindow[i].spikeEvents;
+        int spikeCount = frameWindow[i].spikeCount;
+        for (int j = 0; j < spikeCount; j++) {
+            // compute column coordinate and add to sum
+            int channel = event[j].channel;
+            // if the channel has already been counted
+            if (channel < TOTAL_ELECTRODES && channels[channel] == 0){
+                float x_coord = emap.get_x(channel);
+                if(x_coord < 0){ //channel number not found in the emap
+                    cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
+                }
+                else{
+                    sum += x_coord;
+                    channels[channel] = 1;
+                    count++;
+                }
+
+            }
+            
+        }
+    }
+    return sum / count;
+}
+
+float framesToSeconds(int frames) {
+    float seconds = (float) frames / (float) FRAMES_PER_SEC;
+    return seconds;
+}
+
+int get_max_element(vector<int> v){
+    int maxVal = INT_MIN;
+    for(int i = 0; i < v.size(); i++){
+        maxVal = max(v[i], maxVal);
+    }
+    return maxVal;
 }
 
 
@@ -294,7 +334,7 @@ void run_stim_burst_side(WorldState * world){
 
 
 
-bool run_experiment(WorldState * world, bool maxlab){
+bool runExperiment(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world, bool maxlab){
     if(!maxlab){
         bool next = true;
         cout << "Press x to escape. Use arrow keys to go right/left, followed by enter. "<< endl;
@@ -315,7 +355,7 @@ bool run_experiment(WorldState * world, bool maxlab){
         
     }
     else{
-        run_stim_burst_side(world);
+        runTrainWaveDirection(emap, frames, threshold, well, world);
         //copied from stim-burst-side.cpp
     }
 
@@ -325,10 +365,10 @@ bool run_experiment(WorldState * world, bool maxlab){
 
 
 int main(int argc, char * argv[]) {
-    //Params to the c++ file:
-    //  world: a string representing the 1D world.
-    // Location: a 0-indexed int that represents the starting position of the mouse.
-    // maxlab: Whether or not to run the maxlab program. If it's 0, run it locally. Defaults to 1 (run on maxlab machine).
+    //NECESSARY PARAMS
+    // default process 1200000 frames (1 minute)
+    // sleep(600+15);
+
     WorldState world;
     if(argc >= 3){
         world = WorldState(argv[1], stoi(argv[2]));
@@ -337,16 +377,72 @@ int main(int argc, char * argv[]) {
         world = WorldState();
     } 
 
-    int maxlab = 1;
+    int maxlab = 0;
 
     if (argc >= 4){
         maxlab = stoi(argv[3]);
     }
+
+    
+
+
+
+
+
+
     world.display();
     
-    run_experiment(&world, maxlab != 0); //with some regularity, reset locations.
 
-    cout << "print statistics" << endl;
+    if(!maxlab){
+        bool next = true;
+        cout << "Press x to escape. Use arrow keys to go right/left, followed by enter. "<< endl;
+        while(next){
+            int a = cin.get();
+            switch(a){
+                case 67://right
+                    world.move_right();
+                break;
+                case 68: //left
+                    world.move_left();
+                break;
+                case 'x': //esc
+                    next = false;
+                break;
+            }
+        }
+        
+    }
+    else{
+        char *configPath = argv[4];
+        ElectrodeMap emap = ElectrodeMap(configPath);
+        int well = 0;
+        
+        if(argc >= 6 && stoi(argv[5])) {
+            FRAMES_PER_SEC = 10000;
+        }
+
+        if(argc >= 7) {
+            well = stoi(argv[6]);
+        }
+
+        
+        int frames = 30*60*FRAMES_PER_SEC;
+        
+        float threshold = WINDOW/1000;
+
+        cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
+        cout << "Min frames: " << MIN_FRAMES << endl;
+
+        try{
+            runTrainWaveDirection(emap, frames, threshold, well, &world);
+        } catch (int err) {
+            cout << "Program failed with error code " << err << endl;
+            maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+            return err;
+        }
+        
+        //copied from stim-burst-side.cpp
+    }
 
     return 0;
 }
