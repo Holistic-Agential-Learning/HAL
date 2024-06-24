@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h>
-#include <maxlab.h>
+#include "maxlab.h"
 #include <signal.h>
 #include <vector>
 #include <unistd.h>
@@ -31,7 +31,7 @@ int FRAMES_PER_SEC = 20000;
 
 float get_avg_side(vector<FilteredFrameData> frameWindow, ElectrodeMap emap);
 float framesToSeconds(int frames);
-void runExperiment(ElectrodeMap emap, int frames, float threshold);
+void runExperiment(ElectrodeMap emap, int frames, float threshold, int well);
 int get_max_element(vector<int> v);
 
 
@@ -52,13 +52,18 @@ int main(int argc, char * argv[]) {
     // sleep(600+15);
     char *configPath = argv[1];
     ElectrodeMap emap = ElectrodeMap(configPath);
+    int well = 0;
     
     if(argc >= 3 && stoi(argv[2])) {
         FRAMES_PER_SEC = 10000;
     }
 
+    if(argc >= 4) {
+        well = stoi(argv[3]);
+    }
+
     
-    int frames = 3*60*FRAMES_PER_SEC;
+    int frames = 30*60*FRAMES_PER_SEC;
     
     float threshold = WINDOW/1000;
 
@@ -67,13 +72,13 @@ int main(int argc, char * argv[]) {
 
     
 
-    if (argc >= 4) {
-        frames = stoi(argv[3]);
-    } if (argc >= 5) {
-        threshold = stof(argv[4]);
+    if (argc >= 5) {
+        frames = stoi(argv[4]);
+    } if (argc >= 6) {
+        threshold = stof(argv[5]);
     }
     try {
-        runExperiment(emap, frames, threshold);
+        runExperiment(emap, frames, threshold, well);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -84,14 +89,14 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(ElectrodeMap emap, int frames, float threshold) {
+void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     std::fstream file;
     std::fstream alldata_file;
     std::fstream rawdata_file;
-    file.open("side_test.csv", std::fstream::out);
+    file.open("side_test_" + to_string(well) + ".csv", std::fstream::out);
     alldata_file.open("side_test_alldata.csv", std::fstream::out);
 
     // activate interrupt handler

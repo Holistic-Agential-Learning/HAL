@@ -7,16 +7,11 @@ from typing import List, Self, Optional
 import maxlab as mx
 import math
 
-FRAMES_PER_SEC = 20000
-
-START_STIM_BITCODE = 0b00000100
-END_STIM_BITCODE = 0b00000010
-
 
 #Big picture:
 #Different classes inherit from Stimulation (Regular stimulation). Stimulation has a way to create more abstract stimulation sequences (eg. turning stim_units on and off in the middle).
 class Stimulation:
-    def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None):
+    def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, maxtwo: bool = False, well: int = 0):
         """Create a Stimulation object.
 
         Args:
@@ -30,23 +25,30 @@ class Stimulation:
             pulse_train_interval (float, optional): Time between pulse trains, in s. Suggested values between 0.01 and 10. Defaults to 1.
             stim_units (list, optional): List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
                 IF THIS IS USED, ENSURE THAT ALL STIM_UNITS ARE POWERED OFF TO BEGIN WITH.
+            maxtwo (bool, optional): whether or not the maxtwo is being used. If True, self.fps is equal to 10000.
         """
         #Everything is converted to frames.
+        self.fps = 20000
+        if maxtwo:
+            self.fps = 10000
         self.token = token
         self.dac_source = dac_source
         self.stim_units = stim_units
         self.amplitude = amplitude
-        self.phase = int(phase * FRAMES_PER_SEC /(10**6))
+        self.phase = int(phase * self.fps /(10**6))
         self.pulses_per_train = pulses_per_train
         self.num_trains = num_trains
-        self.pulse_interval = int(pulse_interval * FRAMES_PER_SEC/(10**3))
-        self.pulse_train_interval = int(pulse_train_interval * FRAMES_PER_SEC)
+        self.pulse_interval = int(pulse_interval * self.fps/(10**3))
+        self.pulse_train_interval = int(pulse_train_interval * self.fps)
+        self.well = well
 
         self.sequence_list = self.__create_sequence_list()
+
+        
         
     
     @classmethod
-    def from_frequency(cls, token: str, dac_source: int, frequency: float, duration: float, amplitude: float = 100, num_trains: int = 1, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None) -> Self:
+    def from_frequency(cls, token: str, dac_source: int, frequency: float, duration: float, amplitude: float = 100, num_trains: int = 1, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, maxtwo: bool = False) -> Self:
         """constructor method, using frequency and duration instead of phase and pulses per train.
 
         Args:
@@ -59,6 +61,7 @@ class Stimulation:
             pulse_train_interval (float, optional): Time between pulse trains, in s. Defaults to 1.
             stim_units (list, optional): List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
                 IF THIS IS USED, ENSURE THAT ALL STIM_UNITS ARE POWERED OFF TO BEGIN WITH.
+            maxtwo (bool, optional): whether or not the maxtwo is being used. If True, self.fps is equal to 10000.
 
 
         Returns:
@@ -106,7 +109,7 @@ class Stimulation:
 
 
 
-        seq.append(mx.system.GPIOOutput(START_STIM_BITCODE))
+        seq.append(mx.Event(self.well, 1, 7, "start stimulation " + self.token))
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
                 seq = Stimulation.__create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
@@ -114,7 +117,7 @@ class Stimulation:
             
             seq.append(mx.DelaySamples(self.pulse_train_interval))
 
-        seq.append(mx.system.GPIOOutput(END_STIM_BITCODE))
+        seq.append(mx.Event(self.well, 1, 8, "end stimulation "  + self.token))
 
         if self.stim_units:
             #Power off appropriate stim_units.
@@ -126,12 +129,12 @@ class Stimulation:
     def __create_sequence_list(self):
         return self.__create_sequence_arbitrary([])
 
-    def create_sequence(self, initial_delay: float = 5, persistent = False) -> mx.Sequence:
+    def create_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
         """Create a stim sequence for the given Stimulation pattern.
 
         Args:
             initial_delay (float, optional): The delay before the sequence, in ms. Defaults to 5.
-            persistent(bool, optional): Whether or not the sequence exists on the server after its scope is complete. Defaults to False.
+            persistent(bool, optional): Whether or not the sequence exists on the server after its scope is complete. Defaults to True.
 
         Returns:
             mx.Sequence: The sequence, in whatever type seq is.
@@ -140,15 +143,16 @@ class Stimulation:
             Has a delay of 100 frames (5 ms) (initial_delay) for downloading commands.
             If the Stimulation specifies stim_units, all stim_units must be powered off to begin with.
         """
-        seq = mx.Sequence(self.token, int(initial_delay * FRAMES_PER_SEC/(10**3)), persistent)
+        seq = mx.Sequence(self.token, persistent = False)
+        del seq
+        seq = mx.Sequence(self.token, int(initial_delay * self.fps/(10**3)), persistent)
 
         return self.__create_sequence_arbitrary(seq)
     
 
 
-
     @classmethod
-    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str, initial_delay: float = 5, persistent = False)->mx.Sequence:
+    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str, initial_delay: float = 5, persistent = True, maxtwo = False)->mx.Sequence:
         """Combine two Stimulation objects into a sequence that runs them simultaneously.
 
         Args:
@@ -156,48 +160,56 @@ class Stimulation:
             stim2 (Self): The Stimulation object to run through dac source 1.
             token (str): The unique identifier token for the sequence.
             initial_delay (float, optional): The delay before the sequence, in ms. Defaults to 5.
-            persistent(bool, optional): Whether or not the sequence exists on the server after its scope is complete. Defaults to False.
- 
+            persistent(bool, optional): Whether or not the sequence exists on the server after its scope is complete. Defaults to True.
+            maxtwo (bool, optional): whether or not the maxtwo is being used. If True, fps is equal to 10000.
 
         Returns:
             mx.Sequence: The sequence that runs both stim1 and stim2 simultaneously.
 
         Notes:
             Not configured to deal with mx.DelayCycles objects.
-        """
+        """         
 
-        def __calculate_delay_time(min_delay: float, max_delay: float, min_delay_seq_list: List):
+
+        def process_delay_times(min_delay, max_delay, min_delay_seq):
+            #Helper function
             seq.append(mx.DelaySamples(min_delay))
             max_delay -= min_delay
 
-            while(type(next_command := min_delay_seq_list.pop(0)) != mx.DelaySamples and (type(next_command) != mx.system.GPIOOutput or next_command.output != END_STIM_BITCODE)):
+            while(type(next_command := min_delay_seq.pop(0)) != mx.DelaySamples and (type(next_command) != mx.Event or next_command.properties[0:15] != "end stimulation")):
                 seq.append(next_command)
-            
+
             if type(next_command) == mx.DelaySamples:
-                return next_command.samples, max_delay, min_delay_seq_list
+                min_delay = next_command.samples
             else:
-                return math.inf, max_delay, min_delay_seq_list
- 
-                
+                min_delay = math.inf
+            return min_delay, max_delay, min_delay_seq
+
+
+
         assert stim1.dac_source == 0, "stim1 must have a dac source of 0."
         assert stim2.dac_source == 1, "stim2 must have a dac source of 1."
-
-        seq = mx.Sequence(token, int(initial_delay * FRAMES_PER_SEC/(10**3)), persistent)
+        fps = 20000
+        if maxtwo:
+            fps = 10000
+        seq = mx.Sequence(token, persistent = False)
+        del seq
+        seq = mx.Sequence(token, int(initial_delay * fps/(10**3)), persistent)
 
         stim1_seq_list = stim1.sequence_list.copy()
         stim2_seq_list = stim2.sequence_list.copy()
 
 
         #Get through all of the setup stuff before executing delays or voltages.
-        while (type(next_command_1 := stim1_seq_list.pop(0)) != mx.system.GPIOOutput or next_command_1.output != START_STIM_BITCODE):
+        while (type(next_command_1 := stim1_seq_list.pop(0)) != mx.Event or next_command_1.properties[0:17] != "start stimulation"):
             seq.append(next_command_1)
 
         next_command_2 = stim1_seq_list.pop(0)
-        while(type(next_command_2 := stim2_seq_list.pop(0)) != mx.system.GPIOOutput or next_command_2.output != START_STIM_BITCODE):
+        while(type(next_command_2 := stim2_seq_list.pop(0)) != mx.Event or next_command_2.properties[0:17] != "start stimulation"):
             seq.append(next_command_2)
 
 
-        seq.append(mx.system.GPIOOutput(START_STIM_BITCODE))
+        seq.append(mx.Event(stim1.well, 1, 0, "start stimulation " + token))
         #Right now, next_command_1 and next_command_2 are both either DAC or DelaySamples.
         #Step through commands 
         
@@ -220,15 +232,14 @@ class Stimulation:
         while not math.isinf(delay_time_1) and not math.isinf(delay_time_2):
             #append a delay for whichever has a lower delay.
             if delay_time_2 < delay_time_1:
-                delay_time_2, delay_time_1, stim2_seq_list = __calculate_delay_time(delay_time_2, delay_time_1, stim2_seq_list)
+                delay_time_2, delay_time_1, stim2_seq_list = process_delay_times(delay_time_2, delay_time_1, stim2_seq_list)
                 
             elif delay_time_1 <= delay_time_2: #TODO: Implement DAC code 3 if delays are equal?
-                delay_time_1, delay_time_2, stim1_seq_list = __calculate_delay_time(delay_time_1, delay_time_2, stim1_seq_list)
+                delay_time_1, delay_time_2, stim1_seq_list = process_delay_times(delay_time_1, delay_time_2, stim1_seq_list)
+
         
+        seq.append(mx.Event(stim1.well, 1, 1, "end stimulation " + token))
 
-        seq.append(mx.system.GPIOOutput(END_STIM_BITCODE))
-
-        #Stim is done. Append the rest of everything.
         for command in stim1_seq_list + stim2_seq_list:
             seq.append(command)
 

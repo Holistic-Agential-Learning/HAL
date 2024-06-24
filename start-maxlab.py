@@ -3,7 +3,7 @@ from typing import List
 
 import random
 import time
-import bin.gui.GUI as GUI
+import bin.gui.GUI
 import json
 import sys
 import subprocess
@@ -81,165 +81,166 @@ if __name__ == '__main__':
         wells = exp_params['WELLS']
     else:
         wells = [0]
-    mx.activate(wells)
-
-    stim_electrodes = exp_params["E_SELECTED"]
-    rec_electrodes = exp_params["E_NUMS"]
-    print(exp_params)
-
-    does_stimulations = True
-    if exp_params["STIMULATIONS"] == None:
-        does_stimulations = False
-
-    mx.initialize()
-    mx.send(mx.Core().enable_stimulation_power(True))
-
-    # stimulation electrodes for configs/newconfig.cfg
     
-    array = mx.Array("stimulation")
-    array.reset()
-    array.clear_selected_electrodes()
-    array.select_electrodes(rec_electrodes)
-    if does_stimulations:
-        array.select_stimulation_electrodes(stim_electrodes)
-    
-    array.route()
-    # array = config_electrodes("configs/test_config.cfg", stim_electrodes)
-
-    # stimulation setup here 
-    if does_stimulations:
-        stimulation_units = []
-        for stim_el in stim_electrodes:
-            array.connect_electrode_to_stimulation(stim_el)
-            stim = array.query_stimulation_at_electrode(stim_el)
-            if len(stim) == 0:
-                raise RuntimeError(
-                    f"No stimulation channel can connect to electrode: \
-                        {str(stim_el)}"
-                )
-            stim_unit_int = int(stim)
-            if stim_unit_int in stimulation_units:
-                raise RuntimeError(
-                    f"Two electrodes connected to the same stim unit.\
-                                This is not allowed. Please Select a \
-                                    neighboring electrode of {stim_el}!"
-                )
-            else:
-                stimulation_units.append(stim_unit_int)
-
-     ############################################################################
-    # WES LOOK HERE
-    # change directory and file name of the recording here
-
-    # Since the GUI makes a new experiment folder, we should probably save the data there
-    # so that the params file and recording are in the same place. 
-    # The date also needs to be updated in the param file to make sure it's the 
-    # day the experiment was done. 
-
-    directory_name = exp_params["FOLDER"]
-    file_name = exp_params["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
-
-    config_file_name = directory_name + "/" + file_name + "_config.cfg"
-
-    print(config_file_name)
-    #save the config prior to running the code
-    array.save_config(str(config_file_name))
-    ############################################################################
-
-
-    array.download(wells)
-
-    mx.offset()
-    if does_stimulations:
-        stimulation_unit_commands: List[mx.StimulationUnit] = []
-        for stimulation_unit in stimulation_units:
-            stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
-            stimulation_unit_commands.append(stimulation)
-            mx.send(stimulation)
-
-    # WHAT IS THIS???
-    # s = mx.Sequence('test_seq', persistent=False)
-
-    
-    # stop_seq = mx.Sequence('stop_seq', persistent=True)
-    # stop_seq.append(mx.DelaySamples(20000))
-
-    # conda activate jkts
-    # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
-    stimulations = exp_params['STIMULATIONS']
-    for stim_name in stimulations.keys():
-        stim = Stimulation(stim_name, 0, 
-            amplitude = float(stimulations[stim_name]["AMPLITUDE"]), 
-            phase = float(stimulations[stim_name]["PHASE"]), 
-            pulses_per_train = int(stimulations[stim_name]["NUM_PER_TRAIN"]),
-            num_trains = int(stimulations[stim_name]["NUM_TRAINS"]),
-            pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
-            pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
-            maxtwo = exp_params['-MAXTWO-']
-        )
-
-        seq = stim.create_sequence(persistent = True)
-
-    #Create start train and end sequences
-    start_seq = mx.Sequence("before-training", persistent = False)
-    del start_seq
-    start_seq = mx.Sequence("before-training", persistent = True)
-    start_seq.append(mx.Event(0, 0, 2, "before training"))
-
-    train_seq = mx.Sequence("training", persistent = False)
-    del train_seq
-    train_seq = mx.Sequence("training", persistent = True)
-    train_seq.append(mx.Event(0, 0, 3, "training"))
-
-    end_seq = mx.Sequence("after-training", persistent = False)
-    del end_seq
-    end_seq = mx.Sequence("after-training", persistent = True)
-    end_seq.append(mx.Event(0, 0, 4, "after training"))
-
-    # converted_params["NUM_TRAINS"] = int(experiment_params["NUM_TRAINS"])
-    # converted_params["TRAIN_INTERVAL"] = int(float(experiment_params["TRAIN_INTERVAL"]) * 20000)
-    
-   ##############################################################################
-
-    recording_wells = exp_params['WELLS']
-
-    s = mx.Saving()
-    s.open_directory(directory_name)
-    s.start_file(file_name)
-    s.group_delete_all()
     for well in wells:
+        mx.activate([well])
+
+        stim_electrodes = exp_params["E_SELECTED"]
+        rec_electrodes = exp_params["E_NUMS"]
+        print(exp_params)
+
+        does_stimulations = True
+        if exp_params["STIMULATIONS"] == None:
+            does_stimulations = False
+
+        mx.initialize()
+        mx.send(mx.Core().enable_stimulation_power(True))
+
+        # stimulation electrodes for configs/newconfig.cfg
+        
+        array = mx.Array("stimulation")
+        array.reset()
+        array.clear_selected_electrodes()
+        #NOTE: stim_electrodes can include electrodes that aren't in rec_electrodes. In the future, maybe throw a warning if this is the case
+        array.select_electrodes(stim_electrodes + rec_electrodes)
+        if does_stimulations:
+            array.select_stimulation_electrodes(stim_electrodes)
+        
+        array.route()
+        # array = config_electrodes("configs/test_config.cfg", stim_electrodes)
+
+        # stimulation setup here 
+        if does_stimulations:
+            stimulation_units = []
+            for stim_el in stim_electrodes:
+                array.connect_electrode_to_stimulation(stim_el)
+                stim = array.query_stimulation_at_electrode(stim_el)
+                if len(stim) == 0:
+                    raise RuntimeError(
+                        f"No stimulation channel can connect to electrode: \
+                            {str(stim_el)}"
+                    )
+                stim_unit_int = int(stim)
+                if stim_unit_int in stimulation_units:
+                    raise RuntimeError(
+                        f"Two electrodes connected to the same stim unit.\
+                                    This is not allowed. Please Select a \
+                                        neighboring electrode of {stim_el}!"
+                    )
+                else:
+                    stimulation_units.append(stim_unit_int)
+
+        ############################################################################
+        # WES LOOK HERE
+        # change directory and file name of the recording here
+
+        # Since the GUI makes a new experiment folder, we should probably save the data there
+        # so that the params file and recording are in the same place. 
+        # The date also needs to be updated in the param file to make sure it's the 
+        # day the experiment was done. 
+
+        directory_name = exp_params["FOLDER"]
+        file_name = exp_params["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
+
+        config_file_name = directory_name + "/" + file_name + "_config.cfg"
+
+        print(config_file_name)
+        #save the config prior to running the code
+        array.save_config(str(config_file_name))
+        ############################################################################
+
+
+        array.download([well])
+
+        mx.offset()
+
+        mx.clear_events() 
+
+        if does_stimulations:
+            stimulation_unit_commands: List[mx.StimulationUnit] = []
+            for stimulation_unit in stimulation_units:
+                stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
+                stimulation_unit_commands.append(stimulation)
+                mx.send(stimulation)
+
+        # WHAT IS THIS???
+        # s = mx.Sequence('test_seq', persistent=False)
+
+        
+        # stop_seq = mx.Sequence('stop_seq', persistent=True)
+        # stop_seq.append(mx.DelaySamples(20000))
+
+        # conda activate jkts
+        # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
+        stimulations = exp_params['STIMULATIONS']
+        for stim_name in stimulations.keys():
+            stim = Stimulation(stim_name, 0, 
+                amplitude = float(stimulations[stim_name]["AMPLITUDE"]), 
+                phase = float(stimulations[stim_name]["PHASE"]), 
+                pulses_per_train = int(stimulations[stim_name]["NUM_PER_TRAIN"]),
+                num_trains = int(stimulations[stim_name]["NUM_TRAINS"]),
+                pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
+                pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
+                maxtwo = exp_params['-MAXTWO-'],
+                well = well
+            )
+
+            seq = stim.create_sequence(persistent = True)
+
+        #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
+        start_seq = mx.Sequence("before-training", persistent = False)
+        del start_seq
+        start_seq = mx.Sequence("before-training", persistent = True)
+        start_seq.append(mx.Event(well, 1, 1, "before_training 1"))
+
+        train_seq = mx.Sequence("training", persistent = False)
+        del train_seq
+        train_seq = mx.Sequence("training", persistent = True)
+        train_seq.append(mx.Event(well, 1, 2, "training 1"))
+
+        end_seq = mx.Sequence("after-training", persistent = False)
+        del end_seq
+        end_seq = mx.Sequence("after-training", persistent = True)
+        end_seq.append(mx.Event(well, 1, 3, "after_training 1"))
+
+        # converted_params["NUM_TRAINS"] = int(experiment_params["NUM_TRAINS"])
+        # converted_params["TRAIN_INTERVAL"] = int(float(experiment_params["TRAIN_INTERVAL"]) * 20000)
+        
+        ##############################################################################
+
+        s = mx.Saving()
+        s.open_directory(directory_name)
+        s.start_file(file_name + "_well_" + str(well))
+        s.group_delete_all()
+        
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
-    # s.group_define(0, "smiley", list(range(1024)))
-    print("recording...")
-    s.start_recording(wells)
-    
-    ############################################################################
-    # WES LOOK HERE
-    # change timing pattern here
-    # time.sleep(600)
-    print("calling c++ script...")
-    # This is the command to run (will last as long as the cpp files lasts)
-    mx.send(mx.Event(0, 0, 0, "start subprocess"))
-    mx.send(mx.StatusOut(1))
-    try:
-        subprocess.run([f"/bin/build/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-']))])
-    except KeyboardInterrupt:
-        print("start-maxlab.py: ^C signalled")
-    except Exception as err:
-        print(err)
+        # s.group_define(0, "smiley", list(range(1024)))
+        print("recording... well " + str(well))
+        s.start_recording([well])
+        
+        ############################################################################
+        # WES LOOK HERE
+        # change timing pattern here
+        # time.sleep(600)
+        print("calling c++ script... well" + str(well))
+        # This is the command to run (will last as long as the cpp files lasts)
+        mx.send(mx.Event(well, 1, 4, "start_subprocess 1"))
+        try:
+            subprocess.run([f"/bin/src/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-'])), str(well)])
+        except KeyboardInterrupt:
+            print("start-maxlab.py: ^C signalled")
+        except Exception as err:
+            print(err)
 
-    mx.send(mx.Event(0, 0, 0, "end subprocess"))
-    mx.send(mx.Event(0, 0, 1, "end subprocess")) #how does this work
+        mx.send(mx.Event(well, 1, 5, "end_subprocess 1"))
+        mx.send(mx.Event(well, 1, 6, "end subprocess")) #how does this work
 
-    #Right now, these are here for debugging.
-    mx.send(mx.StatusOut(1))
-    mx.send(mx.StatusOut(0))
-    # print("Ten minutes left")
-    print("c++ script over...")
-    # time.sleep(600)
-    ############################################################################
+        # print("Ten minutes left")
+        print("c++ script over...")
+        # time.sleep(600)
+        ############################################################################
 
-    s.stop_recording()
-    s.stop_file()
-    s.group_delete_all()
-    print("finished recording")
+        s.stop_recording()
+        s.stop_file()
+        s.group_delete_all()
+        print("finished recording")

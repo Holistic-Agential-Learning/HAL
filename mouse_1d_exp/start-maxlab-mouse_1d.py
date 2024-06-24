@@ -6,7 +6,7 @@ from typing import List
 
 import random
 import time
-import bin.gui.GUI as GUI
+import GUI
 import json
 
 import subprocess
