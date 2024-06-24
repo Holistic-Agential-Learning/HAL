@@ -9,7 +9,6 @@ import sys
 import subprocess
 import os
 
-sys.path.append("/home/mxwbio/MaxLab/python/lib/python3.10/site-packages/")
 
 
 import maxlab as mx
