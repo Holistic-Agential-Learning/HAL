@@ -3,15 +3,18 @@ from typing import List
 
 import random
 import time
-import bin.gui.GUI
+import bin.gui.GUI as GUI
 import json
 import sys
 import subprocess
 import os
 
+sys.path.append("/home/mxwbio/MaxLab/python/lib/python3.10/site-packages/")
+
+
 import maxlab as mx
 
-from lib.stimulation import Stimulation
+from bin.lib.stimulation import Stimulation
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -87,6 +90,10 @@ if __name__ == '__main__':
 
         stim_electrodes = exp_params["E_SELECTED"]
         rec_electrodes = exp_params["E_NUMS"]
+        print(
+            "hello"
+        )
+        print(stim_electrodes)
         print(exp_params)
 
         does_stimulations = True
@@ -226,7 +233,7 @@ if __name__ == '__main__':
         # This is the command to run (will last as long as the cpp files lasts)
         mx.send(mx.Event(well, 1, 4, "start_subprocess 1"))
         try:
-            subprocess.run([f"/bin/src/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-'])), str(well)])
+            subprocess.run([f"./bin/build/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-'])), str(well)])
         except KeyboardInterrupt:
             print("start-maxlab.py: ^C signalled")
         except Exception as err:

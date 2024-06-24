@@ -63,7 +63,7 @@ int main(int argc, char * argv[]) {
     }
 
     
-    int frames = 30*60*FRAMES_PER_SEC;
+    int frames = 3*60*FRAMES_PER_SEC;
     
     float threshold = WINDOW/1000;
 
@@ -96,8 +96,8 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     std::fstream file;
     std::fstream alldata_file;
     std::fstream rawdata_file;
-    file.open("side_test_" + to_string(well) + ".csv", std::fstream::out);
-    alldata_file.open("side_test_alldata.csv", std::fstream::out);
+    file.open("data/side_test_" + to_string(well) + ".csv", std::fstream::out);
+    alldata_file.open("data/side_test_alldata" + to_string(well) + ".csv", std::fstream::out);
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -120,6 +120,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
     // the number of frames where the spike count goes over the threshold
     int spikeFrameCount = 0;
+    
 
     // frame number representing the start of a burst
     int burstStart = 0;

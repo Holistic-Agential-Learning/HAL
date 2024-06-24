@@ -4,7 +4,7 @@ LIBS = -L/home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab/l
 BUILD = ./bin/build
 EXAMPLE_PATH = ./examples
 SRC = ./bin/src
-HAL_LIB = ./bin/lib/*.cpp
+HAL_LIB = ./bin/lib/electrodeMap.cpp
 
 all : dir mouse_1d maxtwo-direction train-wave-direction
 
@@ -16,7 +16,7 @@ dir:
 train-wave-direction: $(SRC)/train-wave-direction.cpp $(HAL_LIB)
 	$(CXX) $^ -o $(BUILD)/$@ $(INCLUDE_PATH) $(LIBS) -lpthread
 
-mouse_1d: mouse_1d_exp/mouse_1d.cpp mouse_1d_exp/worldstate.cpp
+mouse_1d: mouse_1d_exp/mouse_1d.cpp mouse_1d_exp/worldstate.cpp $(HAL_LIB)
 	$(CXX) $^ -o $(BUILD)/$@ $(INCLUDE_PATH) $(LIBS) -lpthread
 
 maxtwo-direction: $(SRC)/maxtwo-direction.cpp $(HAL_LIB)
