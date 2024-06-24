@@ -63,7 +63,7 @@ int main(int argc, char * argv[]) {
     }
 
     
-    int frames = 3*60*FRAMES_PER_SEC;
+    int frames = 30*60*FRAMES_PER_SEC;
     
     float threshold = WINDOW/1000;
 
