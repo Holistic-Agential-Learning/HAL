@@ -1,11 +1,12 @@
-#ifndef __CHANNELWINDOW_H__
-#define __CHANNELWINDOW_H__
 #include <string>
 #include <electrodeMap.h>
 #include <vector>
 #include <maxlab.h>
 #include <stdlib.h>
 #include <map>
+
+#ifndef __CHANNELWINDOW_H__
+#define __CHANNELWINDOW_H__
 
 using namespace std;
 

@@ -8,7 +8,7 @@ HAL_LIB_PATH = ./bin/lib
 HAL_LIB = $(HAL_LIB_PATH)/*.cpp
 
 
-all : dir mouse_1d maxtwo-direction train-wave-direction
+all : dir train-wave-direction mouse_1d maxtwo-direction
 
 dir:
 	mkdir -p $(BUILD)
@@ -16,10 +16,21 @@ dir:
 .PHONY : all
 
 %.o: %.cpp 
-	$(CXX) $(INCLUDE_PATH) -c $< -o $@
+	$(CXX) $(INCLUDE_PATH) -c $< -o $(BUILD)/$(shell basename $@)
 
-train-wave-direction: $(BUILD)/train-wave-direction.o $(BUILD)/channelWindow.o $(BUILD)/electrodeMap.o
-	$(CXX) $^ -o $(BUILD)/$@ $(LIBS)
+train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o
+	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+
+mouse_1d: mouse_1d_exp/mouse_1d.o mouse_1d_exp/worldstate.o $(HAL_LIB_PATH)/channelWindow.o $(HAL_LIB_PATH)/electrodeMap.o
+	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+
+maxtwo-direction: $(SRC)/maxtwo-direction.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o
+	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+
+
+# train-wave-direction: $(SRC)/train-wave-direction.cpp $(HAL_LIB)
+# 	$(CXX) $^ -o $(BUILD)/$@ $(INCLUDE_PATH) $(LIBS) -lpthread
+
 
 # mouse_1d: mouse_1d_exp/mouse_1d.cpp mouse_1d_exp/worldstate.cpp $(HAL_LIB)
 # 	$(CXX) $^ -o $(BUILD)/$@ $(INCLUDE_PATH) $(LIBS) -lpthread
