@@ -86,10 +86,14 @@ def create_stim_pulse(seq: mx.Sequence, amplitude: int, phase: int) -> mx.Sequen
     return seq
 
 if __name__ == '__main__':
-    stim = Stimulation("test", 0)
-    print(mx.system.GPIOOutput().output)
+    stim1 = Stimulation("test", 0)
+    stim2 = Stimulation("test2", 1)
     print(type(mx.DAC()) != mx.DAC)
-    print(stim.sequence_list)
+    #print(stim1.sequence_list)
+    combined = Stimulation.combine_stimuli(stim1, stim2, "combined", list_mode = True)
+    print(stim1.sequence_list)
+    print(stim2.sequence_list)
+    print(Stimulation.combine_stimuli(stim1, stim2, "combined", list_mode = True))
     sys.exit()
     # if len(sys.argv) > 1:
         
