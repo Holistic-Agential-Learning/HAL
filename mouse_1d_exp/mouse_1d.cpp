@@ -383,13 +383,6 @@ int main(int argc, char * argv[]) {
         maxlab = stoi(argv[3]);
     }
 
-    
-
-
-
-
-
-
     world.display();
     
 
