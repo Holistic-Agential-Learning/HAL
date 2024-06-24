@@ -8,6 +8,9 @@ import maxlab as mx
 import math
 
 
+sequence_number = 1
+
+#TODO: Make code to convert a sequence list into something that is human readable.
 #Big picture:
 #Different classes inherit from Stimulation (Regular stimulation). Stimulation has a way to create more abstract stimulation sequences (eg. turning stim_units on and off in the middle).
 class Stimulation:
@@ -109,7 +112,7 @@ class Stimulation:
 
 
 
-        seq.append(mx.Event(self.well, 1, 7, "start stimulation " + self.token))
+        seq.append(mx.Event(self.well, sequence_number, 0, "start_stimulation " + self.token))
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
                 seq = Stimulation.__create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
@@ -117,7 +120,7 @@ class Stimulation:
             
             seq.append(mx.DelaySamples(self.pulse_train_interval))
 
-        seq.append(mx.Event(self.well, 1, 8, "end stimulation "  + self.token))
+        seq.append(mx.Event(self.well, sequence_number, 1, "end_stimulation "  + self.token))
 
         if self.stim_units:
             #Power off appropriate stim_units.
@@ -143,16 +146,18 @@ class Stimulation:
             Has a delay of 100 frames (5 ms) (initial_delay) for downloading commands.
             If the Stimulation specifies stim_units, all stim_units must be powered off to begin with.
         """
+        global sequence_number
         seq = mx.Sequence(self.token, persistent = False)
         del seq
         seq = mx.Sequence(self.token, int(initial_delay * self.fps/(10**3)), persistent)
 
+        sequence_number += 1
         return self.__create_sequence_arbitrary(seq)
     
 
 
     @classmethod
-    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str, initial_delay: float = 5, persistent = True, maxtwo = False)->mx.Sequence:
+    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str, initial_delay: float = 5, persistent = True, maxtwo = False, list_mode = False)->mx.Sequence:
         """Combine two Stimulation objects into a sequence that runs them simultaneously.
 
         Args:
@@ -162,6 +167,7 @@ class Stimulation:
             initial_delay (float, optional): The delay before the sequence, in ms. Defaults to 5.
             persistent(bool, optional): Whether or not the sequence exists on the server after its scope is complete. Defaults to True.
             maxtwo (bool, optional): whether or not the maxtwo is being used. If True, fps is equal to 10000.
+            list_mode (bool, optional): Whether or not to return the stimulus in list form as opposed to the Sequence. Used for debugging purposes when the Maxwell server is not connected.
 
         Returns:
             mx.Sequence: The sequence that runs both stim1 and stim2 simultaneously.
@@ -173,10 +179,11 @@ class Stimulation:
 
         def process_delay_times(min_delay, max_delay, min_delay_seq):
             #Helper function
-            seq.append(mx.DelaySamples(min_delay))
+            if min_delay > 0:
+                seq.append(mx.DelaySamples(min_delay))
             max_delay -= min_delay
 
-            while(type(next_command := min_delay_seq.pop(0)) != mx.DelaySamples and (type(next_command) != mx.Event or next_command.properties[0:15] != "end stimulation")):
+            while(type(next_command := min_delay_seq.pop(0)) != mx.DelaySamples and (type(next_command) != mx.Event or next_command.properties[0:15] != "end_stimulation")):
                 seq.append(next_command)
 
             if type(next_command) == mx.DelaySamples:
@@ -186,30 +193,34 @@ class Stimulation:
             return min_delay, max_delay, min_delay_seq
 
 
+        global sequence_number
+
+
 
         assert stim1.dac_source == 0, "stim1 must have a dac source of 0."
         assert stim2.dac_source == 1, "stim2 must have a dac source of 1."
         fps = 20000
         if maxtwo:
             fps = 10000
-        seq = mx.Sequence(token, persistent = False)
-        del seq
-        seq = mx.Sequence(token, int(initial_delay * fps/(10**3)), persistent)
 
+        seq = list()
+        if not list_mode:
+            seq = mx.Sequence(token, persistent = False)
+            del seq
+            seq = mx.Sequence(token, int(initial_delay * fps/(10**3)), persistent)
+        
         stim1_seq_list = stim1.sequence_list.copy()
         stim2_seq_list = stim2.sequence_list.copy()
 
 
         #Get through all of the setup stuff before executing delays or voltages.
-        while (type(next_command_1 := stim1_seq_list.pop(0)) != mx.Event or next_command_1.properties[0:17] != "start stimulation"):
+        while (type(next_command_1 := stim1_seq_list.pop(0)) != mx.Event or next_command_1.properties[0:17] != "start_stimulation"):
             seq.append(next_command_1)
 
-        next_command_2 = stim1_seq_list.pop(0)
-        while(type(next_command_2 := stim2_seq_list.pop(0)) != mx.Event or next_command_2.properties[0:17] != "start stimulation"):
+        while(type(next_command_2 := stim2_seq_list.pop(0)) != mx.Event or next_command_2.properties[0:17] != "start_stimulation"):
             seq.append(next_command_2)
 
-
-        seq.append(mx.Event(stim1.well, 1, 0, "start stimulation " + token))
+        seq.append(mx.Event(stim1.well, sequence_number, 0, "start_stimulation " + token))
         #Right now, next_command_1 and next_command_2 are both either DAC or DelaySamples.
         #Step through commands 
         
@@ -229,7 +240,7 @@ class Stimulation:
         delay_time_2 = next_command_2.samples
 
 
-        while not math.isinf(delay_time_1) and not math.isinf(delay_time_2):
+        while not math.isinf(delay_time_1) or not math.isinf(delay_time_2):
             #append a delay for whichever has a lower delay.
             if delay_time_2 < delay_time_1:
                 delay_time_2, delay_time_1, stim2_seq_list = process_delay_times(delay_time_2, delay_time_1, stim2_seq_list)
@@ -237,10 +248,11 @@ class Stimulation:
             elif delay_time_1 <= delay_time_2: #TODO: Implement DAC code 3 if delays are equal?
                 delay_time_1, delay_time_2, stim1_seq_list = process_delay_times(delay_time_1, delay_time_2, stim1_seq_list)
 
-        
-        seq.append(mx.Event(stim1.well, 1, 1, "end stimulation " + token))
+        seq.append(mx.Event(stim1.well, sequence_number, 1, "end_stimulation " + token))
 
         for command in stim1_seq_list + stim2_seq_list:
             seq.append(command)
+
+        sequence_number += 1
 
         return seq
