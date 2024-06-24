@@ -8,3 +8,5 @@ maxlab/__pycache__
 maxlab/__pycache__/*
 **.vscode
 build
+data
+data/*
