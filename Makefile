@@ -4,7 +4,7 @@ LIBS = -L/home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab/l
 BUILD = ./bin/build
 EXAMPLE_PATH = ./examples
 SRC = ./bin/src
-HAL_LIB = ./bin/lib/*.cpp
+HAL_LIB = ./bin/lib/electrodeMap.cpp
 
 all : dir mouse_1d maxtwo-direction train-wave-direction
 
