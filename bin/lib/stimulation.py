@@ -8,7 +8,7 @@ import maxlab as mx
 import math
 
 
-sequence_number = 1
+sequence_number = 2
 
 #TODO: Make code to convert a sequence list into something that is human readable.
 #Big picture:
@@ -112,7 +112,7 @@ class Stimulation:
 
 
 
-        seq.append(mx.Event(self.well, sequence_number, 0, "start_stimulation " + self.token))
+        seq.append(mx.Event(self.well, sequence_number, 1, "start_stimulation " + self.token))
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
                 seq = Stimulation.__create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
@@ -120,7 +120,7 @@ class Stimulation:
             
             seq.append(mx.DelaySamples(self.pulse_train_interval))
 
-        seq.append(mx.Event(self.well, sequence_number, 1, "end_stimulation "  + self.token))
+        seq.append(mx.Event(self.well, sequence_number, 2, "end_stimulation "  + self.token))
 
         if self.stim_units:
             #Power off appropriate stim_units.
@@ -220,7 +220,7 @@ class Stimulation:
         while(type(next_command_2 := stim2_seq_list.pop(0)) != mx.Event or next_command_2.properties[0:17] != "start_stimulation"):
             seq.append(next_command_2)
 
-        seq.append(mx.Event(stim1.well, sequence_number, 0, "start_stimulation " + token))
+        seq.append(mx.Event(stim1.well, sequence_number, 1, "start_stimulation " + token))
         #Right now, next_command_1 and next_command_2 are both either DAC or DelaySamples.
         #Step through commands 
         
@@ -248,7 +248,7 @@ class Stimulation:
             elif delay_time_1 <= delay_time_2: #TODO: Implement DAC code 3 if delays are equal?
                 delay_time_1, delay_time_2, stim1_seq_list = process_delay_times(delay_time_1, delay_time_2, stim1_seq_list)
 
-        seq.append(mx.Event(stim1.well, sequence_number, 1, "end_stimulation " + token))
+        seq.append(mx.Event(stim1.well, sequence_number, 2, "end_stimulation " + token))
 
         for command in stim1_seq_list + stim2_seq_list:
             seq.append(command)
