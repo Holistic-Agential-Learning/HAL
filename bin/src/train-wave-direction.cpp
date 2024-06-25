@@ -244,7 +244,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
         } else {
 
             // burst is over
-            if (noSpikeFrameCount > FRAMES_PER_SEC) {
+            if (noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
 
                 // burst is long enough to be significant
                 if (spikeFrameCount >= MIN_FRAMES) {
