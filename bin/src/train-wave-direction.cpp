@@ -63,7 +63,7 @@ int main(int argc, char * argv[]) {
     }
 
     
-    int frames = 30*60*FRAMES_PER_SEC;
+    int frames = 9*60*FRAMES_PER_SEC;
     
     float threshold = WINDOW/1000;
 
@@ -312,7 +312,7 @@ float get_avg_side(ChannelWindow window) {
             if (channel < TOTAL_ELECTRODES && channels[channel] == 0){
                 float x_coord = emap.get_x(channel);
                 if(x_coord < 0){ //channel number not found in the emap
-                    cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
+                    // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
                 }
                 else{
                     sum += x_coord;
