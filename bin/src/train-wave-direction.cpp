@@ -63,7 +63,7 @@ int main(int argc, char * argv[]) {
     }
 
     
-    int frames = 9*60*FRAMES_PER_SEC;
+    int frames = 15*60*FRAMES_PER_SEC;
     
     float threshold = WINDOW/2000;
 
@@ -309,6 +309,9 @@ float get_avg_side(ChannelWindow window) {
             int channel = event[j].channel;
             // if the channel has already been counted
             if (channel < 1024 && channels[channel] == 0){
+                if(channel > 1024){
+                    cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
+                }
                 float x_coord = emap.get_x(channel);
                 if(x_coord < 0){ //channel number not found in the emap
                     // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
