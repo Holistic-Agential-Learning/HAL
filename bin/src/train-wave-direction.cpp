@@ -65,7 +65,7 @@ int main(int argc, char * argv[]) {
     
     int frames = 9*60*FRAMES_PER_SEC;
     
-    float threshold = WINDOW/1000;
+    float threshold = WINDOW/2000;
 
     cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
     cout << "Min frames: " << MIN_FRAMES << endl;
