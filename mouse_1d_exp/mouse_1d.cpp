@@ -1,3 +1,12 @@
+/*
+    Run:
+            ./mouse_1d [world map] [initial position] [on_maxlab] []
+
+    world map: string for 1d world
+    initial position: integer
+    on_maxlab: flag indicating if it's being run on one of the maxlab machines (1)
+                or on a PC (0)
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
