@@ -254,6 +254,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
                     }
                     
                     file << endl;
+                    window.print();
 
                     //left to right stimulation
                     //If in training phase

@@ -12,14 +12,20 @@ void ChannelWindow::add(maxlab::FilteredFrameData frame) {
     int spikeCount = frame.spikeCount;
     int newSpikeCount = 0;
     for (int i = 0; i < spikeCount; i++) {
-        newSpikeCount += addEvent(spikeEvents[i]);
+        addEvent(spikeEvents[i]);
     }
-    frame.spikeCount = newSpikeCount;
+    // frame.spikeCount = newSpikeCount;
     window.push_back(frame);
 }
 
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
-    sum -= window[0].spikeCount;
+    FilteredFrameData firstFrame = window[0];
+    const SpikeEvent * spikeEvents = firstFrame.spikeEvents;
+    for (int i = 0; i < spikeCount; i++) {
+        if (emap.exists(spikeEvents[i])) {
+            sum--;
+        }
+    }
     window.erase(window.begin());
     add(frame);
 }
@@ -44,9 +50,17 @@ ElectrodeMap ChannelWindow::electrodeMap() {
     return emap;
 }
 
+void ChannelWindow::print() {
+    for (int i = 0; i < size; i++) {
+        FilteredFrameData fd = get(i);
+        // cout << "--------------------\n" << "Frame No. " << i << endl;
+        cout << "Spike count: " << fd.spikeCount << endl;
+    }
+}
+
 int ChannelWindow::addEvent(maxlab::SpikeEvent se) {
     if (emap.exists(se.channel)) {
-        cout << "activity detected from channel " << se.channel << endl;
+        // cout << "activity detected from channel " << se.channel << endl;
         sum++;
         return 1;
     }

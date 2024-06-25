@@ -92,6 +92,8 @@ class ChannelWindow {
          *          mappings
          */
         ElectrodeMap electrodeMap();
+
+        void print();
     
     private:
         vector<maxlab::FilteredFrameData> window;
