@@ -211,8 +211,6 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
         }
    
         if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            cout << "Frame No: " << i << endl;
-            window.print();
             locs[locCounter] = get_avg_side(window);
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
@@ -310,7 +308,7 @@ float get_avg_side(ChannelWindow window) {
             // compute column coordinate and add to sum
             int channel = event[j].channel;
             // if the channel has already been counted
-            if (channel < TOTAL_ELECTRODES && channels[channel] == 0){
+            if (channel < 1024 && channels[channel] == 0){
                 float x_coord = emap.get_x(channel);
                 if(x_coord < 0){ //channel number not found in the emap
                     // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;

@@ -51,7 +51,7 @@ ElectrodeMap ChannelWindow::electrodeMap() {
 }
 
 void ChannelWindow::print() {
-    cout << "Printing window ----------------------------"
+    cout << "Printing window ----------------------------" << endl;
     for (int i = 0; i < size; i++) {
         FilteredFrameData fd = get(i);
         // cout << "--------------------\n" << "Frame No. " << i << endl;
