@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h>
-#include "maxlab.h"
+// #include "maxlab.h"
 #include <signal.h>
 #include <vector>
 #include <unistd.h>
@@ -104,6 +104,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
     // Keep in mind that start up causes a lot of spikes
 
+
     
     
     // don't record the system startup stuff
@@ -120,6 +121,8 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
     // the number of frames where the spike count goes over the threshold
     int spikeFrameCount = 0;
+
+    ChannelWindow win = ChannelWindow(200, emap);
     
 
     // frame number representing the start of a burst

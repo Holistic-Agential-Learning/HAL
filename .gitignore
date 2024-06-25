@@ -9,3 +9,4 @@ maxlab/__pycache__/*
 **.vscode
 build
 data/*
+Makefile
