@@ -29,7 +29,7 @@ using namespace maxlab;
 
 int FRAMES_PER_SEC = 20000;
 
-float get_avg_side(vector<FilteredFrameData> frameWindow, ElectrodeMap emap);
+float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
 void runExperiment(ElectrodeMap emap, int frames, float threshold, int well);
 int get_max_element(vector<int> v);
@@ -63,7 +63,7 @@ int main(int argc, char * argv[]) {
     }
 
     
-    int frames = 30*60*FRAMES_PER_SEC;
+    int frames = 15*60*FRAMES_PER_SEC;
     
     float threshold = WINDOW/1000;
 
@@ -102,11 +102,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
 
-    // Keep in mind that start up causes a lot of spikes
-
-
-    
-    
+    // start up causes a lot of spikes
     // don't record the system startup stuff
     for (int i = 0; i < SYS_START_BUFFER; i++) {
         maxlab::FilteredFrameData frameData;
@@ -122,7 +118,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     // the number of frames where the spike count goes over the threshold
     int spikeFrameCount = 0;
 
-    ChannelWindow win = ChannelWindow(200, emap);
+    ChannelWindow window = ChannelWindow(WINDOW, emap);
     
 
     // frame number representing the start of a burst
@@ -134,9 +130,6 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     /* the number of frames since the last frame where the spike count went over
        the threshold */ 
     int noSpikeFrameCount = 0;
-
-    // sum of the spikes in the window
-    int spikeCount = 0;
 
     // amount of blanking time
     int blanking = 0;
@@ -161,7 +154,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
 
     // initialize the vector with 200 frames
-    for (int i = 0; i < WINDOW; i++) {
+    for (int i = 0; i < window.length(); i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
@@ -169,9 +162,8 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
             i--;
             continue;
         }
-        spikeCount += frameData.spikeCount;
 
-        frameWindow.push_back(frameData);
+        window.add(frameData);
     }
 
 
@@ -202,15 +194,8 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
         }
 
         // const SpikeEvent *spike = frameData.spikeEvents;
-
-        int oldSpikeCount = frameWindow[0].spikeCount;
-
-        frameWindow.erase(frameWindow.begin());
-        
-        spikeCount -= oldSpikeCount; 
-        spikeCount += frameData.spikeCount;
-
-        frameWindow.push_back(frameData);
+        window.shift(frameData);
+        int spikeCount = window.totalSpikeCount();
 
 
         if (blanking > 0) {
@@ -221,12 +206,12 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
         }
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
-            monitoringLoc = get_avg_side(frameWindow, emap);
+            monitoringLoc = get_avg_side(window);
             alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
         }
    
         if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            locs[locCounter] = get_avg_side(frameWindow, emap);
+            locs[locCounter] = get_avg_side(window);
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
         }
@@ -236,7 +221,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
             // start of the burst
             if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
-                locs[0] = get_avg_side(frameWindow, emap); // starting location
+                locs[0] = get_avg_side(window); // starting location
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
                 burstStart = i;
@@ -308,23 +293,28 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
  *                   200-frame window of frame data
  *  
  */
-float get_avg_side(vector<FilteredFrameData> frameWindow, ElectrodeMap emap) {
+float get_avg_side(ChannelWindow window) {
+    ElectrodeMap emap = window.electrodeMap();
 
     // used to make sure that each channel is only counted once
     int channels[1024] = {0};
     float sum = 0;
     float count = 0;
-    for (int i = 0; i < frameWindow.size(); i++) {
-        const SpikeEvent *event = frameWindow[i].spikeEvents;
-        int spikeCount = frameWindow[i].spikeCount;
+    for (int i = 0; i < window.length(); i++) {
+        FilteredFrameData fd = window.get(i);
+        const SpikeEvent *event = fd.spikeEvents;
+        int spikeCount = fd.spikeCount;
         for (int j = 0; j < spikeCount; j++) {
             // compute column coordinate and add to sum
             int channel = event[j].channel;
             // if the channel has already been counted
-            if (channel < TOTAL_ELECTRODES && channels[channel] == 0){
+            if (channel < 1024 && channels[channel] == 0){
+                if(channel > 1024){
+                    cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
+                }
                 float x_coord = emap.get_x(channel);
                 if(x_coord < 0){ //channel number not found in the emap
-                    cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
+                    // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
                 }
                 else{
                     sum += x_coord;

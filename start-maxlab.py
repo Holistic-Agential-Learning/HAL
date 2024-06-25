@@ -197,17 +197,17 @@ if __name__ == '__main__':
         start_seq = mx.Sequence("before-training", persistent = False)
         del start_seq
         start_seq = mx.Sequence("before-training", persistent = True)
-        start_seq.append(mx.Event(well, 0, 2, "before_training 1"))
+        start_seq.append(mx.Event(well, 1, 2, "before_training 1"))
 
         train_seq = mx.Sequence("training", persistent = False)
         del train_seq
         train_seq = mx.Sequence("training", persistent = True)
-        train_seq.append(mx.Event(well, 0, 3, "training 1"))
+        train_seq.append(mx.Event(well, 1, 3, "training 1"))
 
         end_seq = mx.Sequence("after-training", persistent = False)
         del end_seq
         end_seq = mx.Sequence("after-training", persistent = True)
-        end_seq.append(mx.Event(well, 0, 4, "after_training 1"))
+        end_seq.append(mx.Event(well, 1, 4, "after_training 1"))
 
         # converted_params["NUM_TRAINS"] = int(experiment_params["NUM_TRAINS"])
         # converted_params["TRAIN_INTERVAL"] = int(float(experiment_params["TRAIN_INTERVAL"]) * 20000)
@@ -230,7 +230,7 @@ if __name__ == '__main__':
         # time.sleep(600)
         print("calling c++ script... well" + str(well))
         # This is the command to run (will last as long as the cpp files lasts)
-        mx.send(mx.Event(well, 0, 0, "start_subprocess 1"))
+        mx.send(mx.Event(well, 0, 1, "start_subprocess 1"))
         try:
             subprocess.run([f"./bin/build/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-'])), str(well)])
         except KeyboardInterrupt:

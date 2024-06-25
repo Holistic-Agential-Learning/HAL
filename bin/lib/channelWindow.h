@@ -3,6 +3,7 @@
 #include <vector>
 #include <maxlab.h>
 #include <stdlib.h>
+#include <iostream>
 #include <map>
 
 #ifndef __CHANNELWINDOW_H__
@@ -23,7 +24,6 @@ class ChannelWindow {
          *      - emap: ElectrodeMap holding the current electrode config file
          */
         ChannelWindow(int length, ElectrodeMap emap);
-
 
         /* add
          * 
@@ -65,6 +65,35 @@ class ChannelWindow {
          *          window
          */
         maxlab::FilteredFrameData get(int idx);
+
+        /* length
+         * 
+         * Returns the length of the window
+         * 
+         * Returns: integer representing the length of the window
+         * 
+         */
+        int length();
+
+        /* totalSpikeCount
+         * 
+         * Returns the sum of all the spike counts (of valid channels) in the 
+         * window.
+         * 
+         * Returns: integer representing the sum of all spike counts
+         */
+        int totalSpikeCount();
+
+        /* electrodeMap
+         * 
+         * Returns the emap.
+         * 
+         * Returns: ElectrodeMap containing all of the channel, electrode 
+         *          mappings
+         */
+        ElectrodeMap electrodeMap();
+
+        void print();
     
     private:
         vector<maxlab::FilteredFrameData> window;
