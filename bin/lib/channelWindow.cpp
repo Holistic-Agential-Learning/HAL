@@ -21,8 +21,8 @@ void ChannelWindow::add(maxlab::FilteredFrameData frame) {
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
     FilteredFrameData firstFrame = window[0];
     const SpikeEvent * spikeEvents = firstFrame.spikeEvents;
-    for (int i = 0; i < spikeCount; i++) {
-        if (emap.exists(spikeEvents[i])) {
+    for (int i = 0; i < firstFrame.spikeCount; i++) {
+        if (emap.exists(spikeEvents[i].channel)) {
             sum--;
         }
     }
