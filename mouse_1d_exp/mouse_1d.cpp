@@ -1,3 +1,15 @@
+/*
+    Run:
+            ./mouse_1d [world map] [initial position] [on_maxlab] [config_path] [maxtwo_flag] [well]
+
+    world map: string for 1d world
+    initial position: integer
+    on_maxlab: flag indicating if it's being run on one of the maxlab machines (1)
+                or on a PC (0)
+    config_path: string for the path to the configuration file
+    maxtwo_flag: flag indicating if it's being run on the maxtwo (1)
+    well: int for the index of the well that the experiment is being run on
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
