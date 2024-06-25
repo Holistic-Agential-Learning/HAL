@@ -436,6 +436,6 @@ int main(int argc, char * argv[]) {
         
         //copied from stim-burst-side.cpp
     }
-
+ 
     return 0;
 }
