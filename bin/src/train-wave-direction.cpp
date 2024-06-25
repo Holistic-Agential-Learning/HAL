@@ -118,7 +118,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     // the number of frames where the spike count goes over the threshold
     int spikeFrameCount = 0;
 
-    ChannelWindow win = ChannelWindow(WINDOW, emap);
+    ChannelWindow window = ChannelWindow(WINDOW, emap);
     
 
     // frame number representing the start of a burst
@@ -154,7 +154,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
 
     // initialize the vector with 200 frames
-    for (int i = 0; i < win.size(); i++) {
+    for (int i = 0; i < window.length(); i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
@@ -162,10 +162,8 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
             i--;
             continue;
         }
-        spikeCount += frameData.spikeCount;
 
         window.add(frameData);
-        frameWindow.push_back(frameData);
     }
 
 
@@ -197,7 +195,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
         // const SpikeEvent *spike = frameData.spikeEvents;
         window.shift(frameData);
-        int spikeCount = window.sum();
+        int spikeCount = window.totalSpikeCount();
 
 
         if (blanking > 0) {
@@ -296,6 +294,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
  *  
  */
 float get_avg_side(ChannelWindow window) {
+    ElectrodeMap emap = window.electrodeMap();
 
     // used to make sure that each channel is only counted once
     int channels[1024] = {0};

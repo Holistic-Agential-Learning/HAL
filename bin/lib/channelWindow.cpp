@@ -4,7 +4,7 @@ using namespace maxlab;
 
 ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
     emap = electrodeMap;
-    this.length = length;
+    size = length;
 }
 
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
@@ -33,19 +33,20 @@ FilteredFrameData ChannelWindow::get(int idx) {
 }
 
 int ChannelWindow::length() {
-    return length;
+    return size;
 }
 
-int ChannelWindow::sum() {
+int ChannelWindow::totalSpikeCount() {
     return sum;
 }
 
-ElectrodeMap ChannelWindow::emap() {
+ElectrodeMap ChannelWindow::electrodeMap() {
     return emap;
 }
 
 int ChannelWindow::addEvent(maxlab::SpikeEvent se) {
     if (emap.exists(se.channel)) {
+        cout << "activity detected from channel " << se.channel << endl;
         sum++;
         return 1;
     }
