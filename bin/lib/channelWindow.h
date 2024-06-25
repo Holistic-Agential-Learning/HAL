@@ -24,7 +24,6 @@ class ChannelWindow {
          */
         ChannelWindow(int length, ElectrodeMap emap);
 
-
         /* add
          * 
          * Adds a data frame to the window, and increment the total spike sum 
@@ -65,11 +64,38 @@ class ChannelWindow {
          *          window
          */
         maxlab::FilteredFrameData get(int idx);
+
+        /* length
+         * 
+         * Returns the length of the window
+         * 
+         * Returns: integer representing the length of the window
+         * 
+         */
+        int length();
+
+        /* sum
+         * 
+         * Returns the sum of all the spike counts (of valid channels) in the 
+         * window.
+         * 
+         * Returns: integer representing the sum of all spike counts
+         */
+        int sum();
+
+        /* emap
+         * 
+         * Returns the emap.
+         * 
+         * Returns: ElectrodeMap containing all of the channel, electrode 
+         *          mappings
+         */
+        ElectrodeMap emap();
     
     private:
         vector<maxlab::FilteredFrameData> window;
         ElectrodeMap emap;
-        int size;
+        int length;
         int sum;
 
         /* addEvent

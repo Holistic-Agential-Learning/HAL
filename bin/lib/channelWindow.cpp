@@ -4,7 +4,7 @@ using namespace maxlab;
 
 ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
     emap = electrodeMap;
-    size = length;
+    this.length = length;
 }
 
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
@@ -30,6 +30,18 @@ FilteredFrameData ChannelWindow::get(int idx) {
     }
 
     return window[idx];
+}
+
+int ChannelWindow::length() {
+    return length;
+}
+
+int ChannelWindow::sum() {
+    return sum;
+}
+
+ElectrodeMap ChannelWindow::emap() {
+    return emap;
 }
 
 int ChannelWindow::addEvent(maxlab::SpikeEvent se) {

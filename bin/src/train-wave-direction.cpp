@@ -102,11 +102,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
 
-    // Keep in mind that start up causes a lot of spikes
-
-
-    
-    
+    // start up causes a lot of spikes
     // don't record the system startup stuff
     for (int i = 0; i < SYS_START_BUFFER; i++) {
         maxlab::FilteredFrameData frameData;
@@ -122,7 +118,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     // the number of frames where the spike count goes over the threshold
     int spikeFrameCount = 0;
 
-    ChannelWindow win = ChannelWindow(200, emap);
+    ChannelWindow win = ChannelWindow(WINDOW, emap);
     
 
     // frame number representing the start of a burst
@@ -161,7 +157,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
 
     // initialize the vector with 200 frames
-    for (int i = 0; i < WINDOW; i++) {
+    for (int i = 0; i < win.size(); i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
@@ -171,6 +167,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
         }
         spikeCount += frameData.spikeCount;
 
+        window.add(frameData);
         frameWindow.push_back(frameData);
     }
 
@@ -211,6 +208,8 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
         spikeCount += frameData.spikeCount;
 
         frameWindow.push_back(frameData);
+
+        window.shift(frameData);
 
 
         if (blanking > 0) {
