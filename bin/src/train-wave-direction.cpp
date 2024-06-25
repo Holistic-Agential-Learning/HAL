@@ -211,6 +211,8 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
         }
    
         if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
+            cout << "Frame No: " << i << endl;
+            window.print();
             locs[locCounter] = get_avg_side(window);
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
@@ -254,7 +256,6 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
                     }
                     
                     file << endl;
-                    window.print();
 
                     //left to right stimulation
                     //If in training phase
