@@ -34,13 +34,13 @@ paramMap = {
     'NUM_TRAINS': (1,1000), 
     'PHASE': (100,1000),
     'DATE': (1,1),
-    'E_NUMS': (1,1),
-    'E_COORDS': (1,1),
+    # 'E_NUMS': (1,1),
+    # 'E_COORDS': (1,1),
     'FOLDER_NAME': (1,1),
     'E_SELECTED': (1,1)
 }
 
-PARAMETERS = ['NAME', 'FOLDER', 'E_NUMS', 'E_COORDS', 'DATE', '-PROGRAM-', 'PROGRAM_EXEC']
+PARAMETERS = ['NAME', 'FOLDER', 'DATE', '-PROGRAM-', 'PROGRAM_EXEC']
 
 ### CHECK IF PARAMETER IS IN VALID RANGE
 def goodParam(value, param, valid):
@@ -191,9 +191,23 @@ def saveFile(values):
     if values['E_SELECTED'] != "":
         values['E_SELECTED'] = values['E_SELECTED'].replace(" ", "")
         values['E_SELECTED'] = [int(x) for x in values['E_SELECTED'].split(',')]
-    val, electrode_nums, electrode_coords = read_config(values['-CONFIG-'], False)
-    values['E_NUMS'] = electrode_nums 
-    values['E_COORDS'] = electrode_coords
+    
+    configs = {}
+    if values['-MAXONE-']: 
+        val, electrode_nums, electrode_coords = read_config(values['-CONFIG-'], False)
+        config = {}
+        config['PATH'] = values['-CONFIG-']
+        config['E_NUMS'] = electrode_nums
+        config['E_NUMS'] = electrode_coords
+        configs['0'] = config
+
+    values['CONFIGS'] = configs
+    # else:
+    #     for well in values['WELLS']:
+    #         configs[str(well)] = config
+
+    # values['E_NUMS'] = electrode_nums 
+    # values['E_COORDS'] = electrode_coords
     json.dump(values, f)
     f.close()
 
@@ -316,7 +330,7 @@ def edit_stimulation(stims, name, prev_values):
 
 def edit_wells(prev_values):
     layout = [[sg.Text("Which wells would you like to record from?")],
-                [sg.Checkbox("1", key="1"), sg.Checkbox("2", key="2")],
+                [[sg.Checkbox("1", key="1")], sg.Checkbox("2", key="2")],
                 [sg.Checkbox("3", key="3"), sg.Checkbox("4", key="4")],
                 [sg.Checkbox("5", key="5"), sg.Checkbox("6", key="6")],            
                 [sg.Checkbox("All of them (1-6)", enable_events=True, key="-ALL-WELLS-")],
@@ -371,6 +385,7 @@ def make_edit_stimulations(window):
     stim_e = [[sg.pin(sg.Text('List of electrodes to stimulate:', key="-STIM-ELECT-", visible=False)), sg.pin(sg.InputText(key='E_SELECTED', size=(30,1), visible=False))],
                             [sg.pin(sg.Text("", text_color="red", visible=False, key="-E_SELECTED-ERR-"))]]
     window.extend_layout(window["-STIMULATIONS-"], stim_e)
+    # window['-STIMULATIONS-'].update(scrollable=True)
 
 def define_exp_window(old_exp):
     message = 'Create a new experiment'
@@ -402,7 +417,7 @@ def define_exp_window(old_exp):
                 sg.pin(sg.Text("Choose a program", text_color="red", visible=False, k='-PROGRAM-ERR-'))],
             [sg.pin(sg.Column([[sg.Text("Stimulations", visible=False)]], k='-STIMULATIONS-'))], 
             [sg.Button('Save experiment'), sg.Button('Cancel')]]
-    
+    # , scrollable=True, vertical_scroll_only=True
     window = sg.Window(window_message, layout, resizable=True, finalize=True)
 
     
@@ -435,8 +450,6 @@ def define_exp(old_experiment):
             for name in stimulations:
                 params[name] = (True, stimulations[name])
         old_experiment.pop('DATE')
-        old_experiment.pop('E_NUMS')
-        old_experiment.pop('E_COORDS')
         old_experiment.pop('Browse')
         old_experiment.pop('STIMULATIONS')
         old_experiment.pop('PROGRAM_EXEC')
@@ -457,7 +470,11 @@ def define_exp(old_experiment):
         elif old_experiment['-MAXONE-']:
             window['-WELLS-COL-'].update(visible=False)
             window['-MAXONE-'].update(disabled=True)
-            window['-MAXTRUE-'].update(value=False, disabled=False)
+            window['-MAXTWO-'].update(value=False, disabled=False)
+            config_path = old_experiment['CONFIGS']['0']['PATH']
+            window['-CONFIG-'].update(value=config_path)
+            old_experiment.pop('CONFIGS')
+            old_experiment.pop('WELLS')
         if old_experiment['E_SELECTED'] != None:
             old_experiment['E_SELECTED'] = ", ".join(str(elec) for elec in old_experiment['E_SELECTED'])
         for param in old_experiment:
@@ -593,6 +610,8 @@ def define_exp(old_experiment):
                         if (wells[str(i)]):
                             wells_list.append(i - 1)
                     experiment['WELLS'] = wells_list
+                else:
+                    experiment['WELLS'] = [0]
                 saveFile(experiment)
                 window.close()
                 return run_or_modify(experiment, f"Experiment '{experiment['NAME']}' has been saved successfully.")
@@ -616,7 +635,6 @@ def saveExp(values, stim_params, program):
         elif (folderName != ''):
             values['E_NUMS'] = electrode_nums
             values['E_COORDS'] = electrode_coords
-            # saveFile(values, folderName)
             # Verify that parameters saved 
             print("Parameters saved in folder " + folderName)
             return True
