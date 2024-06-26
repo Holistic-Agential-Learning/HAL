@@ -20,6 +20,8 @@ PROGRAMS = {
     #                 "stim_names": ["General Stimulation"]},
     "Train Waves": {"exec": "train-wave-direction",
                     "stim_names": ["Left-to-Right", "Right-to-Left"]},
+    "Switch Wells": {"exec": "switch-wells",
+                    "stim_names": []},
 }
 
 ### MAP EACH PARAM TO ITS FIELD/MIN/MAX
@@ -395,7 +397,7 @@ def define_exp_window(old_exp):
             [sg.pin(sg.Text("Select at least one well", text_color="red", visible=False, key='-WELLS-ERR-'))]], 
             visible=False, key='-WELLS-COL-'))],
             [[sg.Text('Choose a program:')],
-                [sg.ButtonMenu("Choose", ['Program', ['Train Waves']], key='-CHOOSE-PROGRAM-'),
+                [sg.ButtonMenu("Choose", ['Program', ['Train Waves', 'Switch Wells']], key='-CHOOSE-PROGRAM-'),
                 sg.Input(key='-PROGRAM-')],
                 sg.pin(sg.Text("Choose a program", text_color="red", visible=False, k='-PROGRAM-ERR-'))],
             [sg.pin(sg.Column([[sg.Text("Stimulations", visible=False)]], k='-STIMULATIONS-'))], 

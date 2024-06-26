@@ -63,7 +63,7 @@ int main(int argc, char * argv[]) {
     }
 
     
-    int frames = 15*60*FRAMES_PER_SEC;
+    int frames = 1*60*FRAMES_PER_SEC;
     
     float threshold = WINDOW/1000;
 
@@ -280,18 +280,18 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
                     //left to right stimulation
                     //If in training phase
-                    if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
-                        if (left) {
-                            maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
-                            cout << i << ": sent left-to-right stimulation" << endl;
-                        } 
-                        else {
-                            maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
-                            cout << i << ": sent right-to-left stimulation" << endl;
-                        }
+                    // if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
+                        // if (left) {
+                        //     maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
+                        //     cout << i << ": sent left-to-right stimulation" << endl;
+                        // } 
+                        // else {
+                        //     maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
+                        //     cout << i << ": sent right-to-left stimulation" << endl;
+                        // }
 
-                        blanking = 0.4 * FRAMES_PER_SEC;
-                    }
+                        // blanking = 0.4 * FRAMES_PER_SEC;
+                    // }
                     
                 }      
                 spikeFrameCount = 0;
