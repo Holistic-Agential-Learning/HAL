@@ -10,3 +10,4 @@ maxlab/__pycache__/*
 build
 data/*
 Makefile
+guitest
