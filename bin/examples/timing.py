@@ -69,36 +69,37 @@ if __name__ == "__main__":
     print("testing nodelay set primary well")
     #mx.send(mx.Event(0, 1, 1, f"test nodelay_set_primary_well"))
 
+    mx.activate([0])
     event_counter = 1
     for i in range(0, num_trials):
         well = i%num_wells
         mx.send(mx.Event(0, 1, event_counter, f"set_primary_well 0 well {well}"))
         mx.set_primary_well(well)
-        mx.send(mx.Event(0, 1, event_counter, f"set_primary_well_{well} 1 well {well}"))
+        mx.send(mx.Event(0, 1, event_counter, f"set_primary_well 1 well {well}"))
         event_counter += 1
+
+    mx.clear_events()
 
 
     sleep(5)
-    mx.send(mx.Event(0, 3, 1, f"test delay_activate_wells"))
     print("testing delay activate wells")
-
     event_counter = 1
     for i in range(0, num_trials):
         num_wells_activated = random.sample(range(1, num_wells + 1), 1)[0]
         activation_wells = random.sample(wells, num_wells_activated)
         mx.send(mx.Event(0, 3, event_counter, f"activate_wells 0 num_wells {num_wells_activated}"))
         mx.activate(activation_wells)
+        mx.activate([0])
         mx.send(mx.Event(0, 3, event_counter, f"activate_wells 1 num_wells {num_wells_activated}"))
         event_counter += 1
         sleep(0.2)
 
 
+    mx.clear_events()
 
 
     sleep(5)
     print("testing delay set primary well")
-
-    mx.send(mx.Event(0, 2, 1, f"test delay_set_primary_well"))
     event_counter = 1
     for i in range(0, num_trials):
         well = i%num_wells
@@ -108,10 +109,10 @@ if __name__ == "__main__":
         event_counter += 1
         sleep(0.2)
     
+    mx.clear_events()
+
     sleep(5)
     print("testing nodelay activate wells")
-
-    mx.send(mx.Event(0, 4, 1, f"test nodelay_activate_wells"))
     event_counter = 1
     for i in range(0, num_trials):
         well = i%num_wells
@@ -120,18 +121,16 @@ if __name__ == "__main__":
         mx.send(mx.Event(0, 4, event_counter, f"activate_wells 1 well {well}"))
         event_counter += 1
 
+    mx.clear_events()
 
     sleep(5)
     print("testing events")
-    mx.send(mx.Event(0, 5, 1, f"test events"))
     event_counter = 1
     for i in range(0, num_trials):
         well = i%num_wells
         mx.send(mx.Event(0, 5, event_counter, f"event 0"))
         mx.send(mx.Event(0, 5, event_counter, f"event 1"))
         event_counter += 1
-
-
 
 
 
