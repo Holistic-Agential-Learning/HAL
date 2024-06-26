@@ -12,7 +12,7 @@ import os
 import sys
 
 num_trials = 1000
-num_wells = 1
+num_wells = 6
 
 
 recording_dir = str(Path(os.path.dirname(__file__), "..", "..", "data", "timing"))
@@ -58,9 +58,16 @@ if __name__ == "__main__":
     s.open_directory(recording_dir)
     s.start_file(file_name)
 
-    s.group_define(0, "all_channels", list(range(1024)))
+    s.group_delete_all()
+
+    s.group_define(0, "all_channels0", list(range(1024)))
+    s.group_define(1, "all_channels1", list(range(1024)))
+    s.group_define(2, "all_channels2", list(range(1024)))
+    s.group_define(3, "all_channels3", list(range(1024)))
+    s.group_define(4, "all_channels4", list(range(1024)))
+    s.group_define(5, "all_channels5", list(range(1024)))
     print("testing nodelay set primary well")
-    mx.send(mx.Event(0, 1, 1, f"test nodelay_set_primary_well"))
+    #mx.send(mx.Event(0, 1, 1, f"test nodelay_set_primary_well"))
 
     event_counter = 1
     for i in range(0, num_trials):
@@ -69,6 +76,23 @@ if __name__ == "__main__":
         mx.set_primary_well(well)
         mx.send(mx.Event(0, 1, event_counter, f"set_primary_well_{well} 1 well {well}"))
         event_counter += 1
+
+
+    sleep(5)
+    mx.send(mx.Event(0, 3, 1, f"test delay_activate_wells"))
+    print("testing delay activate wells")
+
+    event_counter = 1
+    for i in range(0, num_trials):
+        num_wells_activated = random.sample(range(1, num_wells + 1), 1)[0]
+        activation_wells = random.sample(wells, num_wells_activated)
+        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 0 num_wells {num_wells_activated}"))
+        mx.activate(activation_wells)
+        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 1 num_wells {num_wells_activated}"))
+        event_counter += 1
+        sleep(0.2)
+
+
 
 
     sleep(5)
@@ -82,22 +106,7 @@ if __name__ == "__main__":
         mx.set_primary_well(well)
         mx.send(mx.Event(0, 2, event_counter, f"set_primary_well 1 well {well}"))
         event_counter += 1
-        sleep(1)
-
-
-    sleep(5)
-    mx.send(mx.Event(0, 3, 1, f"test delay_activate_wells"))
-    print("testing delay activate wells")
-
-    event_counter = 1
-    for i in range(0, num_trials):
-        num_wells_activated = random.sample(range(1, num_wells + 1), 1)
-        activation_wells = random.sample(wells, num_wells_activated)
-        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 0 num_wells {num_wells_activated}"))
-        mx.activate(activation_wells)
-        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 1 num_wells {num_wells_activated}"))
-        event_counter += 1
-        sleep(1)
+        sleep(0.2)
     
     sleep(5)
     print("testing nodelay activate wells")
