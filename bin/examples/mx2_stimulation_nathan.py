@@ -160,6 +160,10 @@ if __name__ == "__main__":
     sequence1.send()
     sleep(5)
 
+    mx.send(mx.Event(1, 1, 3, f"set_primary_well 0"))
+    mx.set_primary_well(1)
+    mx.send(mx.Event(1, 1, 3, f"set_primary_well 1"))
+
     mx.send(mx.Event(1, 1, 1, f"activate_1 0"))
     mx.activate([1])
     mx.send(mx.Event(1, 1, 2, f"activate_1 1"))
