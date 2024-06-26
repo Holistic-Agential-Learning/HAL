@@ -113,6 +113,7 @@ if __name__ == "__main__":
 
 
     sleep(5)
+    print("testing events")
     mx.send(mx.Event(0, 5, 1, f"test events"))
     event_counter = 1
     for i in range(0, num_trials):
