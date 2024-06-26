@@ -390,10 +390,10 @@ def define_exp_window(old_exp):
                 sg.Text("MaxOne               "),
                 sg.Checkbox('', enable_events=True, key='-MAXTWO-'),
                 sg.Text("MaxTwo")]],
-            [sg.Col([[sg.Text('Choose recording wells:'), sg.Button("Choose", key='-CHOOSE-WELLS-'), 
+            [sg.pin(sg.Col([[sg.Text('Choose recording wells:'), sg.Button("Choose", key='-CHOOSE-WELLS-'), 
             sg.Text("Selected", text_color="green", visible=False, key='-SELECTED-WELLS-')],
             [sg.pin(sg.Text("Select at least one well", text_color="red", visible=False, key='-WELLS-ERR-'))]], 
-            visible=False, key='-WELLS-COL-')],
+            visible=False, key='-WELLS-COL-'))],
             [[sg.Text('Choose a program:')],
                 [sg.ButtonMenu("Choose", ['Program', ['Train Waves']], key='-CHOOSE-PROGRAM-'),
                 sg.Input(key='-PROGRAM-')],
@@ -446,8 +446,11 @@ def define_exp(old_experiment):
             window['-MAXONE-'].update(value=False, disabled=False)
             wells = {}
             wells_list = old_experiment['WELLS']
-            for w in wells_list:
-                wells[str(w + 1)] = True
+            for i in range(6):
+                if (wells_list.count(i) == 1):
+                    wells[str(i + 1)] = True
+                else:
+                    wells[str(i + 1)] = False
             old_experiment.pop('WELLS')
         elif old_experiment['-MAXONE-']:
             window['-WELLS-COL-'].update(visible=False)
@@ -721,22 +724,22 @@ def choose_exp(run):
             f = open(fileName, "r")
 
             # Read in data
-            try:
-                parameters = json.load(f)
-                valid = True
-                for param in PARAMETERS:
-                    if parameters[param] == None:
-                        valid = False
-                        window['-FILE-ERR-'].update(visible=True)
-                if (valid):
-                    window.close()
-                    if run:
-                        return run_or_modify(parameters, f"Experiment '{parameters['NAME']}' has been chosen.")
-                    else:
-                        return parameters
+            # try:
+            parameters = json.load(f)
+            valid = True
+            for param in PARAMETERS:
+                if parameters[param] == None:
+                    valid = False
+                    window['-FILE-ERR-'].update(visible=True)
+            if (valid):
+                window.close()
+                if run:
+                    return run_or_modify(parameters, f"Experiment '{parameters['NAME']}' has been chosen.")
+                else:
+                    return parameters
 
-            except:
-                window['-FILE-ERR-'].update(visible=True)
+            # except:
+                # window['-FILE-ERR-'].update(visible=True)
 
     return None
 
