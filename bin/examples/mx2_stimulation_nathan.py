@@ -69,6 +69,11 @@ def poweroff_all_stim_units() -> None:
 
 if __name__ == "__main__":
     # SETUP
+    filepath = Path(f"{recording_dir}/{file_name}.raw.h5")
+    if filepath.is_file():
+        print("save file already exists: deleting")
+        filepath.unlink()
+
     mx.initialize()
     sleep(5)
     if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
@@ -92,7 +97,7 @@ if __name__ == "__main__":
     stimulation_channels = config.get_channels_for_electrodes(stimulation_electrodes)
     stimulation_channels.sort()
 
-    mx.activate(0)
+    mx.activate([0])
     poweroff_all_stim_units()
     mx.send(
         mx.StimulationUnit(stimulation_units[0])
@@ -102,7 +107,7 @@ if __name__ == "__main__":
         .dac_source(0)
     )
     
-    mx.activate(1)
+    mx.activate([1])
     poweroff_all_stim_units()
     mx.send(
         mx.StimulationUnit(stimulation_units[1])
