@@ -866,7 +866,7 @@ def runExp(experiment):
 
 def start_gui():
 ### START WINDOW: 
-    sg.theme('LightBlue3') 
+    sg.theme('HotDogStand') 
     layout = [ 
                         # [sg.Text('NAME OF TRIAL:'), sg.InputText(key='TRIAL_NAME')], 
                         [sg.Button('Choose Experiment'), sg.Button('Define Experiment'),
