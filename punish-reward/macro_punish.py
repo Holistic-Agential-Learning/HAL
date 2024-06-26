@@ -1,16 +1,24 @@
 import maxlab as mx
 import random
 
+DEVICE = "MAXONE"
 PULSE_PER_TRAIN_LLIMIT: int = 0
-PULSE_PER_TRAIN_ULIMIT: int = 20 
+PULSE_PER_TRAIN_ULIMIT: int = 200000 #this is arbitrary, but the longer the more unreliable
 STABLE_AMPLITUDE_LLIMIT: int = 0
 STABLE_AMPLITUDE_ULIMIT: int = 1023
-STABLE_PHASE_LLIMIT: int = 2 #100 uS (i.e 50us * 2)
-STABLE_PHASE_ULIMIT: int = 20 #1000 uS (i.e 50us * 20)
-STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 20 #1mS (i.e 50us * 20)
-STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 2000 #100mS (i.e 50us * 2000)
+if DEVICE == "MAXONE":
+    STABLE_PHASE_LLIMIT: int = 2 #100 uS (i.e 50us * 2)
+    STABLE_PHASE_ULIMIT: int = 20 #1000 uS (i.e 50us * 20)
+    STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 20 #1mS (i.e 50us * 20)
+    STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 2000 #100mS (i.e 50us * 2000)
+elif DEVICE == "MAXTWO":
+    STABLE_PHASE_LLIMIT: int = 1 #100 uS (i.e 100us * 1)
+    STABLE_PHASE_ULIMIT: int = 10 #1000 uS (i.e 100us * 10)
+    STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10 #1mS (i.e 100us * 10)
+    STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1000 #100mS (i.e 100us * 1000)
 
 
+#Note: treating each pulse as BiPhasic by default 
 def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int,
                  stable_amplitude: int = 200, stable_phase: int = 200, stable_inter_pulse_interval: int = 200):
     '''
@@ -31,8 +39,8 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int,
     assert STABLE_AMPLITUDE_LLIMIT <= stable_amplitude <= STABLE_AMPLITUDE_ULIMIT, (
         f"stable_amplitude must be between {STABLE_AMPLITUDE_LLIMIT} and {STABLE_AMPLITUDE_ULIMIT}"
     )
-    assert STABLE_PHASE_LLIMIT <= stable_phase <= STABLE_PHASE_ULIMIT, (
-        f"stable_phase must be between {STABLE_PHASE_LLIMIT} and {STABLE_PHASE_ULIMIT}"
+    assert STABLE_PULSEWIDTH_LLIMIT <= stable_pulsewidth <= STABLE_PULSEWIDTH_ULIMIT, (
+        f"stable_pulsewidth must be between {STABLE_PULSEWIDTH_LLIMIT} and {STABLE_PULSEWIDTH_ULIMIT}"
     )
     assert STABLE_INTER_PULSE_INTERVAL_LLIMIT <= stable_inter_pulse_interval <= STABLE_INTER_PULSE_INTERVAL_ULIMIT, (
         f"stable_inter_pulse_interval must be between {STABLE_INTER_PULSE_INTERVAL_LLIMIT} and {STABLE_INTER_PULSE_INTERVAL_ULIMIT}"
