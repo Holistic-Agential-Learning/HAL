@@ -383,21 +383,21 @@ def define_exp_window(old_exp):
                 [sg.pin(sg.Text("Invalid name", text_color="red", visible=False, key='-NAME-ERR-'))],
             [[sg.Text("Create or select folder: ")], [sg.Input(key='FOLDER'), sg.Button('Create'), sg.Button('Select')],
             [sg.pin(sg.Text("Please select or create a folder", text_color="red", visible=False, key='-FOLDER-ERR-'))]],
-            [[sg.Text('Choose an electrode configuration file.')],            
-                        [sg.Input(key='-CONFIG-'),
-                        sg.FileBrowse(initial_folder='../Configs'), 
-                        sg.Button("View")],
-                [sg.pin(sg.Text("", text_color="red", visible=False, key='-CONFIG-ERR-'))]],
             [[sg.Checkbox('', key='-MAXONE-', enable_events=True, default=True, disabled=True), 
                 sg.Text("MaxOne               "),
                 sg.Checkbox('', enable_events=True, key='-MAXTWO-'),
                 sg.Text("MaxTwo")]],
+            [sg.pin(sg.Col([[sg.Text('Choose an electrode configuration file.')],            
+                        [sg.Input(key='-CONFIG-'),
+                        sg.FileBrowse(initial_folder='/Users/Trevor/Documents/Halligan/Hybrot/configs'), 
+                        sg.Button("View")], 
+                        [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-'))]], key='-CONFIG-COL-'))],
             [sg.pin(sg.Col([[sg.Text('Choose recording wells:'), sg.Button("Choose", key='-CHOOSE-WELLS-'), 
             sg.Text("Selected", text_color="green", visible=False, key='-SELECTED-WELLS-')],
             [sg.pin(sg.Text("Select at least one well", text_color="red", visible=False, key='-WELLS-ERR-'))]], 
             visible=False, key='-WELLS-COL-'))],
             [[sg.Text('Choose a program:')],
-                [sg.ButtonMenu("Choose", ['Program', ['Train Waves', 'Switch Wells']], key='-CHOOSE-PROGRAM-'),
+                [sg.ButtonMenu("Choose", ['Program', list(PROGRAMS.keys())], key='-CHOOSE-PROGRAM-'),
                 sg.Input(key='-PROGRAM-')],
                 sg.pin(sg.Text("Choose a program", text_color="red", visible=False, k='-PROGRAM-ERR-'))],
             [sg.pin(sg.Column([[sg.Text("Stimulations", visible=False)]], k='-STIMULATIONS-'))], 
@@ -499,10 +499,12 @@ def define_exp(old_experiment):
             folder = selectFolder()
             window['FOLDER'].update(folder)
         elif event == '-MAXONE-':
+            window['-CONFIG-COL-'].update(visible=True)
             window['-WELLS-COL-'].update(visible=False)
             window['-MAXONE-'].update(disabled=True)
             window['-MAXTWO-'].update(value=False, disabled=False)
         elif event == '-MAXTWO-':
+            window['-CONFIG-COL-'].update(visible=False)
             window['-WELLS-COL-'].update(visible=True)
             window['-MAXTWO-'].update(disabled=True)
             window['-MAXONE-'].update(value=False, disabled=False)
@@ -545,12 +547,13 @@ def define_exp(old_experiment):
                     else:
                         window["-FOLDER-ERR-"].update(visible=False)
                         
-                elif key == "-CONFIG-":
+                elif key == "-MAXONE-":
+                    # if values['-CONFIG-'] != None:
                     if (read_config(values['-CONFIG-'], False)):
                         window['-CONFIG-ERR-'].update(visible=False)
                     else:
                         valid = False
-                        window['-CONFIG-ERR-'].update(visible=True, value="Invalid config")
+                        window['-CONFIG-ERR-'].update(visible=True)
                 elif key == "-MAXTWO-":
                     if values[key]:
                         if wells == None:
