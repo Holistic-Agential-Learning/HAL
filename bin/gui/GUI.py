@@ -24,6 +24,8 @@ PROGRAMS = {
                     "stim_names": ["Switch-Well"]},
 }
 
+CONFIG_PATH = '/Users/Trevor/Documents/Halligan/Hybrot/configs'
+
 ### MAP EACH PARAM TO ITS FIELD/MIN/MAX
 paramMap = {
     'NAME': (1,1),
@@ -191,17 +193,6 @@ def saveFile(values):
     if values['E_SELECTED'] != "":
         values['E_SELECTED'] = values['E_SELECTED'].replace(" ", "")
         values['E_SELECTED'] = [int(x) for x in values['E_SELECTED'].split(',')]
-    
-    configs = {}
-    if values['-MAXONE-']: 
-        val, electrode_nums, electrode_coords = read_config(values['-CONFIG-'], False)
-        config = {}
-        config['PATH'] = values['-CONFIG-']
-        config['E_NUMS'] = electrode_nums
-        config['E_NUMS'] = electrode_coords
-        configs['0'] = config
-
-    values['CONFIGS'] = configs
     # else:
     #     for well in values['WELLS']:
     #         configs[str(well)] = config
@@ -328,16 +319,49 @@ def edit_stimulation(stims, name, prev_values):
 
     return ret
 
+def view_well_config(window, values, well):
+    if values[f'-CONFIG-{well}-']:
+        if (read_config(values[f'-CONFIG-{well}-'], True)):
+            window[f'-CONFIG-ERR-{well}'].update(visible=False)
+        else:
+            window[f'-CONFIG-ERR-{well}'].update(visible=True, value="Not a valid config")
+    else:
+        window[f'-CONFIG-ERR-{well}'].update(visible=True, value="Config not selected")
+
 def edit_wells(prev_values):
-    layout = [[sg.Text("Which wells would you like to record from?")],
-                [[sg.Checkbox("1", key="1")], sg.Checkbox("2", key="2")],
-                [sg.Checkbox("3", key="3"), sg.Checkbox("4", key="4")],
-                [sg.Checkbox("5", key="5"), sg.Checkbox("6", key="6")],            
-                [sg.Checkbox("All of them (1-6)", enable_events=True, key="-ALL-WELLS-")],
+    layout = [[sg.Text("Select wells and corresponding config files.")],
+                [[sg.Checkbox("0", key="0"), sg.Input(key='-CONFIG-0-'),
+                        sg.FileBrowse(initial_folder=CONFIG_PATH), 
+                        sg.Button("View", key="View-0")], 
+                        [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-0'))]],
+                [[sg.Checkbox("1", key="1"), sg.Input(key='-CONFIG-1-'),
+                        sg.FileBrowse(initial_folder=CONFIG_PATH), 
+                        sg.Button("View", key="View-1")], 
+                        [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-1'))]],
+                
+                [[sg.Checkbox("2", key="2"), sg.Input(key='-CONFIG-2-'),
+                        sg.FileBrowse(initial_folder=CONFIG_PATH), 
+                        sg.Button("View", key="View-2")], 
+                        [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-2'))]],
+                
+                [[sg.Checkbox("3", key="3"), sg.Input(key='-CONFIG-3-'),
+                        sg.FileBrowse(initial_folder=CONFIG_PATH), 
+                        sg.Button("View", key="View-3")], 
+                        [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-3'))]],
+                
+                [[sg.Checkbox("4", key="4"), sg.Input(key='-CONFIG-4-'),
+                        sg.FileBrowse(initial_folder=CONFIG_PATH), 
+                        sg.Button("View", key="View-4")], 
+                        [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-4'))]],
+                
+                [[sg.Checkbox("5", key="5"), sg.Input(key='-CONFIG-5-'),
+                        sg.FileBrowse(initial_folder=CONFIG_PATH), 
+                        sg.Button("View", key="View-5")], 
+                        [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-5'))]],
                 [sg.pin(sg.Text("Select at least one well", text_color="red", visible=False, key='-WELLS-ERR-'))],
                 [sg.Submit(), sg.Cancel()]]
 
-    window = sg.Window("Edit Stimulation", layout, resizable=True, finalize=True)
+    window = sg.Window("Add Wells", layout, resizable=True, finalize=True)
     ret = None
     if prev_values != None:
         ret = prev_values
@@ -352,19 +376,32 @@ def edit_wells(prev_values):
             break
         elif event == '-ALL-WELLS-':
             if values['-ALL-WELLS-'] == True:
-                for i in range(1, 7):  
+                for i in range(6):  
                     window[str(i)].update(value=True)
             ret = values
         elif event == 'Submit':
             selected = False
-            for i in range(1, 7):
+            for i in range(6):
                 selected = values[str(i)] or selected
             if selected:
-                ret = values
-                window.close()
-                break
+                valid = True
+                for i in range(6):
+                    if values[str(i)]:
+                        if (read_config(values[f'-CONFIG-{i}-'], False)):
+                            window[f'-CONFIG-ERR-{i}'].update(visible=False)
+                        else:
+                            valid = False
+                            window[f'-CONFIG-ERR-{i}'].update(visible=True)
+                if valid:
+                    ret = values
+                    window.close()
+                    break
             else:
                 window['-WELLS-ERR-'].update(visible=True)
+        else:
+            for i in range(6):
+                if event == f"View-{i}":
+                    view_well_config(window, values, i)
     
     return ret
 
@@ -459,22 +496,25 @@ def define_exp(old_experiment):
             window['-WELLS-COL-'].update(visible=True)
             window['-MAXTWO-'].update(disabled=True)
             window['-MAXONE-'].update(value=False, disabled=False)
+            window['-CONFIG-COL-'].update(visible=False)
             wells = {}
             wells_list = old_experiment['WELLS']
             for i in range(6):
                 if (wells_list.count(i) == 1):
-                    wells[str(i + 1)] = True
+                    wells[str(i)] = True
                 else:
-                    wells[str(i + 1)] = False
-            old_experiment.pop('WELLS')
+                    wells[str(i)] = False
+            for well in wells_list:
+                wells[f'-CONFIG-{well}-'] = old_experiment["CONFIGS"][str(well)]["PATH"]
+
         elif old_experiment['-MAXONE-']:
             window['-WELLS-COL-'].update(visible=False)
             window['-MAXONE-'].update(disabled=True)
             window['-MAXTWO-'].update(value=False, disabled=False)
             config_path = old_experiment['CONFIGS']['0']['PATH']
             window['-CONFIG-'].update(value=config_path)
-            old_experiment.pop('CONFIGS')
-            old_experiment.pop('WELLS')
+        old_experiment.pop('CONFIGS')
+        old_experiment.pop('WELLS')
         if old_experiment['E_SELECTED'] != None:
             old_experiment['E_SELECTED'] = ", ".join(str(elec) for elec in old_experiment['E_SELECTED'])
         for param in old_experiment:
@@ -493,6 +533,8 @@ def define_exp(old_experiment):
         elif event == '-CHOOSE-PROGRAM-':
             if program != '':
                 program_visibility(window, program, False)
+
+                # stimulation parameters
                 params = {}
             
             program = values['-CHOOSE-PROGRAM-']
@@ -528,8 +570,13 @@ def define_exp(old_experiment):
         elif event == '-CHOOSE-WELLS-':
             wells = edit_wells(wells)
             if wells != None:
+                keys = list(wells.keys())
+                for key in keys:
+                    if key[0] == "B":
+                        wells.pop(key)
                 window['-SELECTED-WELLS-'].update(visible=True)
             else:
+                
                 window['-SELECTED-WELLS-'].update(visible=False)
         elif event[0] == '-EDIT-STIM-':
             name = event[2]
@@ -566,11 +613,12 @@ def define_exp(old_experiment):
                         
                 elif key == "-MAXONE-":
                     # if values['-CONFIG-'] != None:
-                    if (read_config(values['-CONFIG-'], False)):
-                        window['-CONFIG-ERR-'].update(visible=False)
-                    else:
-                        valid = False
-                        window['-CONFIG-ERR-'].update(visible=True)
+                    if values[key]:
+                        if (read_config(values['-CONFIG-'], False)):
+                            window['-CONFIG-ERR-'].update(visible=False)
+                        else:
+                            valid = False
+                            window['-CONFIG-ERR-'].update(visible=True)
                 elif key == "-MAXTWO-":
                     if values[key]:
                         if wells == None:
@@ -604,14 +652,29 @@ def define_exp(old_experiment):
                     params[stim] = params[stim][1]
                 values["STIMULATIONS"] = params
                 experiment = values
+                configs = {}
                 if wells != None:
                     wells_list = []
-                    for i in range(1, 7):
+                    for i in range(6):
                         if (wells[str(i)]):
-                            wells_list.append(i - 1)
+                            wells_list.append(i)
                     experiment['WELLS'] = wells_list
+                    for well in wells_list:
+                        val, electrode_nums, electrode_coords = read_config(wells[f'-CONFIG-{well}-'], False)
+                        config = {}
+                        config['PATH'] = wells[f'-CONFIG-{well}-']
+                        config['E_NUMS'] = electrode_nums
+                        config['E_NUMS'] = electrode_coords
+                        configs[str(well)] = config
                 else:
+                    val, electrode_nums, electrode_coords = read_config(experiment['-CONFIG-'], False)
+                    config = {}
+                    config['PATH'] = experiment['-CONFIG-']
+                    config['E_NUMS'] = electrode_nums
+                    config['E_NUMS'] = electrode_coords
+                    configs['0'] = config
                     experiment['WELLS'] = [0]
+                experiment['CONFIGS'] = configs
                 saveFile(experiment)
                 window.close()
                 return run_or_modify(experiment, f"Experiment '{experiment['NAME']}' has been saved successfully.")
@@ -887,7 +950,7 @@ def runExp(experiment):
 
 def start_gui():
 ### START WINDOW: 
-    sg.theme('LightBlue3') 
+    sg.theme('DarkGrey1') 
     layout = [ 
                         # [sg.Text('NAME OF TRIAL:'), sg.InputText(key='TRIAL_NAME')], 
                         [sg.Button('Choose Experiment'), sg.Button('Define Experiment'),
