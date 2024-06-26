@@ -88,7 +88,7 @@ if __name__ == '__main__':
         mx.activate([well])
 
         stim_electrodes = exp_params["E_SELECTED"]
-        rec_electrodes = exp_params["E_NUMS"]
+        rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = True
         if exp_params["STIMULATIONS"] == {}:
