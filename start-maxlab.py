@@ -230,7 +230,7 @@ if __name__ == '__main__':
         # time.sleep(600)
         print("calling c++ script... well" + str(well))
         # This is the command to run (will last as long as the cpp files lasts)
-        mx.send(mx.Event(well, 0, 1, "start_subprocess 1"))
+        mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
         try:
             subprocess.run([f"./bin/build/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-'])), str(well)])
         except KeyboardInterrupt:
@@ -238,7 +238,7 @@ if __name__ == '__main__':
         except Exception as err:
             print(err)
 
-        mx.send(mx.Event(well, 0, 1, "end_subprocess 1"))
+        mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
 
         # print("Ten minutes left")
         print("c++ script over...")

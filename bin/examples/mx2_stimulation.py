@@ -73,8 +73,6 @@ if __name__ == "__main__":
     stimulation_channels = config.get_channels_for_electrodes(stimulation_electrodes)
     stimulation_channels.sort()
 
-    mx.activate(0)
-    
     mx.send(
         mx.StimulationUnit(stimulation_units[0])
         .power_up(True)
@@ -82,14 +80,12 @@ if __name__ == "__main__":
         .set_voltage_mode()
         .dac_source(0)
     )
-    
-    mx.activate(1)
     mx.send(
         mx.StimulationUnit(stimulation_units[1])
         .power_up(True)
         .connect(True)
         .set_voltage_mode()
-        .dac_source(0)
+        .dac_source(1)
     )
 
     array.download(wells)
@@ -117,9 +113,9 @@ if __name__ == "__main__":
 
     sequence2 = mx.Sequence("2")
     for _ in range(5):
-        sequence2.append(mx.DAC(0, 512 + amplitude_B))
+        sequence2.append(mx.DAC(1, 512 + amplitude_B))
         sequence2.append(mx.DelaySamples(phase))
-        sequence2.append(mx.DAC(0, 512))
+        sequence2.append(mx.DAC(1, 512))
         sequence2.append(mx.DelaySamples(inter_pulse_interval))
 
     s.start_recording(wells)
@@ -132,9 +128,6 @@ if __name__ == "__main__":
     sleep(5)
     mx.activate([1])
     sequence2.send()
-    sleep(5)
-    mx.activate([0, 1])
-    sequence1.send()
 
     sleep(5)  # Post-stimulation time
     print("Stop recording")

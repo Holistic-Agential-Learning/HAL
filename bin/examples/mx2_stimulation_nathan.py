@@ -48,6 +48,25 @@ def connect_stim_units_to_stim_electrodes(
     return stim_units
 
 
+def poweroff_all_stim_units() -> None:
+    """Poweroff all stimulation units
+
+    This function is used to make sure that every stimulation units is
+    powered-off before starting sequentially to send the sequences to the
+    different stimulation units individually.
+
+    Returns
+    -------
+    None
+
+    """
+    for stimulation_unit in range(0, 32):
+        stim = mx.StimulationUnit(stimulation_unit)
+        stim.power_up(False)
+        stim.connect(False)
+        mx.send(stim)
+
+
 if __name__ == "__main__":
     # SETUP
     mx.initialize()
@@ -73,6 +92,8 @@ if __name__ == "__main__":
     stimulation_channels = config.get_channels_for_electrodes(stimulation_electrodes)
     stimulation_channels.sort()
 
+    mx.activate(0)
+    poweroff_all_stim_units()
     mx.send(
         mx.StimulationUnit(stimulation_units[0])
         .power_up(True)
@@ -80,12 +101,15 @@ if __name__ == "__main__":
         .set_voltage_mode()
         .dac_source(0)
     )
+    
+    mx.activate(1)
+    poweroff_all_stim_units()
     mx.send(
         mx.StimulationUnit(stimulation_units[1])
         .power_up(True)
         .connect(True)
         .set_voltage_mode()
-        .dac_source(1)
+        .dac_source(0)
     )
 
     array.download(wells)
@@ -113,9 +137,9 @@ if __name__ == "__main__":
 
     sequence2 = mx.Sequence("2")
     for _ in range(5):
-        sequence2.append(mx.DAC(1, 512 + amplitude_B))
+        sequence2.append(mx.DAC(0, 512 + amplitude_B))
         sequence2.append(mx.DelaySamples(phase))
-        sequence2.append(mx.DAC(1, 512))
+        sequence2.append(mx.DAC(0, 512))
         sequence2.append(mx.DelaySamples(inter_pulse_interval))
 
     s.start_recording(wells)
@@ -123,11 +147,32 @@ if __name__ == "__main__":
     print("Start recording")
     sleep(5)  # Pre-stimulation time
 
+    mx.send(mx.Event(0, 1, 1, f"activate_0 0"))
     mx.activate([0])
+    mx.send(mx.Event(0, 1, 2, f"activate_0 1"))
+    sleep(3)
+    mx.send(mx.Event(0, 1, 3, f"send_1 1"))
     sequence1.send()
     sleep(5)
+
+    mx.send(mx.Event(1, 1, 1, f"activate_1 0"))
     mx.activate([1])
+    mx.send(mx.Event(1, 1, 2, f"activate_1 1"))
+    sleep(3)
+    mx.send(mx.Event(1, 1, 3, f"send_2 1"))
     sequence2.send()
+    sleep(5)
+
+    mx.send(mx.Event(0, 1, 1, f"activate_0 0"))
+    mx.send(mx.Event(1, 1, 1, f"activate_1 0"))    
+    mx.activate([0, 1])
+
+    mx.send(mx.Event(0, 1, 2, f"activate_0 1"))
+    mx.send(mx.Event(1, 1, 2, f"activate_1 1"))
+    sleep(3)
+    mx.send(mx.Event(0, 1, 3, f"send_1 1"))
+    mx.send(mx.Event(1, 1, 3, f"send_1 1"))
+    sequence1.send()
 
     sleep(5)  # Post-stimulation time
     print("Stop recording")
