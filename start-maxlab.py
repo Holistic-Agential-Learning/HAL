@@ -190,7 +190,7 @@ if __name__ == '__main__':
                     well = well, 
                 )
 
-                seq = stim.create_sequence(persistent = True, initial_delay = 0)
+                seq = stim.create_sequence(persistent = True)
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)
