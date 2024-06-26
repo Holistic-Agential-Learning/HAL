@@ -89,14 +89,9 @@ if __name__ == '__main__':
 
         stim_electrodes = exp_params["E_SELECTED"]
         rec_electrodes = exp_params["E_NUMS"]
-        print(
-            "hello"
-        )
-        print(stim_electrodes)
-        print(exp_params)
-
+        
         does_stimulations = True
-        if exp_params["STIMULATIONS"] == None:
+        if exp_params["STIMULATIONS"] == {}:
             does_stimulations = False
 
         mx.initialize()
@@ -108,6 +103,9 @@ if __name__ == '__main__':
         array.reset()
         array.clear_selected_electrodes()
         #NOTE: stim_electrodes can include electrodes that aren't in rec_electrodes. In the future, maybe throw a warning if this is the case
+        if not does_stimulations:
+            print("not doing stimulations")
+            stim_electrodes = []
         array.select_electrodes(stim_electrodes + rec_electrodes)
         if does_stimulations:
             array.select_stimulation_electrodes(stim_electrodes)
@@ -178,20 +176,21 @@ if __name__ == '__main__':
 
         # conda activate jkts
         # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
-        stimulations = exp_params['STIMULATIONS']
-        for stim_name in stimulations.keys():
-            stim = Stimulation(stim_name, 0, 
-                amplitude = float(stimulations[stim_name]["AMPLITUDE"]), 
-                phase = float(stimulations[stim_name]["PHASE"]), 
-                pulses_per_train = int(stimulations[stim_name]["NUM_PER_TRAIN"]),
-                num_trains = int(stimulations[stim_name]["NUM_TRAINS"]),
-                pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
-                pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
-                maxtwo = exp_params['-MAXTWO-'],
-                well = well
-            )
+        if does_stimulations:
+            stimulations = exp_params['STIMULATIONS']
+            for stim_name in stimulations.keys():
+                stim = Stimulation(stim_name, 0, 
+                    amplitude = float(stimulations[stim_name]["AMPLITUDE"]), 
+                    phase = float(stimulations[stim_name]["PHASE"]), 
+                    pulses_per_train = int(stimulations[stim_name]["NUM_PER_TRAIN"]),
+                    num_trains = int(stimulations[stim_name]["NUM_TRAINS"]),
+                    pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
+                    pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
+                    maxtwo = exp_params['-MAXTWO-'],
+                    well = well
+                )
 
-            seq = stim.create_sequence(persistent = True)
+                seq = stim.create_sequence(persistent = True)
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)

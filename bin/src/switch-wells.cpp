@@ -168,7 +168,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
     bool switched = true;
 
-
+    int switchCount = 0;
     // start processing frames
     for (int i = 0; i < frames; i++) {
         if (i == 0){
@@ -199,20 +199,26 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
         // the machine takes another sample)
         if (status == maxlab::Status::MAXLAB_NO_FRAME) {
             i--;
-            if (!switched) {
-                cout << i << ": Switched, but no frame detected" << endl;
-            }
+            // if (!switched) {
+            //     // cout << i << ": Switched, but no frame detected" << endl;
+            //     switchCount++;
+            // }
             continue;
         }
 
         if (!switched) {
+            switchCount++;
             if (frameData.spikeCount == 0) {
-                cout << i << ": Switched, but no spike events detected" << endl;
+                
+                cout << switchCount << ": spike count is 0 " << well << endl;
             } else {
                 int well = frameData.spikeEvents[0].wellId;
                 if (well == 5) {
-                    cout << i << ": successfully switched to well 5" << endl;
-                } 
+                    cout << i << ": successfully switched to well 5 after " << switchCount << " frames." << endl;
+                    switched = true;
+                } else {
+                    cout << switchCount << ": still on well " << well << endl;
+                }
             }
         }
 
