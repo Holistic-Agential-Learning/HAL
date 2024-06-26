@@ -21,7 +21,7 @@ PROGRAMS = {
     "Train Waves": {"exec": "train-wave-direction",
                     "stim_names": ["Left-to-Right", "Right-to-Left"]},
     "Switch Wells": {"exec": "switch-wells",
-                    "stim_names": []},
+                    "stim_names": ["Switch-Well"]},
 }
 
 ### MAP EACH PARAM TO ITS FIELD/MIN/MAX

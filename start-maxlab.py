@@ -187,10 +187,10 @@ if __name__ == '__main__':
                     pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
                     pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
                     maxtwo = exp_params['-MAXTWO-'],
-                    well = well
+                    well = well, 
                 )
 
-                seq = stim.create_sequence(persistent = True)
+                seq = stim.create_sequence(persistent = True, initial_delay = 0)
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)

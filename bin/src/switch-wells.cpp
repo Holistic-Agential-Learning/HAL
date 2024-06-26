@@ -177,6 +177,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
 
         } else if (i == frames/2) {
             maxlab::Response r = maxlab::sendRaw("system_set_primary_well 5");
+            maxlab::verifyStatus(maxlab::sendSequence("Switch-Well"));
             cout << i << ": Switched wells with status " << r.status;
             if (r.content != nullptr) {
                 cout << ": \n\t" << r.content << endl;
