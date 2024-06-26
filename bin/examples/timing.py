@@ -12,9 +12,11 @@ import os
 import sys
 
 num_trials = 1000
+num_wells = 1
 
 
-recording_dir = str(Path(os.getcwd(), "..", "..", "data", "timing"))
+recording_dir = str(Path(os.path.dirname(__file__), "..", "..", "data", "timing"))
+print(recording_dir)
 file_name = "stim"
 
 
@@ -25,7 +27,7 @@ if __name__ == "__main__":
         print("save file already exists: deleting")
         filepath.unlink()
 
-    wells = range(0, 6)
+    wells = range(0, num_wells)
 
     mx.activate(wells)
     mx.initialize()
@@ -57,25 +59,27 @@ if __name__ == "__main__":
     s.start_file(file_name)
 
     s.group_define(0, "all_channels", list(range(1024)))
-
+    print("testing nodelay set primary well")
     mx.send(mx.Event(0, 1, 1, f"test nodelay_set_primary_well"))
 
     event_counter = 1
     for i in range(0, num_trials):
-        well = i%6
+        well = i%num_wells
         mx.send(mx.Event(0, 1, event_counter, f"set_primary_well 0 well {well}"))
-        mx.send(mx.set_primary_well(well))
+        mx.set_primary_well(well)
         mx.send(mx.Event(0, 1, event_counter, f"set_primary_well_{well} 1 well {well}"))
         event_counter += 1
 
 
     sleep(5)
+    print("testing delay set primary well")
+
     mx.send(mx.Event(0, 2, 1, f"test delay_set_primary_well"))
     event_counter = 1
     for i in range(0, num_trials):
-        well = i%6
+        well = i%num_wells
         mx.send(mx.Event(0, 2, event_counter, f"set_primary_well 0 well {well}"))
-        mx.send(mx.set_primary_well(well))
+        mx.set_primary_well(well)
         mx.send(mx.Event(0, 2, event_counter, f"set_primary_well 1 well {well}"))
         event_counter += 1
         sleep(1)
@@ -83,23 +87,27 @@ if __name__ == "__main__":
 
     sleep(5)
     mx.send(mx.Event(0, 3, 1, f"test delay_activate_wells"))
+    print("testing delay activate wells")
+
     event_counter = 1
     for i in range(0, num_trials):
-        num_wells = random.sample(range(1, 7), 1)
-        activation_wells = random.sample(range(0, 6), num_wells)
-        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 0 num_wells {num_wells}"))
-        mx.send(mx.activate(activation_wells))
-        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 1 num_wells {num_wells}"))
+        num_wells_activated = random.sample(range(1, num_wells + 1), 1)
+        activation_wells = random.sample(wells, num_wells_activated)
+        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 0 num_wells {num_wells_activated}"))
+        mx.activate(activation_wells)
+        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 1 num_wells {num_wells_activated}"))
         event_counter += 1
         sleep(1)
     
     sleep(5)
+    print("testing nodelay activate wells")
+
     mx.send(mx.Event(0, 4, 1, f"test nodelay_activate_wells"))
     event_counter = 1
     for i in range(0, num_trials):
-        well = i%6
+        well = i%num_wells
         mx.send(mx.Event(0, 4, event_counter, f"activate_wells 0 well {well}"))
-        mx.send(mx.activate(activation_wells))
+        mx.activate(activation_wells)
         mx.send(mx.Event(0, 4, event_counter, f"activate_wells 1 well {well}"))
         event_counter += 1
 
@@ -108,7 +116,7 @@ if __name__ == "__main__":
     mx.send(mx.Event(0, 5, 1, f"test events"))
     event_counter = 1
     for i in range(0, num_trials):
-        well = i%6
+        well = i%num_wells
         mx.send(mx.Event(0, 5, event_counter, f"event 0"))
         mx.send(mx.Event(0, 5, event_counter, f"event 1"))
         event_counter += 1
