@@ -664,14 +664,14 @@ def define_exp(old_experiment):
                         config = {}
                         config['PATH'] = wells[f'-CONFIG-{well}-']
                         config['E_NUMS'] = electrode_nums
-                        config['E_NUMS'] = electrode_coords
+                        config['E_COORDS'] = electrode_coords
                         configs[str(well)] = config
                 else:
                     val, electrode_nums, electrode_coords = read_config(experiment['-CONFIG-'], False)
                     config = {}
                     config['PATH'] = experiment['-CONFIG-']
                     config['E_NUMS'] = electrode_nums
-                    config['E_NUMS'] = electrode_coords
+                    config['E_COORDS'] = electrode_coords
                     configs['0'] = config
                     experiment['WELLS'] = [0]
                 experiment['CONFIGS'] = configs
