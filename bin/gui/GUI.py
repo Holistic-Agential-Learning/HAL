@@ -34,8 +34,6 @@ paramMap = {
     'NUM_TRAINS': (1,1000), 
     'PHASE': (100,1000),
     'DATE': (1,1),
-    # 'E_NUMS': (1,1),
-    # 'E_COORDS': (1,1),
     'FOLDER_NAME': (1,1),
     'E_SELECTED': (1,1)
 }
