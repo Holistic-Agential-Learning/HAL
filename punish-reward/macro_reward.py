@@ -1,23 +1,27 @@
 import maxlab as mx
 import random
 
-PULSE_PER_TRAIN_LLIMIT: int = 0
-PULSE_PER_TRAIN_ULIMIT: int = 20 
-STABLE_AMPLITUDE_LLIMIT: int = 0
-STABLE_AMPLITUDE_ULIMIT: int = 1023
-STABLE_PHASE_LLIMIT: int = 2 #100 uS (i.e 50us * 2)
-STABLE_PHASE_ULIMIT: int = 20 #1000 uS (i.e 50us * 20)
-STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 20 #1mS (i.e 50us * 20)
-STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 2000 #100mS (i.e 50us * 2000)
 
-def macro_reward(seq_name: str, num_pulses_per_train: int,
-                 stable_amplitude: int = 200, stable_phase: int = 200, stable_inter_pulse_interval: int = 200):
+PULSE_PER_TRAIN_LLIMIT: int = 1
+PULSE_PER_TRAIN_ULIMIT: int = 200_000 #this is arbitrary;' but the longer, the more unreliable
+STABLE_AMPLITUDE_LLIMIT: int = 0
+STABLE_AMPLITUDE_ULIMIT: int = 512 #the limit is [0,1023]
+
+#100 uS for MaxTwo and 50uS for MaxOne
+STABLE_PULSEWIDTH_LLIMIT: int = 1 
+STABLE_PULSEWIDTH_ULIMIT: int = 1_000
+STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10 
+STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 10_000
+
+#Note: treating each pulse as biphasic
+def macro_reward(seq_name: str, num_pulses_per_train: int = 500,
+                 stable_amplitude: int = 200, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
     
     '''
     inputs:
     1) name for the sequence you are creating
-    2) numbers of pulses you want per train, prefrably even
-    4, 5, 6) (Optional) stable_amplitude, stable_phase, stable_inter_pulse_interval for the reward
+    2) numbers of pulses you want per train
+    4, 5, 6) (Optional) stable_amplitude, stable_pulsewidth, stable_inter_pulse_interval for the reward
 
 
     outputs:
@@ -30,20 +34,24 @@ def macro_reward(seq_name: str, num_pulses_per_train: int,
     assert STABLE_AMPLITUDE_LLIMIT <= stable_amplitude <= STABLE_AMPLITUDE_ULIMIT, (
         f"stable_amplitude must be between {STABLE_AMPLITUDE_LLIMIT} and {STABLE_AMPLITUDE_ULIMIT}"
     )
-    assert STABLE_PHASE_LLIMIT <= stable_phase <= STABLE_PHASE_ULIMIT, (
-        f"stable_phase must be between {STABLE_PHASE_LLIMIT} and {STABLE_PHASE_ULIMIT}"
+    assert STABLE_PULSEWIDTH_LLIMIT <= stable_pulsewidth <= STABLE_PULSEWIDTH_ULIMIT, (
+        f"stable_pulsewidth must be between {STABLE_PULSEWIDTH_LLIMIT} and {STABLE_PULSEWIDTH_ULIMIT}"
     )
     assert STABLE_INTER_PULSE_INTERVAL_LLIMIT <= stable_inter_pulse_interval <= STABLE_INTER_PULSE_INTERVAL_ULIMIT, (
         f"stable_inter_pulse_interval must be between {STABLE_INTER_PULSE_INTERVAL_LLIMIT} and {STABLE_INTER_PULSE_INTERVAL_ULIMIT}"
     )
 
     seq = mx.Sequence(seq_name, persistent=True)
-
+    
+    #cathodic biphasic
     for _ in range(num_pulses_per_train):
         seq.append(mx.DAC(0, 512 - stable_amplitude))
-        seq.append(mx.DelaySamples(stable_phase))
-        seq.append(mx.DAC(0, 512 + stable_amplitude))
-        seq.append(mx.DelaySamples(stable_phase))
+        seq.append(mx.DelaySamples(stable_pulsewidth))
+        if stable_amplitude == 512:
+         seq.append(mx.DAC(0, 512 + 511))
+        else:
+           seq.append(mx.DAC(0, 512 + stable_amplitude))
+        seq.append(mx.DelaySamples(stable_pulsewidth))
         seq.append(mx.DAC(0, 512))
         seq.append(mx.DelaySamples(stable_inter_pulse_interval))
 
