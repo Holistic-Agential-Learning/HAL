@@ -67,6 +67,8 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50
 
 
     #defining our seq
+    seq = mx.Sequence(seq_name, persistent=False)
+    del(seq)
     seq = mx.Sequence(seq_name, persistent=True)
 
 

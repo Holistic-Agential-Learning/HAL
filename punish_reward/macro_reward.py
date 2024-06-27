@@ -41,6 +41,8 @@ def macro_reward(seq_name: str, num_pulses_per_train: int = 500,
         f"stable_inter_pulse_interval must be between {STABLE_INTER_PULSE_INTERVAL_LLIMIT} and {STABLE_INTER_PULSE_INTERVAL_ULIMIT}"
     )
 
+    seq = mx.Sequence(seq_name, persistent=False)
+    del(seq)
     seq = mx.Sequence(seq_name, persistent=True)
     
     #cathodic biphasic
