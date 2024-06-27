@@ -198,7 +198,11 @@ if __name__ == '__main__':
                 seq = stim.create_sequence(persistent = True)
 
         reward_seq = macro_reward("reward", 100, 10, 200, 2000)
-        punish_seq = macro_punish("PULSE_WIDTH", "punish", 20, 5, 200, 2000)
+        for i in range(0,1000):
+            var_name = f"punish_seq_{i}"
+            globals()[var_name] = macro_punish("PULSE_WIDTH", f"punish{i}" + str(i), 20, 5, 200, 2000)
+
+            
         #TODO: ADD MY OTHER PUNISH HERE
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)
