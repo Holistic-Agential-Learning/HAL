@@ -86,6 +86,7 @@ if __name__ == '__main__':
     
     for well in wells:
         mx.activate([well])
+        mx.set_primary_well(well)
 
         stim_electrodes = exp_params["E_SELECTED"]
         rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
