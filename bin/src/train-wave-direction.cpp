@@ -53,11 +53,12 @@ Options:
 Options:\n\
 \t[--maxtwo]             Indicates running on the MaxTwo\n\
 \t[--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)\n\
-\t[--frames <value>]     Number of frames to run for\n\
+\t[--minutes <value>]     Number of minutes to run\n\
 \t[--well <value>]       Well number\n"
 
 #define THRESHOLD_DEFAULT WINDOW/1000
 #define FRAMES_DEFAULT 15*60*20000
+#define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;
 
@@ -65,7 +66,7 @@ struct args {
     bool maxtwo;
     string config_path;
     float threshold;
-    int frames;
+    int minutes;
     int well;
 };
 
@@ -101,10 +102,10 @@ struct args getArgs(int argc, char *argv[]) {
         ret.well = 0;
     }
 
-    if (checkOption("--frames", argc, argv)) {
-        ret.frames = getIntArg("--frames", argc, argv);
+    if (checkOption("--minutes", argc, argv)) {
+        ret.minutes = getIntArg("--minutes", argc, argv);
     } else {
-        ret.frames = FRAMES_DEFAULT;
+        ret.minutes = MINUTES_DEFAULT;
     }
 
     return ret; 
@@ -128,39 +129,26 @@ void signal_interrupt_handler(int sig) {
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
-    // struct args params = getArgs(argc, argv);
-    // cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.frames << " frames..." << endl;
-    // cout << "Config: " << params.config_path << endl;
-    // cout << "Threshold: " << params.threshold << endl;
-    // cout << "Well: " << params.well << endl;
+    struct args params = getArgs(argc, argv);
+    cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.minutes << " minutes..." << endl;
+    cout << "Config: " << params.config_path << endl;
+    cout << "Threshold: " << params.threshold << endl;
+    cout << "Well: " << params.well << endl;
     // exit(1);
-    char *configPath = argv[1];
-    ElectrodeMap emap = ElectrodeMap(configPath);
-    int well = 0;
+    ElectrodeMap emap = ElectrodeMap(params.config_path.c_str());
+    int well = params.well;
     
-    if(argc >= 3 && stoi(argv[2])) {
+    if (params.maxtwo) {
         FRAMES_PER_SEC = 10000;
     }
-
-    if(argc >= 4) {
-        well = stoi(argv[3]);
-    }
-
     
-    int frames = 15*60*FRAMES_PER_SEC;
+    int frames = params.minutes*60*FRAMES_PER_SEC;
     
-    float threshold = WINDOW/1000;
+    float threshold = params.threshold;
 
     cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
     cout << "Min frames: " << MIN_FRAMES << endl;
 
-    
-
-    if (argc >= 5) {
-        frames = stoi(argv[4]);
-    } if (argc >= 6) {
-        threshold = stof(argv[5]);
-    }
     try {
         runExperiment(emap, frames, threshold, well);
     } catch (int err) {

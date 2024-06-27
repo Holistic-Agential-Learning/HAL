@@ -78,6 +78,9 @@ if __name__ == '__main__':
         exp_params = json.load(f)
     else:
         exp_params = GUI.start_gui()
+
+    program_file = open("./bin/gui/programs.json", "r")
+    program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
         
     if exp_params['-MAXTWO-']:
         wells = exp_params['WELLS']
@@ -86,6 +89,7 @@ if __name__ == '__main__':
     
     for well in wells:
         mx.activate([well])
+        mx.set_primary_well(well)
 
         stim_electrodes = exp_params["E_SELECTED"]
         rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
@@ -213,6 +217,19 @@ if __name__ == '__main__':
         
         ##############################################################################
 
+        program_args = [f"./bin/build/{exp_params['PROGRAM_EXEC']}", "--config", config_file_name]
+        if exp_params['-MAXTWO-']:
+            program_args.append("--maxtwo")
+
+        for name in program_parameters.keys():
+            if exp_params[name] != "":
+                program_args.append(program_parameters[name]["arg"])
+                program_args.append(exp_params[name])
+        
+        program_args.append("--well")
+
+        program_args.append(str(well))
+
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name + "_well_" + str(well))
@@ -231,7 +248,7 @@ if __name__ == '__main__':
         # This is the command to run (will last as long as the cpp files lasts)
         mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
         try:
-            subprocess.run([f"./bin/build/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-'])), str(well)])
+            subprocess.run(program_args)
         except KeyboardInterrupt:
             print("start-maxlab.py: ^C signalled")
         except Exception as err:

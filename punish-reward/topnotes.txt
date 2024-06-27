@@ -1,0 +1,2 @@
+macro_reward is cathodic biphasic
+macro_punish is monophasic
