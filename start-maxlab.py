@@ -226,6 +226,9 @@ if __name__ == '__main__':
                 program_args.append(program_parameters[name]["arg"])
                 program_args.append(exp_params[name])
         
+        program_args.append("--well")
+
+        program_args.append(str(well))
 
         s = mx.Saving()
         s.open_directory(directory_name)

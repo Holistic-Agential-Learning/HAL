@@ -4,8 +4,7 @@
     "stim_names": ["Left-to-Right", "Right-to-Left"],
     "parameters": {
         "Threshold": {"arg": "--threshold", "type": "float"},
-        "Minutes": {"arg": "--minutes", "type": "int"},
-        "Well": {"arg": "--well", "type": "int"}
+        "Minutes": {"arg": "--minutes", "type": "int"}
     }
 },
 "Switch Wells": {
