@@ -2,12 +2,12 @@ import maxlab as mx
 import random
 
 PULSE_PER_TRAIN_LLIMIT: int = 0
-PULSE_PER_TRAIN_ULIMIT: int = 20 
+PULSE_PER_TRAIN_ULIMIT: int = 20
 STABLE_AMPLITUDE_LLIMIT: int = 0
 STABLE_AMPLITUDE_ULIMIT: int = 1023
-STABLE_PHASE_LLIMIT: int = 2 #100 uS (i.e 50us * 2)
+STABLE_PHASE_LLIMIT: int = 2 #100 uS (i.e 50us * 2) #NOTE: TODO: make this relative to the maxone and two
 STABLE_PHASE_ULIMIT: int = 20 #1000 uS (i.e 50us * 20)
-STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 20 #1mS (i.e 50us * 20)
+STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 20 #1mS (i.e 50us * 20) #TODO: check if this can be zero
 STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 2000 #100mS (i.e 50us * 2000)
 
 
@@ -69,8 +69,8 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int,
     if (punish_type == "PULSE_WIDTH"):
 
         for i in generated_values:
-            generated_values.append(-1 * i)
-        random.shuffle(generated_values)
+            rand_no = random.randint(lowerlim, upperlim)
+            generated_values.append(rand_no)
 
         for i in generated_values:
             seq.append(mx.DAC(0, 512 - stable_amplitude))
