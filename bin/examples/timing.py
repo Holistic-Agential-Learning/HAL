@@ -134,8 +134,8 @@ if __name__ == "__main__":
     flip_num = 1
     for i in range(0, num_trials):
         well = i%num_wells
-        mx.send(mx.Event(0, 1, event_counter, f"event 0 flip_num {flip_num}"))
-        mx.send(mx.Event(0, 1, event_counter + 1, f"event 1 flip_num {flip_num}"))
+        mx.send(mx.Event(0, 1, event_counter, f"evnt 0 flip_num {flip_num}"))
+        mx.send(mx.Event(0, 1, event_counter + 1, f"evnt 1 flip_num {flip_num}"))
         event_counter += 2
 
 
