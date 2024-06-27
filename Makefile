@@ -18,16 +18,16 @@ dir:
 %.o: %.cpp 
 	$(CXX) $(INCLUDE_PATH) -c $< -o $(BUILD)/$(shell basename $@)
 
-train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o
+train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-switch-wells: $(SRC)/switch-wells.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o
+switch-wells: $(SRC)/switch-wells.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-mouse_1d: mouse_1d_exp/mouse_1d.o mouse_1d_exp/worldstate.o $(HAL_LIB_PATH)/channelWindow.o $(HAL_LIB_PATH)/electrodeMap.o
+mouse_1d: mouse_1d_exp/mouse_1d.o mouse_1d_exp/worldstate.o $(HAL_LIB_PATH)/channelWindow.o $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-maxtwo-direction: $(SRC)/maxtwo-direction.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o
+maxtwo-direction: $(SRC)/maxtwo-direction.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 

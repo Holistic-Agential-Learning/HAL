@@ -6,6 +6,7 @@ PULSE_PER_TRAIN_ULIMIT: int = 200_000 #this is arbitrary;' but the longer, the m
 STABLE_AMPLITUDE_LLIMIT: int = 0
 STABLE_AMPLITUDE_ULIMIT: int = 512 #the limit is [0,1023]
 
+
 #100 uS for MaxTwo and 50uS for MaxOne
 STABLE_PULSEWIDTH_LLIMIT: int = 1 #these limits matter a lot for the random num gen so set them properly
 STABLE_PULSEWIDTH_ULIMIT: int = 1_000
