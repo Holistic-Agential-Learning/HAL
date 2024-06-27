@@ -11,7 +11,7 @@ import random
 import os
 import sys
 
-num_trials = 200
+num_trials = 300
 num_wells = 6
 
 
@@ -75,6 +75,17 @@ if __name__ == "__main__":
 
     mx.activate([0])
     event_counter = 1
+
+    sleep(5)
+    print("testing events")
+    flip_num = 1
+    for i in range(0, num_trials):
+        mx.send(mx.Event(0, 1, event_counter, f"evt 0"))
+        mx.send(mx.Event(0, 1, event_counter + 1, f"evt 1"))
+        event_counter += 2
+
+    sleep(5)
+    print("testing non-delayed set primary well")
     flip_num = 1
     for i in range(0, num_trials):
         well = i%num_wells
@@ -128,15 +139,6 @@ if __name__ == "__main__":
         event_counter += 2
 
     #mx.clear_events()
-
-    sleep(5)
-    print("testing events")
-    flip_num = 1
-    for i in range(0, num_trials):
-        well = i%num_wells
-        mx.send(mx.Event(0, 1, event_counter, f"event 0 flip_num {flip_num}"))
-        mx.send(mx.Event(0, 1, event_counter + 1, f"event 1 flip_num {flip_num}"))
-        event_counter += 2
 
 
 
