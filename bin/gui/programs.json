@@ -12,5 +12,5 @@
     "exec": "switch-wells",
     "stim_names": ["Switch-Well"],
     "parameters": {}
-},
+}
 }

@@ -489,7 +489,7 @@ def define_exp_window(old_exp):
     #         [sg.pin(sg.Column([[sg.Text("Stimulations:", visible=False, key='-STIM-TEXT-')]], k='-STIMULATIONS-'))], 
     #         [sg.Button('Save experiment'), sg.Button('Cancel')]], scrollable=True, vertical_scroll_only=True, expand_y=True, expand_x=True)]]
     # , scrollable=True, vertical_scroll_only=True
-    window = sg.Window(window_message, layout, resizable=True, finalize=True)
+    window = sg.Window(window_message, layout, resizable=True, finalize=True, location=(int(w/4), 0))
 
     
     make_edit_stimulations(window)
