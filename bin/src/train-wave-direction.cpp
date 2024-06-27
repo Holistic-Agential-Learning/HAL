@@ -15,6 +15,16 @@
 using namespace std;
 using namespace maxlab;
 
+/*
+Arguments:
+    - frames
+    - well
+    - config path
+    - threshold
+    - maxtwo (int)
+
+*/
+
 // 220 x 120
 
 // amount of time to wait for system startup
