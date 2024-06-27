@@ -25,6 +25,18 @@ Arguments:
 
 */
 
+/*
+
+Usage: ./train-wave-direction --config <config_path> 
+
+Options:
+    [--maxtwo]             Indicates running on the MaxTwo          
+    [--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)
+    [--frames <value>]     Number of frames to run for
+    [--well <value>]       Well number
+
+*/
+
 // 220 x 120
 
 // amount of time to wait for system startup
@@ -37,12 +49,68 @@ Arguments:
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
 
+#define USAGE "Usage: ./train-wave-direction --config <config_path> \n\n\
+Options:\n\
+\t[--maxtwo]             Indicates running on the MaxTwo\n\
+\t[--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)\n\
+\t[--frames <value>]     Number of frames to run for\n\
+\t[--well <value>]       Well number\n"
+
+#define THRESHOLD_DEFAULT WINDOW/1000
+#define FRAMES_DEFAULT 15*60*20000
+
 int FRAMES_PER_SEC = 20000;
+
+struct args {
+    bool maxtwo;
+    string config_path;
+    float threshold;
+    int frames;
+    int well;
+};
 
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
 void runExperiment(ElectrodeMap emap, int frames, float threshold, int well);
 int get_max_element(vector<int> v);
+void printUsage();
+struct args getArgs(int argc, char *argv[]);
+
+void printUsage() {
+    cout << USAGE << endl;
+}
+
+struct args getArgs(int argc, char *argv[]) {
+    struct args ret;
+    if (!checkOption("--config", argc, argv)) {
+        printUsage();
+        exit(2);
+    }
+    ret.config_path = getStringArg("--config", argc, argv);
+    ret.maxtwo = checkOption("--maxtwo", argc, argv);
+
+    if (checkOption("--threshold", argc, argv)) {
+        ret.threshold = getFloatArg("--threshold", argc, argv);
+    } else {
+        ret.threshold = THRESHOLD_DEFAULT;
+    }
+
+    if (checkOption("--well", argc, argv)) {
+        ret.well = getIntArg("--well", argc, argv);
+    } else {
+        ret.well = 0;
+    }
+
+    if (checkOption("--frames", argc, argv)) {
+        ret.frames = getIntArg("--frames", argc, argv);
+    } else {
+        ret.frames = FRAMES_DEFAULT;
+    }
+
+    return ret; 
+}
+
+
 
 
 /* signal_interrupt_handler
@@ -60,6 +128,12 @@ void signal_interrupt_handler(int sig) {
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
+    // struct args params = getArgs(argc, argv);
+    // cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.frames << " frames..." << endl;
+    // cout << "Config: " << params.config_path << endl;
+    // cout << "Threshold: " << params.threshold << endl;
+    // cout << "Well: " << params.well << endl;
+    // exit(1);
     char *configPath = argv[1];
     ElectrodeMap emap = ElectrodeMap(configPath);
     int well = 0;
