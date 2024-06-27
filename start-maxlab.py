@@ -80,7 +80,7 @@ if __name__ == '__main__':
         exp_params = GUI.start_gui()
 
     program_file = open("./bin/gui/programs.json", "r")
-    program_parameters = json.load(program_file)[exp_params["-PROGRAMS-"]]
+    program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
         
     if exp_params['-MAXTWO-']:
         wells = exp_params['WELLS']
