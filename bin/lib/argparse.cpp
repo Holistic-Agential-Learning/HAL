@@ -1,9 +1,11 @@
 #include "argparse.h"
 #include <iostream>
+#include <cstring>
 
-bool checkOption(char *name, int argc, char *argv[]) {
+bool checkOption(string name, int argc, char *argv[]) {
+    const char * n = name.c_str();
     for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], name) == 0) {
+        if (strcmp(argv[i], n) == 0) {
             return true;
         }
     }
@@ -11,42 +13,37 @@ bool checkOption(char *name, int argc, char *argv[]) {
     return false;
 }
 
-char *getCStringArg(char *name, int argc, char *argv[]) {
+string getStringArg(string name, int argc, char *argv[]) {
+    const char * n = name.c_str();
     for (int i = 0; i < argc; i++) {
         char *arg = argv[i];
 
-        if (strcmp(arg, name) == 0) {
-            return "\0";
+        if (strcmp(arg, n) == 0) {
+            return string(argv[i + 1]);
         }
     }
 
     return "\0";
 }
 
-string getStringArg(char *name, int argc, char *argv[]) {
-    char *arg = getCStringArg(name, argc, argv);
+int getIntArg(string name, int argc, char *argv[]) {
+    string arg = getStringArg(name, argc, argv);
 
-    return string(arg);
-}
-
-int getIntArg(char *name, int argc, char *argv[]) {
-    char *arg = getCStringArg(name, argc, argv);
-
-    if (strcmp(arg, "\0") == 0) {
+    if (arg == "\0") {
         cerr << "Integer argument <" << name << "> not found." << endl;
         exit(2);
     }
 
-    return stoi(string(arg));
+    return stoi(arg);
 }
 
-float getFloatArg(char *name, int argc, char *argv[]) {
-    char *arg = getCStringArg(name, argc, argv);
+float getFloatArg(string name, int argc, char *argv[]) {
+    string arg = getStringArg(name, argc, argv);
 
-    if (strcmp(arg, "\0") == 0) {
+    if (arg == "\0") {
         cerr << "Float argument <" << name << "> not found." << endl;
         exit(2);
     }
 
-    return stof(string(arg));
+    return stof(arg);
 }
