@@ -16,8 +16,10 @@ num_wells = 6
 
 
 recording_dir = str(Path(os.path.dirname(__file__), "..", "..", "data", "timing"))
+recording_dir = "/home/mxwbio/Desktop/HAL/data/timing/"
 print(recording_dir)
-file_name = "stim"
+
+file_name = "stim_test_2"
 
 
 if __name__ == "__main__":
@@ -66,6 +68,8 @@ if __name__ == "__main__":
     s.group_define(3, "all_channels3", list(range(1024)))
     s.group_define(4, "all_channels4", list(range(1024)))
     s.group_define(5, "all_channels5", list(range(1024)))
+
+    s.start_recording(wells)
     print("testing nodelay set primary well")
     #mx.send(mx.Event(0, 1, 1, f"test nodelay_set_primary_well"))
 
@@ -86,6 +90,7 @@ if __name__ == "__main__":
     for i in range(0, num_trials):
         num_wells_activated = random.sample(range(1, num_wells + 1), 1)[0]
         activation_wells = random.sample(wells, num_wells_activated)
+        print(activation_wells)
         mx.send(mx.Event(0, 3, event_counter, f"activate_wells 0 num_wells {num_wells_activated}"))
         mx.activate(activation_wells)
         mx.send(mx.Event(0, 3, event_counter, f"activate_wells 1 num_wells {num_wells_activated}"))
@@ -137,6 +142,6 @@ if __name__ == "__main__":
 
 
     s.stop_recording()
-    sleep(mx.Timing.waitAfterRecording)
     s.stop_file()
+    sleep(mx.Timing.waitAfterRecording)
     s.group_delete_all()
