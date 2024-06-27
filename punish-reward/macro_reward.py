@@ -9,13 +9,13 @@ STABLE_AMPLITUDE_ULIMIT: int = 512 #the limit is [0,1023]
 
 #100 uS for MaxTwo and 50uS for MaxOne
 STABLE_PULSEWIDTH_LLIMIT: int = 1 
-STABLE_PULSEWIDTH_ULIMIT: int = 100
+STABLE_PULSEWIDTH_ULIMIT: int = 1_000
 STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10 
 STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 10_000
 
 #Note: treating each pulse as biphasic
 def macro_reward(seq_name: str, num_pulses_per_train: int = 500,
-                 stable_amplitude: int = 200, stable_pulsewidth: int = 4, stable_inter_pulse_interval: int = 200):
+                 stable_amplitude: int = 200, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
     
     '''
     inputs:
