@@ -13,16 +13,14 @@ w, h = sg.Window.get_screen_size()
 sg.set_options(font=('bitstream charter', 18), element_padding=(6, 6), text_justification='left')
 
 # NOTE: Stimulation names ~cannot~ have spaces in them
-PROGRAMS = {
+PROGRAMS_PATH = open("./bin/gui/programs.json", "r")
+PROGRAMS = json.load(PROGRAMS_PATH)
     # "Print Bursts": {"exec": "print-bursts",
     #                 "stim_names": []},
     # "Stim Direction": {"exec": "stim-burst-direction",
     #                 "stim_names": ["General Stimulation"]},
-    "Train Waves": {"exec": "train-wave-direction",
-                    "stim_names": ["Left-to-Right", "Right-to-Left"]},
-    "Switch Wells": {"exec": "switch-wells",
-                    "stim_names": ["Switch-Well"]},
-}
+    
+
 
 CONFIG_PATH = '/Users/Trevor/Documents/Halligan/Hybrot/configs'
 
