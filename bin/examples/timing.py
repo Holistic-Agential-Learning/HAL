@@ -11,7 +11,7 @@ import random
 import os
 import sys
 
-num_trials = 1000
+num_trials = 10
 num_wells = 6
 
 
@@ -19,7 +19,7 @@ recording_dir = str(Path(os.path.dirname(__file__), "..", "..", "data", "timing"
 recording_dir = "/home/mxwbio/Desktop/HAL/data/timing/"
 print(recording_dir)
 
-file_name = "stim_test_2"
+file_name = "stim_test_2_low_trial_number"
 
 
 if __name__ == "__main__":
@@ -75,67 +75,69 @@ if __name__ == "__main__":
 
     mx.activate([0])
     event_counter = 1
+    flip_num = 1
     for i in range(0, num_trials):
         well = i%num_wells
-        mx.send(mx.Event(0, 1, event_counter, f"set_primary_well 0 well {well}"))
+        mx.send(mx.Event(0, 1, event_counter, f"set_primary_well 0 well {well} flip_num {flip_num}"))
         mx.set_primary_well(well)
-        mx.send(mx.Event(0, 1, event_counter, f"set_primary_well 1 well {well}"))
-        event_counter += 1
+        mx.send(mx.Event(0, 1, event_counter + 1, f"set_primary_well 1 well {well} flip_num {flip_num}"))
+        flip_num += 1
+        event_counter += 2
 
-    mx.clear_events()
+    #mx.clear_events()
 
 
     sleep(5)
     print("testing delay activate wells")
-    event_counter = 1
+    flip_num = 1
     for i in range(0, num_trials):
         num_wells_activated = random.sample(range(1, num_wells + 1), 1)[0]
         activation_wells = random.sample(wells, num_wells_activated)
         print(activation_wells)
-        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 0 num_wells {num_wells_activated}"))
+        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 0 num_wells {num_wells_activated} flip_num {flip_num}"))
         mx.activate(activation_wells)
         mx.activate([0])
-        mx.send(mx.Event(0, 3, event_counter, f"activate_wells 1 num_wells {num_wells_activated}"))
-        event_counter += 1
+        mx.send(mx.Event(0, 3, event_counter + 1, f"activate_wells 1 num_wells {num_wells_activated} flip_num {flip_num}"))
+        event_counter += 2
         sleep(0.2)
 
 
-    mx.clear_events()
+    #mx.clear_events()
 
 
     sleep(5)
     print("testing delay set primary well")
-    event_counter = 1
+    flip_num = 1
     for i in range(0, num_trials):
         well = i%num_wells
-        mx.send(mx.Event(0, 2, event_counter, f"set_primary_well 0 well {well}"))
+        mx.send(mx.Event(0, 2, event_counter, f"set_primary_well 0 well {well} flip_num {flip_num}"))
         mx.set_primary_well(well)
-        mx.send(mx.Event(0, 2, event_counter, f"set_primary_well 1 well {well}"))
-        event_counter += 1
+        mx.send(mx.Event(0, 2, event_counter + 1, f"set_primary_well 1 well {well} flip_num {flip_num}"))
+        event_counter += 2
         sleep(0.2)
     
-    mx.clear_events()
+    #mx.clear_events()
 
     sleep(5)
     print("testing nodelay activate wells")
-    event_counter = 1
+    flip_num = 1
     for i in range(0, num_trials):
         well = i%num_wells
-        mx.send(mx.Event(0, 4, event_counter, f"activate_wells 0 well {well}"))
+        mx.send(mx.Event(0, 4, event_counter, f"activate_wells 0 well {well} flip_num {flip_num}"))
         mx.activate(activation_wells)
-        mx.send(mx.Event(0, 4, event_counter, f"activate_wells 1 well {well}"))
-        event_counter += 1
+        mx.send(mx.Event(0, 4, event_counter + 1, f"activate_wells 1 well {well} flip_num {flip_num}"))
+        event_counter += 2
 
-    mx.clear_events()
+    #mx.clear_events()
 
     sleep(5)
     print("testing events")
-    event_counter = 1
+    flip_num = 1
     for i in range(0, num_trials):
         well = i%num_wells
-        mx.send(mx.Event(0, 5, event_counter, f"event 0"))
-        mx.send(mx.Event(0, 5, event_counter, f"event 1"))
-        event_counter += 1
+        mx.send(mx.Event(0, 5, event_counter, f"event 0 flip_num {flip_num}"))
+        mx.send(mx.Event(0, 5, event_counter + 1, f"event 1 flip_num {flip_num}"))
+        event_counter += 2
 
 
 
