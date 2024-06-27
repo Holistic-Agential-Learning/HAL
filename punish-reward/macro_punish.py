@@ -4,14 +4,14 @@ import random
 PULSE_PER_TRAIN_LLIMIT: int = 1
 PULSE_PER_TRAIN_ULIMIT: int = 200_000 #this is arbitrary;' but the longer, the more unreliable
 STABLE_AMPLITUDE_LLIMIT: int = 0
-STABLE_AMPLITUDE_ULIMIT: int = 512 #the limit is [0,1023]
+STABLE_AMPLITUDE_ULIMIT: int = 5 #the limit is [0,1023]
 
 
 #100 uS for MaxTwo and 50uS for MaxOne
-STABLE_PULSEWIDTH_LLIMIT: int = 1 #these limits matter a lot for the random num gen so set them properly
+STABLE_PULSEWIDTH_LLIMIT: int = 10 #these limits matter a lot for the random num gen so set them properly
 STABLE_PULSEWIDTH_ULIMIT: int = 1_000
 STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10  
-STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
+STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 10_000
 
 
 #Note: treating each pulse as MonoPhasic by default 
@@ -48,7 +48,7 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50
 
     elif (punish_type == "AMPLITUDE"):
         lowerlim = STABLE_AMPLITUDE_LLIMIT
-        upperlim = (STABLE_AMPLITUDE_ULIMIT + 511)
+        upperlim = STABLE_AMPLITUDE_ULIMIT
 
     elif (punish_type == "INTER_PHASE"):
         lowerlim =  STABLE_INTER_PULSE_INTERVAL_LLIMIT
@@ -72,13 +72,16 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50
 
     if (punish_type == "AMPLITUDE"):
 
+        new_generated_values = []
         for i in generated_values:
-            generated_values.append(-1 * i)
+            new_generated_values.append(-1 * i)
+        
+        generated_values += new_generated_values
 
         random.shuffle(generated_values)
 
         for i in generated_values:
-            seq.append(mx.DAC(0, i))
+            seq.append(mx.DAC(0, 512 + i))
             seq.append(mx.DelaySamples(stable_pulsewidth))
             seq.append(mx.DAC(0, 512))
             seq.append(mx.DelaySamples(stable_inter_pulse_interval))
@@ -104,6 +107,10 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50
 
 
     elif (punish_type == "PULSE_WIDTH"):
+        for _ in range(generation_len):
+            rand_no = random.randint(lowerlim, upperlim)
+            generated_values.append(rand_no)
+
         for i in generated_values:
             seq.append(mx.DAC(0, 512 - stable_amplitude))
             seq.append(mx.DelaySamples(i))
