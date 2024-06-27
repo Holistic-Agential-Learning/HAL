@@ -420,6 +420,17 @@ def make_edit_stimulations(window):
     window.extend_layout(window["-STIMULATIONS-"], stim_e)
     # window['-STIMULATIONS-'].update(scrollable=True)
 
+def get_edit_parameter(program, param_name):
+    layout = [[sg.pin(sg.Text(f"{param_name}:", visible=False, key=f"-{program}-{param_name}-TEXT-")), sg.pin(sg.Input(key=f'-{program}-{param_name}-', visible=False))]]
+    return layout
+
+def make_parameters(window):
+    for program in PROGRAMS.keys():
+        parameters = PROGRAMS[program]["parameters"]
+        for param in parameters.keys():
+            param_layout = get_edit_parameter(program, param)
+            window.extend_layout(window["-PARAMETERS-"], param_layout)
+
 def define_exp_window(old_exp):
     message = 'Create a new experiment'
     window_message = 'New Experiment'
@@ -449,7 +460,8 @@ def define_exp_window(old_exp):
                 [sg.ButtonMenu("Choose", ['Program', list(PROGRAMS.keys())], key='-CHOOSE-PROGRAM-'),
                 sg.Input(key='-PROGRAM-')],
                 sg.pin(sg.Text("Choose a program", text_color="red", visible=False, k='-PROGRAM-ERR-'))],
-            [sg.pin(sg.Column([[sg.Text("Stimulations", visible=False)]], k='-STIMULATIONS-'))], 
+            [sg.pin(sg.Column([[sg.Text("Parameters:", visible=False, key='-PARAM-TEXT-')]], k='-PARAMETERS-'))],
+            [sg.pin(sg.Column([[sg.Text("Stimulations", visible=False, key='-STIM-TEXT-')]], k='-STIMULATIONS-'))], 
             [sg.Button('Save experiment'), sg.Button('Cancel')]]
     # layout = [[sg.Col([[sg.Text(message, font=("Helvetica", 16, "bold"))],
     #         [sg.Text('Experiment name:'), sg.InputText(key='NAME', size=(40,1))],
@@ -481,16 +493,22 @@ def define_exp_window(old_exp):
 
     
     make_edit_stimulations(window)
+    make_parameters(window)
     return window
 
 def program_visibility(window, program, visible):
     stim_names = PROGRAMS[program]["stim_names"]
+    parameters = PROGRAMS[program]["parameters"]
     for name in stim_names:
         window[f'-{program}-{name}-'].update(visible=visible)
         window[('-EDIT-STIM-', program, name)].update(visible=visible)
         if not visible:
             window[f'-{program}-{name}-VERIFIED-'].update(visible=visible)
             window[f'-{program}-{name}-ERR-'].update(visible=visible)
+
+    for param in parameters.keys():
+        window[f"-{program}-{param}-TEXT-"].update(visible=visible)
+        window[f"-{program}-{param}-"].update(visible=visible)
         
     if len(stim_names) > 0:
         window["-STIM-ELECT-"].update(visible=visible)
@@ -514,6 +532,9 @@ def define_exp(old_experiment):
         old_experiment.pop('PROGRAM_EXEC')
         old_experiment.pop('-CHOOSE-PROGRAM-')
         program = old_experiment['-PROGRAM-']
+        for param in PROGRAMS[program]["parameters"].keys():
+            window[f"-{program}-{param}-"].update(value=old_experiment[param])
+            old_experiment.pop(param)
         if old_experiment['-MAXTWO-']:
             window['-WELLS-COL-'].update(visible=True)
             window['-MAXTWO-'].update(disabled=True)
@@ -564,7 +585,7 @@ def define_exp(old_experiment):
             program = values['-CHOOSE-PROGRAM-']
             if PROGRAMS[program]["stim_names"] != []:
                 window['-STIM-TEXT-'].update(visible=True)
-            if PROGRAMS[program]["parameters"] != []:
+            if PROGRAMS[program]["parameters"] != {}:
                 window['-PARAM-TEXT-'].update(visible=True)
             program_visibility(window, program, True)
             
@@ -679,6 +700,12 @@ def define_exp(old_experiment):
                     # print(f'params! {params[stim]}')
                     params[stim] = params[stim][1]
                 values["STIMULATIONS"] = params
+                for p in PROGRAMS.keys():
+                    for param in PROGRAMS[p]["parameters"].keys():
+                        if p == program:
+                            values[param] = values[f"-{p}-{param}-"]
+                        values.pop(f"-{p}-{param}-")
+
                 experiment = values
                 configs = {}
                 if wells != None:
