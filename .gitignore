@@ -11,3 +11,4 @@ build
 data/*
 Makefile
 guitest
+ERR_LOG

@@ -21,7 +21,7 @@ void ChannelWindow::add(maxlab::FilteredFrameData frame) {
 
     // copy over spike events that have channel numbers in the config
     if (numValid > 0) {
-        maxlab::SpikeEvent *newSpikeEvents = malloc(numValid * sizeof(maxlab::SpikeEvent));
+        maxlab::SpikeEvent *newSpikeEvents = (maxlab::SpikeEvent *)malloc(numValid * sizeof(maxlab::SpikeEvent));
         int newSpikeEventsIdx = 0;
         for (int i = 0; i < spikeCount; i++) {
             if (emap.exists(spikeEvents[i].channel)) {
@@ -49,7 +49,7 @@ void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
         }
     }
     if (spikeCount > 0) {
-        free(firstFrame.spikeEvents);3
+        free((void *)firstFrame.spikeEvents);
     }
     window.erase(window.begin());
     if (beforeSum != sum) {
