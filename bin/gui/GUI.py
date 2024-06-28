@@ -22,7 +22,7 @@ PROGRAMS = json.load(PROGRAMS_PATH)
     
 
 
-CONFIG_PATH = '/Users/Trevor/Documents/Halligan/Hybrot/configs'
+CONFIG_PATH = '/home/mxwbio/configs'
 
 ### MAP EACH PARAM TO ITS FIELD/MIN/MAX
 paramMap = {
@@ -836,7 +836,7 @@ def run_or_modify(experiment, message):
             break
         elif event == "Run":
             window.close()
-            return run(experiment)
+            return experiment
         elif event == "Modify":
             window.close()
             return define_exp(experiment)

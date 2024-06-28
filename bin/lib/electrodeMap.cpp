@@ -28,7 +28,7 @@ ElectrodeMap::ElectrodeMap(const char *config_path) {
 }
 
 bool ElectrodeMap::exists(int channelNo) {
-    if (emap.count(channelNo) == 1) {
+    if (emap.count(channelNo) > 0) {
         return true;
     } 
 
@@ -36,7 +36,7 @@ bool ElectrodeMap::exists(int channelNo) {
 }
 
 electrodeCoords ElectrodeMap::get(int channelNo) {
-    if(emap.count(channelNo) == 1){
+    if(emap.count(channelNo) > 0){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords;
     }
@@ -51,7 +51,7 @@ electrodeCoords ElectrodeMap::get(int channelNo) {
 }
 
 int ElectrodeMap::get_position(int channelNo) {
-    if(emap.count(channelNo) == 1){
+    if(emap.count(channelNo) > 0){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords.position;
     }
@@ -62,7 +62,7 @@ int ElectrodeMap::get_position(int channelNo) {
 }
 
 float ElectrodeMap::get_x(int channelNo) {
-    if(emap.count(channelNo) == 1){
+    if(emap.count(channelNo) > 0){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords.x;
     }

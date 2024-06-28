@@ -4,6 +4,7 @@
 #include <maxlab.h>
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
 #include <map>
 
 #ifndef __CHANNELWINDOW_H__
@@ -94,6 +95,7 @@ class ChannelWindow {
         ElectrodeMap electrodeMap();
 
         void print();
+        void debug(string message);
     
     private:
         vector<maxlab::FilteredFrameData> window;

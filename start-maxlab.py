@@ -217,7 +217,7 @@ if __name__ == '__main__':
         
         ##############################################################################
 
-        program_args = [f"./bin/build/{exp_params['PROGRAM_EXEC']}", "--config", config_file_name]
+        program_args = [f"./bin/build/{exp_params['PROGRAM_EXEC']}", "2>", "ERR_LOG", "--config", config_file_name]
         if exp_params['-MAXTWO-']:
             program_args.append("--maxtwo")
 
@@ -230,9 +230,7 @@ if __name__ == '__main__':
 
         program_args.append(str(well))
 
-        # output anything from stderr to debug log
-        program_args.append("2>")
-        program_args.append("ERR_LOG")
+        
 
         s = mx.Saving()
         s.open_directory(directory_name)
