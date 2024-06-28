@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     s.group_define(0, "all_channels0", list(range(1024)))
 
-    s.start_recording(wells)
+    s.start_recording([0])
     
 
     
@@ -118,12 +118,14 @@ if __name__ == "__main__":
 
 
 
-    with h5py.File(filepath, "r") as h5_file:
+    with h5py.File(str(filepath), "r") as h5_file:
         h5_object = h5_file['wells']['well000']['rec0000']
         events = h5_object['events']
         events_arr= np.array(events)
         events_dataset = pd.DataFrame(events_arr)
 
+    print("hi")
+    print(events_dataset)
     for i in events_dataset.index:
         print(events_dataset.loc[i, :])
         print()
