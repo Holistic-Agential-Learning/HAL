@@ -355,7 +355,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
                             int randomInt = dis(gen);
                             std::string punish_no = std::to_string(randomInt);
                             std::string final_punish = "punish" + punish_no;
-                            maxlab::verifyStatus(maxlab::sendSequence("punish"));
+                            maxlab::verifyStatus(maxlab::sendSequence(final_punish));
                             cout << i << ": sent right-to-left stimulation" << endl;
                         }
 

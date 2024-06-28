@@ -8,7 +8,7 @@ HAL_LIB_PATH = ./bin/lib
 HAL_LIB = $(HAL_LIB_PATH)/*.cpp
 
 
-all : dir train-wave-direction mouse_1d maxtwo-direction switch-wells
+all : dir train-wave-direction mouse_1d maxtwo-direction switch-wells reward-punish
 
 dir:
 	mkdir -p $(BUILD)
@@ -28,6 +28,9 @@ mouse_1d: mouse_1d_exp/mouse_1d.o mouse_1d_exp/worldstate.o $(HAL_LIB_PATH)/chan
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 maxtwo-direction: $(SRC)/maxtwo-direction.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
+	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+
+reward-punish: $(SRC)/closed_loop_rp.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 
