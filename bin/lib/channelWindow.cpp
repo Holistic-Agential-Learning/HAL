@@ -10,11 +10,11 @@ ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
     const SpikeEvent * spikeEvents = frame.spikeEvents;
     int spikeCount = frame.spikeCount;
-    int newSpikeCount = 0;
     for (int i = 0; i < spikeCount; i++) {
-        addEvent(spikeEvents[i]);
+        if (emap.exists(spikeEvents[i].channel)) {
+            sum++;
+        }
     }
-    // frame.spikeCount = newSpikeCount;
     window.push_back(frame);
 }
 
@@ -25,6 +25,11 @@ void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
         if (emap.exists(spikeEvents[i].channel)) {
             sum--;
         }
+    }
+    if (sum < 0) {
+        cerr << "CHANNEL WINDOW IS ABOUT TO BE NEGATIVE" << endl;
+        cerr << "Before shifting: " << endl;
+        print()
     }
     window.erase(window.begin());
     add(frame);
@@ -51,11 +56,11 @@ ElectrodeMap ChannelWindow::electrodeMap() {
 }
 
 void ChannelWindow::print() {
-    cout << "Printing window ----------------------------" << endl;
+    cerr << "Printing window ----------------------------" << endl;
+    cerr << "Sum: " << endl;
     for (int i = 0; i < size; i++) {
         FilteredFrameData fd = get(i);
-        // cout << "--------------------\n" << "Frame No. " << i << endl;
-        cout << "Spike count: " << fd.spikeCount << endl;
+        cerr << "Spike count: " << fd.spikeCount << endl;
     }
 }
 

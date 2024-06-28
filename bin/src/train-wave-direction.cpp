@@ -369,7 +369,7 @@ float get_avg_side(ChannelWindow window) {
     ElectrodeMap emap = window.electrodeMap();
 
     // used to make sure that each channel is only counted once
-    int channels[1024] = {0};
+    int channels[1024];
     float sum = 0;
     float count = 0;
     for (int i = 0; i < window.length(); i++) {
@@ -380,20 +380,19 @@ float get_avg_side(ChannelWindow window) {
             // compute column coordinate and add to sum
             int channel = event[j].channel;
             // if the channel has already been counted
-            if (channel < 1024 && channels[channel] == 0){
-                if(channel > 1024){
+            if (channel < 1024 && channels[channel] == 0) {
+                if(channel > 1024) {
                     cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
                 }
                 float x_coord = emap.get_x(channel);
                 if(x_coord < 0){ //channel number not found in the emap
                     // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
                 }
-                else{
+                else {
                     sum += x_coord;
                     channels[channel] = 1;
                     count++;
                 }
-
             }
             
         }
