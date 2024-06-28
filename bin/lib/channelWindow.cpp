@@ -8,7 +8,7 @@ ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
 }
 
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
-    const SpikeEvent * spikeEvents = frame.spikeEvents;
+    const maxlab::SpikeEvent * spikeEvents = frame.spikeEvents;
     int spikeCount = frame.spikeCount;
     for (int i = 0; i < spikeCount; i++) {
         if (emap.exists(spikeEvents[i].channel)) {
@@ -20,9 +20,9 @@ void ChannelWindow::add(maxlab::FilteredFrameData frame) {
 
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
     FilteredFrameData firstFrame = window[0];
-    const SpikeEvent * spikeEvents = firstFrame.spikeEvents;
+    const maxlab::SpikeEvent * spikeEvents = firstFrame.spikeEvents;
     int spikeCount = firstFrame.spikeCount;
-    for (int i = 0; i < firstFrame.spikeCount; i++) {
+    for (int i = 0; i < spikeCount; i++) {
         if (emap.exists(spikeEvents[i].channel)) {
             sum--;
         }
@@ -63,7 +63,7 @@ void ChannelWindow::print() {
         maxlab::FilteredFrameData fd = get(i);
         cerr << "Index " << i << endl;
         cerr << "Spike count: " << fd.spikeCount << endl;
-        maxlab::SpikeEvent * spikeEvents = fd.spikeEvents;
+        const maxlab::SpikeEvent * spikeEvents = fd.spikeEvents;
         int spikeCount = fd.spikeCount;
         for (int j = 0; j < spikeCount; j++) {
             maxlab::SpikeEvent se = spikeEvents[j];
