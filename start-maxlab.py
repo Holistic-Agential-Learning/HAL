@@ -230,10 +230,6 @@ if __name__ == '__main__':
 
         program_args.append(str(well))
 
-        # output anything from stderr to debug log
-        program_args.append("2>")
-        program_args.append("ERR_LOG")
-
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name + "_well_" + str(well))
