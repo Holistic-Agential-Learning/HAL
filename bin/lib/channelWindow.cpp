@@ -21,6 +21,7 @@ void ChannelWindow::add(maxlab::FilteredFrameData frame) {
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
     FilteredFrameData firstFrame = window[0];
     const SpikeEvent * spikeEvents = firstFrame.spikeEvents;
+    int spikeCount = firstFrame.spikeCount;
     for (int i = 0; i < firstFrame.spikeCount; i++) {
         if (emap.exists(spikeEvents[i].channel)) {
             sum--;
@@ -59,8 +60,15 @@ void ChannelWindow::print() {
     cerr << "Printing window ----------------------------" << endl;
     cerr << "Sum: " << endl;
     for (int i = 0; i < size; i++) {
-        FilteredFrameData fd = get(i);
+        maxlab::FilteredFrameData fd = get(i);
+        cerr << "Index " << i << endl;
         cerr << "Spike count: " << fd.spikeCount << endl;
+        maxlab::SpikeEvent * spikeEvents = fd.spikeEvents;
+        int spikeCount = fd.spikeCount;
+        for (int j = 0; j < spikeCount; j++) {
+            maxlab::SpikeEvent se = spikeEvents[j];
+            cerr << "\tFrame: " << se.frameNo << endl;
+        }
     }
 }
 
