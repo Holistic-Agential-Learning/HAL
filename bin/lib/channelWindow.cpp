@@ -99,11 +99,13 @@ void ChannelWindow::debug(string message) {
         file << "Index " << i << endl;
         file << "Spike count: " << fd.spikeCount << endl;
         const maxlab::SpikeEvent * spikeEvents = fd.spikeEvents;
+        file << "Struct Address: " << spikeEvents << endl;
         int spikeCount = fd.spikeCount;
         for (int j = 0; j < spikeCount; j++) {
             maxlab::SpikeEvent se = spikeEvents[j];
             file << "\tFrame: " << se.frameNo << endl;
             file << "\tChannel: " << se.channel << endl;
+            
             if (!emap.exists(se.channel)) {
                 file << "\tInvalid channel number" << endl;
             } else {

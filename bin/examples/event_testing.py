@@ -67,9 +67,10 @@ if __name__ == "__main__":
     s.group_define(0, "all_channels0", list(range(1024)))
 
     s.start_recording([0])
-    
 
-    
+    sleep(5)
+
+    mx.send(mx.Event(0, 1, 1, "hello 1"))
     mx.send(mx.Event(0, 1, 1, f"test 1"))
     mx.send(mx.Event(0, 1, 1, f"test 2"))
     mx.send(mx.Event(0, 1, 1, f"test 3"))
@@ -78,7 +79,7 @@ if __name__ == "__main__":
 
     mx.send(mx.Event(0, 1, 3, f"functional 1"))
 
-    mx.send(mx.Event(0, 1, 4, f"functional text"))
+    mx.send(mx.Event(0, 1, 4, f"functional text test 2"))
 
     mx.send(mx.Event(0, 1, 0, f"test 1"))
 
@@ -87,7 +88,9 @@ if __name__ == "__main__":
     mx.send(mx.Event(0, 2, 1, f"different_type 1"))
     mx.send(mx.Event(0, 2, 7, f"different_type 1"))
     
-    #mx.clear_events()
+
+    mx.send(mx.Event(0, 1, 0, "test 0"))
+    mx.clear_events()
 
 
 
@@ -95,7 +98,7 @@ if __name__ == "__main__":
     mx.send(mx.Event(0, 1, 10, f"after 0"))
     mx.send(mx.Event(0, 1, 11, f"after -1"))
 
-
+    sleep(5)
 
 
     s.stop_recording()
@@ -116,7 +119,7 @@ if __name__ == "__main__":
 
 
 
-
+    print(str(filepath))
 
     with h5py.File(str(filepath), "r") as h5_file:
         h5_object = h5_file['wells']['well000']['rec0000']
