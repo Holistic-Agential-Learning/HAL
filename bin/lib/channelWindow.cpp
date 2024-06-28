@@ -11,11 +11,30 @@ ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
     const maxlab::SpikeEvent *spikeEvents = frame.spikeEvents;
     int spikeCount = frame.spikeCount;
+    int numValid = 0; // number of channels found in the config
     for (int i = 0; i < spikeCount; i++) {
         if (emap.exists(spikeEvents[i].channel)) {
             sum++;
+            numValid++;
         }
     }
+
+    // copy over spike events that have channel numbers in the config
+    if (numValid > 0) {
+        maxlab::SpikeEvent *newSpikeEvents = malloc(numValid * sizeof(maxlab::SpikeEvent));
+        int newSpikeEventsIdx = 0;
+        for (int i = 0; i < spikeCount; i++) {
+            if (emap.exists(spikeEvents[i].channel)) {
+                maxlab::SpikeEvent temp = spikeEvents[i];
+                newSpikeEvents[newSpikeEventsIdx] = temp;
+                newSpikeEventsIdx++;
+            }
+        }
+        frame.spikeEvents = newSpikeEvents;
+    }
+
+    frame.spikeCount = numValid;
+    
     window.push_back(frame);
 }
 
@@ -28,6 +47,9 @@ void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
         if (emap.exists(spikeEvents[i].channel)) {
             sum--;
         }
+    }
+    if (spikeCount > 0) {
+        free(firstFrame.spikeEvents);3
     }
     window.erase(window.begin());
     if (beforeSum != sum) {
