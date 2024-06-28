@@ -150,11 +150,11 @@ if __name__ == '__main__':
         directory_name = exp_params["FOLDER"]
         file_name = exp_params["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
 
-        config_file_name = directory_name + "/" + file_name + "_well_{well}_config.cfg"
+        config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
 
         print(config_file_name)
         #save the config prior to running the code
-        array.save_config(str(config_file_name))
+        array.save_config(config_file_name)
         ############################################################################
 
 
