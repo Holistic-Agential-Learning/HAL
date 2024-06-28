@@ -331,11 +331,11 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
                     //If in training phase
                     if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
                         if (left) {
-                            maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
+                            // maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
                             cout << i << ": sent left-to-right stimulation" << endl;
                         } 
                         else {
-                            maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
+                            // maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
                             cout << i << ": sent right-to-left stimulation" << endl;
                         }
 
