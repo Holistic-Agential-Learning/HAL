@@ -2,7 +2,6 @@
 #include <iostream>
 #include <stdio.h>
 #include <cstdlib>
-#include <utils.h>
 
 using namespace std;
 

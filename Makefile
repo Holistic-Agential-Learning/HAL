@@ -1,19 +1,20 @@
 CXX = g++-11
-INCLUDE_PATH = -I/home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab/include/maxlab -I./bin/lib
+INCLUDE_PATH = -I/home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab/include/maxlab -I./bin/lib/include
 LIBS = -L/home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab/lib -lmaxlab -lpthread
 BUILD = ./bin/build
 EXAMPLE_PATH = ./examples
 SRC = ./bin/src
 
 # HAL Library Variables
-HAL_LIB_PATH = ./bin/lib
-HAL_LIB = $(HAL_LIB_PATH)/*.cpp
+HAL_LIB_PATH = ./bin/lib/c_src
+HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 
 # all .o files in hal lib
 HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(shell basename $(cpp)).o)
 
+PROGRAMS = train-wave-direction mouse_1d reward-punish
 
-all : dir train-wave-direction mouse_1d reward-punish
+all : dir $(PROGRAMS)
 
 dir:
 	mkdir -p $(BUILD)
