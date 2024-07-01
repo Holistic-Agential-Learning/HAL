@@ -12,6 +12,13 @@
 
 using namespace std;
 
+struct LocalFFD {
+    uint64_t spikeCount;
+    maxlab::SpikeEvent spikeEvents[1024];
+};
+
+typedef struct LocalFFD LocalFFD;
+
 class ChannelWindow {
     public:
 
@@ -98,7 +105,7 @@ class ChannelWindow {
         void debug(string message);
     
     private:
-        vector<maxlab::FilteredFrameData> window;
+        vector<LocalFFD> window;
         ElectrodeMap emap;
         int size;
         int sum;
