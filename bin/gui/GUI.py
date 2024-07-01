@@ -1003,7 +1003,77 @@ def runExp(experiment):
     print("run experiment!")
 
 def get_config():
-    print("getting config!")
+    wells = None
+    layout = [[[sg.Text('Experiment name:'), sg.InputText(key='NAME', size=(40,1))]],
+                [sg.pin(sg.Text("Invalid name", text_color="red", visible=False, key='-NAME-ERR-'))],
+            [[sg.Text("Create or select folder: ")], [sg.Input(key='FOLDER'), sg.Button('Create'), sg.Button('Select')],
+            [sg.pin(sg.Text("Please select or create a folder", text_color="red", visible=False, key='-FOLDER-ERR-'))]],
+            [[sg.Checkbox('', key='-MAXONE-', enable_events=True, default=True, disabled=True), 
+                sg.Text("MaxOne               "),
+                sg.Checkbox('', enable_events=True, key='-MAXTWO-'),
+                sg.Text("MaxTwo")]],
+            [sg.pin(sg.Col([[sg.Text('Choose an electrode configuration file.')],            
+                        [sg.Input(key='-CONFIG-'),
+                        sg.FileBrowse(initial_folder=CONFIG_PATH), 
+                        sg.Button("View")], 
+                        [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-'))]], key='-CONFIG-COL-'))],
+            [sg.pin(sg.Col([[sg.Text('Choose recording wells:'), sg.Button("Choose", key='-CHOOSE-WELLS-'), 
+            sg.Text("Selected", text_color="green", visible=False, key='-SELECTED-WELLS-')],
+            [sg.pin(sg.Text("Select at least one well", text_color="red", visible=False, key='-WELLS-ERR-'))]], 
+            visible=False, key='-WELLS-COL-'))],
+            [sg.Button("Submit and Run"), sg.Button("Cancel")]]
+    
+    window = sg.Window("Select Config", layout, resizable=True, finalize=True)
+
+    while True:
+        event, values = window.read()
+        if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel
+            window.close()
+            break
+            
+        elif event == "View":
+            if values['-CONFIG-']:
+                if (read_config(values['-CONFIG-'], True)):
+                    window['-CONFIG-ERR-'].update(visible=False)
+                else:
+                    window['-CONFIG-ERR-'].update(visible=True, value="Not a valid config")
+            else:
+                window['-CONFIG-ERR-'].update(visible=True, value="Config not selected")
+        elif event == 'Create':
+            folder = createFolder()
+            window['FOLDER'].update(folder)
+        elif event == 'Select':
+            folder = selectFolder()
+            window['FOLDER'].update(folder)
+        elif event == '-MAXONE-':
+            window['-CONFIG-COL-'].update(visible=True)
+            window['-WELLS-COL-'].update(visible=False)
+            window['-MAXONE-'].update(disabled=True)
+            window['-MAXTWO-'].update(value=False, disabled=False)
+        elif event == '-MAXTWO-':
+            window['-CONFIG-COL-'].update(visible=False)
+            window['-WELLS-COL-'].update(visible=True)
+            window['-MAXTWO-'].update(disabled=True)
+            window['-MAXONE-'].update(value=False, disabled=False)
+        elif event == '-CHOOSE-WELLS-':
+            wells = edit_wells(wells)
+            if wells != None:
+                keys = list(wells.keys())
+                for key in keys:
+                    if key[0] == "B":
+                        wells.pop(key)
+                window['-SELECTED-WELLS-'].update(visible=True)
+            else:
+                
+                window['-SELECTED-WELLS-'].update(visible=False)
+        else:
+            print("saving experiment!")
+
+        
+        
+    
+    return None
+
 
     
 def config_or_experiment():
@@ -1016,10 +1086,18 @@ def config_or_experiment():
             break
         elif event == 'Run full experiment':
             window.close()
-            return experiment()
+            exp = experiment()
+            if exp == None:
+                config_or_experiment()
+            else:
+                return experiment()
         else:
             window.close()
-            return get_config()
+            config = get_config()
+            if config == None:
+                config_or_experiment()
+            else:
+                return experiment()
     
     return None
 
@@ -1043,7 +1121,11 @@ def choose_setup():
                 window['-SCRIPT-ERR-'].update(visible=True)
             else:
                 window.close()
-                return (values['-SCRIPT-'], config_or_experiment())
+                ret = config_or_experiment()
+                if ret == None:
+                    choose_setup()
+                else:
+                    return (values['-SCRIPT-'], ret)
 
     return (None, None)
 
@@ -1063,9 +1145,19 @@ def start_gui():
             window.close()
             break
         elif event == 'start-maxlab':
-            return ("start-maxlab.py", experiment())
+            window.close()
+            exp = experiment()
+            if exp == None:
+                start_gui()
+            else:
+                return ("start-maxlab.py", exp)
         elif event == 'Other':
-            return choose_setup()
+            window.close()
+            setup = choose_setup()
+            if setup == None:
+                start_gui()
+            else:
+                return setup
     
     return (None, None)
 
