@@ -16,6 +16,14 @@ import numpy as np
 import maxlab as mx
 from bin.lib.stimulation import Stimulation
 
+import matplotlib as plt
+
+from h5py import File
+
+
+recording_dir = "/home/mxwbio/"
+file_name = "stim"
+
 def initialize_system() -> None:
     """Initialize system into a defined state
 
@@ -225,6 +233,12 @@ if __name__ == '__main__':
     # should showcase how one can select specific electrodes on the array.
     stim_electrodes = [3580 + 80, 4887]
     array = configure_array(electrodes, stim_electrodes)
+
+
+    config = array.get_config()
+    stimulation_channels = config.get_channels_for_electrodes(stim_electrodes)
+    stimulation_channels.sort()
+
     # If instead we use a pre-defined config, we can load it like this:
     # array = load_config("path/to/config/file.cfg")
 
@@ -241,6 +255,11 @@ if __name__ == '__main__':
 
     configure_and_powerup_stim_units(stim_units[0:1], 0)
     configure_and_powerup_stim_units(stim_units[1:2], 1)
+
+    s = mx.Saving()
+    s.open_directory(recording_dir)
+    s.start_file(file_name)
+    s.group_define(0, "all_channels", list(range(1024)))
 
     print("Done configuration. Creating Stimulation objects")
     stim1 = Stimulation("test", 1, 
@@ -274,6 +293,8 @@ if __name__ == '__main__':
     combined_sequence = Stimulation.combine_stimuli(stim2, stim1, "combined")
      
     print("Done creating sequences")
+
+    s.start_recording(wells)
     time.sleep(5)
 
     print("Sending seq1")
@@ -291,3 +312,22 @@ if __name__ == '__main__':
     print("Sending combined")
     time.sleep(2)
     combined_sequence.send()
+
+
+    s.stop_recording()
+    time.sleep(mx.Timing.waitAfterRecording)
+    s.stop_file()
+    s.group_delete_all()
+
+
+    file = File(f"{recording_dir}/{file_name}.raw.h5")
+    raw_trace_A = file["wells/well000/rec0000/groups/all_channels/raw"][
+        stimulation_channels[0], :
+    ].T
+    raw_trace_B = file["wells/well001/rec0000/groups/all_channels/raw"][
+        stimulation_channels[1], :
+    ].T
+
+    plt.plot(raw_trace_A)
+    plt.plot(raw_trace_B)
+    plt.show()
