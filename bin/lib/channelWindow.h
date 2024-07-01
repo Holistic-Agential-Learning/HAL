@@ -101,6 +101,8 @@ class ChannelWindow {
          */
         ElectrodeMap electrodeMap();
 
+        float getAvgX();
+
         void print();
         void debug(string message);
     

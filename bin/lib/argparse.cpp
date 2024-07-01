@@ -47,3 +47,34 @@ float getFloatArg(string name, int argc, char *argv[]) {
 
     return stof(arg);
 }
+
+string getStringArgSecure(string name, string defaultValue, int argc, char *argv[]) {
+    const char * n = name.c_str();
+    for (int i = 0; i < argc; i++) {
+        char *arg = argv[i];
+
+        if (strcmp(arg, n) == 0) {
+            return string(argv[i + 1]);
+        }
+    }
+
+    return defaultValue;
+}
+
+int getIntArgSecure(string name, int defaultValue, int argc, char *argv[]) {
+    if (checkOption(name, argc, argv)) {
+        string arg = getStringArg(name, argc, argv);
+        return stoi(arg);
+    }
+
+    return defaultValue;
+}
+
+float getFloatArgSecure(string name, float defaultValue, int argc, char *argv[]) {
+    if (checkOption(name, argc, argv)) {
+        string arg = getStringArg(name, argc, argv);
+        return stof(arg);
+    }
+
+    return defaultValue;
+}

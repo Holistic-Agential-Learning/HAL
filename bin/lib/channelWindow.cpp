@@ -85,6 +85,41 @@ ElectrodeMap ChannelWindow::electrodeMap() {
     return emap;
 }
 
+float ChannelWindow::getAvgX() {
+    ElectrodeMap emap = window.electrodeMap();
+
+    // used to make sure that each channel is only counted once
+    int channels[1024];
+    float avgSum = 0;
+    float count = 0;
+    for (int i = 0; i < size; i++) {
+        FilteredFrameData fd = get(i);
+        const SpikeEvent *event = fd.spikeEvents;
+        int spikeCount = fd.spikeCount;
+        for (int j = 0; j < spikeCount; j++) {
+            // compute column coordinate and add to sum
+            int channel = event[j].channel;
+            // if the channel has already been counted
+            if (channel < 1024 && channels[channel] == 0) {
+                if(channel > 1024) {
+                    cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
+                }
+                float x_coord = emap.get_x(channel);
+                if(x_coord < 0){ //channel number not found in the emap
+                    // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
+                }
+                else {
+                    avgSum += x_coord;
+                    channels[channel] = 1;
+                    count++;
+                }
+            }
+            
+        }
+    }
+    return avgSum / count;
+}
+
 void ChannelWindow::debug(string message) {
     std::fstream file;
     file.open("ERR_LOG", std::fstream::out | std::fstream::app);

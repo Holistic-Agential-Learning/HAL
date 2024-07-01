@@ -52,7 +52,7 @@ string getStringArg(string name, int argc, char *argv[]);
  */
 int getIntArg(string name, int argc, char *argv[]);
 
-/* getArg
+/* getFloatArg
  * 
  * Parses through arguments, and returns value of matching name of the format:
  * 
@@ -69,3 +69,68 @@ int getIntArg(string name, int argc, char *argv[]);
  *          it exits with status 2.
  */
 float getFloatArg(string name, int argc, char *argv[]);
+
+
+/* getStringArgSecure
+ * 
+ * Parses through arguments, and returns value of matching name of the format:
+ * 
+ *                  <option> <value> 
+ * 
+ * Where <option> is matched to name. If the option isn't found, it returns the 
+ * given default value.
+ * 
+ * Parameters:
+ *      - name: string to match option with
+ *      - defaultValue: string representing the default value if the option 
+ *                      isn't found
+ *      - argc: number of arguments
+ *      - argv: array of C-style arguments
+ * 
+ * Returns: std::string representing the matching value. If no such value is found,
+ *          then the null character is returned.
+ */
+string getStringArgSecure(string name, string defaultValue, int argc, char *argv[]);
+
+
+/* getIntArgSecure
+ * 
+ * Parses through arguments, and returns value of matching name of the format:
+ * 
+ *                  <option> <value> 
+ * 
+ * Where <option> is matched to name. If the option isn't found, it returns the 
+ * default value.
+ * 
+ * Parameters:
+ *      - name: string to match option with
+ *      - defaultValue: integer representing the default value if the option 
+ *                      isn't found 
+ *      - argc: number of arguments
+ *      - argv: array of C-style arguments
+ * 
+ * Returns: Integer representing the matching value. If no such value is found,
+ *          it returns defaultValue.
+ */
+int getIntArgSecure(string name, int defaultValue, int argc, char *argv[]);
+
+/* getFloatArgSecure
+ * 
+ * Parses through arguments, and returns value of matching name of the format:
+ * 
+ *                  <option> <value> 
+ * 
+ * Where <option> is matched to name. If the option isn't found, it returns the 
+ * default value.
+ * 
+ * Parameters:
+ *      - name: string to match option with
+ *      - defaultValue: integer representing the default value if the option 
+ *                      isn't found 
+ *      - argc: number of arguments
+ *      - argv: array of C-style arguments
+ * 
+ * Returns: Integer representing the matching value. If no such value is found,
+ *          it returns defaultValue.
+ */
+float getFloatArgSecure(string name, float defaultValue, int argc, char *argv[]);
