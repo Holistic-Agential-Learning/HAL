@@ -7,7 +7,10 @@ def getMessage():
     messages = [
         f"Welcome to the Thunder Dome, {name}!",
         f"PO-TA-TOES! BOIL 'EM, MASH 'EM, STICK 'EM IN A STEW!"
-        f"{name}, you're cooking right now"
+        f"{name}, you're cooking right now",
+        f"I think it's lunch time, {name}",
+        f"Drink more water, {name}",
+        f"Welcome to the experiment, {name}"
     ]
 
     return random.choice(messages)
