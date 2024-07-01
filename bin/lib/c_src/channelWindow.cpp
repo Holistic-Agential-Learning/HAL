@@ -86,7 +86,6 @@ ElectrodeMap ChannelWindow::electrodeMap() {
 }
 
 float ChannelWindow::getAvgX() {
-    ElectrodeMap emap = window.electrodeMap();
 
     // used to make sure that each channel is only counted once
     int channels[1024];
