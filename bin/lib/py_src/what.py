@@ -6,7 +6,7 @@ def getMessage():
 
     messages = [
         f"Welcome to the Thunder Dome, {name}!",
-        f"PO-TA-TOES! BOIL 'EM, MASH 'EM, STICK 'EM IN A STEW!"
+        f"PO-TA-TOES! BOIL 'EM, MASH 'EM, STICK 'EM IN A STEW!",
         f"{name}, you're cooking right now",
         f"I think it's lunch time, {name}",
         f"Drink more water, {name}",
@@ -15,4 +15,5 @@ def getMessage():
 
     return random.choice(messages)
 
-print(getMessage())
+if __name__=="main":    
+    print(getMessage())

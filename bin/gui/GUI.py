@@ -449,7 +449,7 @@ def define_exp_window(old_exp):
                 sg.Text("MaxTwo")]],
             [sg.pin(sg.Col([[sg.Text('Choose an electrode configuration file.')],            
                         [sg.Input(key='-CONFIG-'),
-                        sg.FileBrowse(initial_folder='/Users/Trevor/Documents/Halligan/Hybrot/configs'), 
+                        sg.FileBrowse(initial_folder=CONFIG_PATH), 
                         sg.Button("View")], 
                         [sg.pin(sg.Text("Invalid Config", text_color="red", visible=False, key='-CONFIG-ERR-'))]], key='-CONFIG-COL-'))],
             [sg.pin(sg.Col([[sg.Text('Choose recording wells:'), sg.Button("Choose", key='-CHOOSE-WELLS-'), 
@@ -1002,15 +1002,82 @@ def chooseConfig():
 def runExp(experiment):
     print("run experiment!")
 
+def get_config():
+    print("getting config!")
+
+    
+def config_or_experiment():
+    layout = [[sg.Button("Run full experiment"), sg.Button("Choose config"), sg.Button("Cancel")]]
+    window = sg.Window('Choose Setup', layout, finalize=True, resizable=True)
+
+    while True:
+        event, values = window.read()
+        if (event == 'Cancel' or event == sg.WIN_CLOSED):
+            break
+        elif event == 'Run full experiment':
+            window.close()
+            return experiment()
+        else:
+            window.close()
+            return get_config()
+    
+    return None
+
+
+def choose_setup():
+    layout = [[sg.Text("Choose a Python startup script.")], 
+                    [sg.Input(key='-SCRIPT-'),
+                        sg.FileBrowse(initial_folder='./bin')], 
+
+                [sg.pin(sg.Text("Please select a Python script", key="-SCRIPT-ERR-", text_color="red", visible=False))],        
+             [sg.Button("Submit"), sg.Button("Cancel")]]
+    window = sg.Window('Choose Setup', layout, finalize=True, resizable=True)
+
+    while True:
+        event, values = window.read()
+        if (event == 'Cancel' or event == sg.WIN_CLOSED):
+            window.close()
+            break
+        elif event == 'Submit':
+            if values["-SCRIPT-"] == "":
+                window['-SCRIPT-ERR-'].update(visible=True)
+            else:
+                window.close()
+                return (values['-SCRIPT-'], config_or_experiment())
+
+    return (None, None)
+
 
 def start_gui():
-### START WINDOW: 
     sg.theme('DarkGrey1') 
+    layout = [ 
+        # [sg.Text('NAME OF TRIAL:'), sg.InputText(key='TRIAL_NAME')], 
+        [sg.Button('start-maxlab'), sg.Button('Other'),
+        sg.Button('Cancel')]
+    ]
+    window = sg.Window('Start', layout, finalize=True, resizable=True)
+
+    while True:
+        event, values = window.read()
+        if (event == 'Cancel' or event == sg.WIN_CLOSED):
+            window.close()
+            break
+        elif event == 'start-maxlab':
+            return ("start-maxlab.py", experiment())
+        elif event == 'Other':
+            return choose_setup()
+    
+    return (None, None)
+
+
+def experiment():
+### START WINDOW: 
+    
     layout = [ 
                         # [sg.Text('NAME OF TRIAL:'), sg.InputText(key='TRIAL_NAME')], 
                         [sg.Button('Choose Experiment'), sg.Button('Define Experiment'),
                         sg.Button('Cancel')]]
-    window = sg.Window('Start', layout)
+    window = sg.Window('Experiment', layout)
 
     exp_chosen = False
     experiment = None
@@ -1029,19 +1096,6 @@ def start_gui():
                 return start_gui()
             else:
                 break
-            # (electrode_nums, electrode_coords) = chooseConfig()
-            # if len(electrode_nums) != 0:
-            #     defineExp(electrode_nums, electrode_coords)
-        # elif (event == 'Adjust Experiment' and valid_id):
-        #     (electrode_nums, electrode_coords) = chooseConfig()
-        #     newParams = choose_exp()
-        #     newParams.pop('E_NUMS')
-        #     newParams.pop('E_COORDS')
-        #     newParams.pop('DATE')
-        #     newParams['NAME'] = newParams['NAME'] + '-V2'
-        #     while True:
-        #         if saveExp(newParams, electrode_nums, electrode_coords):
-        #             break
         elif event == 'Choose Experiment':
             window.close()
             experiment = choose_exp(True)
