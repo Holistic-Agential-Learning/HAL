@@ -34,6 +34,7 @@ class Stimulation:
         self.fps = 20000
         if maxtwo:
             self.fps = 10000
+        print(self.fps)
         self.token = token
         self.dac_source = dac_source
         self.stim_units = stim_units
@@ -51,7 +52,7 @@ class Stimulation:
         
     
     @classmethod
-    def from_frequency(cls, token: str, dac_source: int, frequency: float, duration: float, amplitude: float = 100, num_trains: int = 1, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, maxtwo: bool = False) -> Self:
+    def from_frequency(cls, token: str, dac_source: int, frequency: float, duration: float, amplitude: float = 100, num_trains: int = 1, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, maxtwo: bool = False, well = 0) -> Self:
         """constructor method, using frequency and duration instead of phase and pulses per train.
 
         Args:
@@ -74,7 +75,7 @@ class Stimulation:
         pulses_per_train = duration * frequency
 
 
-        return Stimulation(token, dac_source, amplitude = amplitude, phase = phase, pulses_per_train = pulses_per_train, num_trains = num_trains, pulse_interval = 0, pulse_train_interval = pulse_train_interval, stim_units = stim_units)
+        return Stimulation(token, dac_source, amplitude = amplitude, phase = phase, pulses_per_train = pulses_per_train, num_trains = num_trains, pulse_interval = 0, pulse_train_interval = pulse_train_interval, stim_units = stim_units, well = well, maxtwo = maxtwo)
 
     
 

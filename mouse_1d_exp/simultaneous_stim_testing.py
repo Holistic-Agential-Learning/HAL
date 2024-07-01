@@ -3,6 +3,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__) + "/..")
 from typing import List
+from pathlib import Path
+
 
 import random
 import time
@@ -16,7 +18,7 @@ import numpy as np
 import maxlab as mx
 from bin.lib.stimulation import Stimulation
 
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 from h5py import File
 
@@ -212,6 +214,10 @@ def poweroff_all_stim_units() -> None:
 
 if __name__ == '__main__':
 
+    filepath = Path(f"{recording_dir}/{file_name}.raw.h5")
+    if filepath.is_file():
+        print("save file already exists: deleting")
+        filepath.unlink()
 
     electrodes_1 = [2919, 2920, 2921, 3138, 3139, 3140, 3141, 3142, 3357, 3358, 3359, 3360, 3361, 3362, 3363, 3577, 3578, 3579, 3580, 3581, 3582, 3583, 3797, 3798, 3799, 3800, 3801, 3802, 3803, 4018, 4019, 4020, 4021, 4022, 4239, 4240, 4241]
     electrodes_2 = [4446, 4447, 4448, 4665, 4666, 4667, 4668, 4669, 4885, 4886, 4887, 4888, 4889, 5105, 5106, 5107, 5108, 5109, 5326, 5327, 5328]
@@ -301,19 +307,19 @@ if __name__ == '__main__':
     time.sleep(2)
     seq1.send()
 
-    time.sleep(5)
+    time.sleep(15)
 
     print("Sending seq2")
     time.sleep(2)
     seq2.send()
     
-    time.sleep(5)
+    time.sleep(15)
 
     print("Sending combined")
     time.sleep(2)
     combined_sequence.send()
 
-
+    time.sleep(15)
     s.stop_recording()
     time.sleep(mx.Timing.waitAfterRecording)
     s.stop_file()
@@ -324,10 +330,10 @@ if __name__ == '__main__':
     raw_trace_A = file["wells/well000/rec0000/groups/all_channels/raw"][
         stimulation_channels[0], :
     ].T
-    raw_trace_B = file["wells/well001/rec0000/groups/all_channels/raw"][
+    raw_trace_B = file["wells/well000/rec0000/groups/all_channels/raw"][
         stimulation_channels[1], :
     ].T
 
-    plt.plot(raw_trace_A)
-    plt.plot(raw_trace_B)
+    plt.plot(np.arange(0, float(len(raw_trace_A))/20000, 1/20000), raw_trace_A + 20)
+    plt.plot(np.arange(0, float(len(raw_trace_A))/20000, 1/20000), raw_trace_B)
     plt.show()
