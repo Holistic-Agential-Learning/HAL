@@ -42,7 +42,7 @@ void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
     maxlab::FilteredFrameData firstFrame = window[0];
     const maxlab::SpikeEvent *spikeEvents = firstFrame.spikeEvents;
     int spikeCount = firstFrame.spikeCount;
-    int beforeSum = sum;
+    // int beforeSum = sum;
     for (int i = 0; i < spikeCount; i++) {
         if (emap.exists(spikeEvents[i].channel)) {
             sum--;
@@ -52,17 +52,17 @@ void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
         free((void *)firstFrame.spikeEvents);
     }
     window.erase(window.begin());
-    if (beforeSum != sum) {
-        debug("Removing frame with a positive spikeCount:");
-    }
-    beforeSum = sum;
+    // if (beforeSum != sum) {
+    //     debug("Removing frame with a positive spikeCount:");
+    // }
+    // beforeSum = sum;
     add(frame);
 
-    if (beforeSum != sum) {
-        debug("Adding VALIDATED with positive spikeCount:");
-    } else if (frame.spikeCount > 0) {
-        debug("Adding INVALID frame with positive spikeCount");
-    }
+    // if (beforeSum != sum) {
+    //     debug("Adding VALIDATED with positive spikeCount:");
+    // } else if (frame.spikeCount > 0) {
+    //     debug("Adding INVALID frame with positive spikeCount");
+    // }
 }
 
 FilteredFrameData ChannelWindow::get(int idx) {

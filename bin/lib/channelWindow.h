@@ -105,7 +105,7 @@ class ChannelWindow {
         void debug(string message);
     
     private:
-        vector<LocalFFD> window;
+        vector<maxlab::FilteredFrameData> window;
         ElectrodeMap emap;
         int size;
         int sum;

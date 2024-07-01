@@ -33,8 +33,7 @@ class Stimulation:
         #Everything is converted to frames.
         self.fps = 20000
         if maxtwo:
-            self.fps = 10000
-        print(self.fps)
+            self.fps = 20000 #TODO: CHECK ON THIS
         self.token = token
         self.dac_source = dac_source
         self.stim_units = stim_units
