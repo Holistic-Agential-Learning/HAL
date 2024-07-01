@@ -10,9 +10,9 @@ HAL_LIB_PATH = ./bin/lib/c_src
 HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 
 # all .o files in hal lib
-HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(shell basename $(cpp)).o)
+HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(basename $(cpp)).o)
 
-PROGRAMS = train-wave-direction mouse_1d reward-punish
+PROGRAMS = train-wave-direction mouse_1d
 
 all : dir $(PROGRAMS)
 
@@ -24,13 +24,13 @@ dir:
 %.o: %.cpp 
 	$(CXX) $(INCLUDE_PATH) -c $< -o $(BUILD)/$(shell basename $@)
 
-train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
+train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-mouse_1d: mouse_1d_exp/mouse_1d.o mouse_1d_exp/worldstate.o $(HAL_LIB_PATH)/channelWindow.o $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
+mouse_1d: mouse_1d_exp/mouse_1d.o mouse_1d_exp/worldstate.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-reward-punish: $(SRC)/closed_loop_rp.o $(HAL_LIB_PATH)/channelWindow.o  $(HAL_LIB_PATH)/electrodeMap.o $(HAL_LIB_PATH)/argparse.o
+reward-punish: $(SRC)/closed_loop_rp.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 
