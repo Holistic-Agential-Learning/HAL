@@ -73,6 +73,7 @@ def create_stim_pulse(seq: mx.Sequence, amplitude: int, phase: int) -> mx.Sequen
     return seq
 
 if __name__ == '__main__':
+    print("running start-maxlab...")
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
         exp_params = json.load(f)
