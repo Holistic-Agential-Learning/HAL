@@ -188,7 +188,13 @@ if __name__ == "__main__":
     for well in wells:
         s.group_define(well, "all_channels", list(range(1024)))
 
-    # CREATE SEQUENCE
+    # @edit
+    #
+    # The next chunk of code defines a stimulation sequence.
+    # 
+    # Notes:
+    #   - The string in mx.Sequence() must be a unique identifier for each 
+    #     sequence
     sequence1 = mx.Sequence("1")
     for _ in range(3):
         sequence1.append(mx.DAC(0, 512 + amplitude_A))
