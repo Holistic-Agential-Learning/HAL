@@ -533,6 +533,7 @@ def define_exp(old_experiment):
         old_experiment.pop('PROGRAM_EXEC')
         old_experiment.pop('-CHOOSE-PROGRAM-')
         program = old_experiment['-PROGRAM-']
+        old_experiment.pop('-SCRIPT-')
         for param in PROGRAMS[program]["parameters"].keys():
             window[f"-{program}-{param}-"].update(value=old_experiment[param])
             old_experiment.pop(param)
@@ -731,6 +732,7 @@ def define_exp(old_experiment):
                     configs['0'] = config
                     experiment['WELLS'] = [0]
                 experiment['CONFIGS'] = configs
+                experiment['-SCRIPT-'] = 'start-maxlab.py'
                 saveFile(experiment, False)
                 window.close()
                 return run_or_modify(experiment, f"Experiment '{experiment['NAME']}' has been saved successfully.")
@@ -1007,6 +1009,10 @@ def get_config():
     wells = None
     layout = [[[sg.Text('Experiment name:'), sg.InputText(key='NAME', size=(40,1))]],
                 [sg.pin(sg.Text("Invalid name", text_color="red", visible=False, key='-NAME-ERR-'))],
+                [sg.Text("Choose a Python startup script.")], 
+                    [sg.Input(key='-SCRIPT-'),
+                        sg.FileBrowse(initial_folder='./bin')], 
+                [sg.pin(sg.Text("Please select a Python script", key="-SCRIPT-ERR-", text_color="red", visible=False))], 
             [[sg.Text("Create or select folder: ")], [sg.Input(key='FOLDER'), sg.Button('Create'), sg.Button('Select')],
             [sg.pin(sg.Text("Please select or create a folder", text_color="red", visible=False, key='-FOLDER-ERR-'))]],
             [[sg.Checkbox('', key='-MAXONE-', enable_events=True, default=True, disabled=True), 
@@ -1100,6 +1106,12 @@ def get_config():
                             window['-WELLS-ERR-'].update(visible=True)
                         else:
                             window['-WELLS-ERR-'].update(visible=False)
+                elif key == '-SCRIPT-':
+                    if values[key]:
+                        window['-SCRIPT-ERR-'].update(visible=False)
+                    else:
+                        valid = False
+                        window['-SCRIPT-ERR-'].update(visible=True)
 
                 if valid:
                     experiment = values
@@ -1135,59 +1147,59 @@ def get_config():
 
 
     
-def config_or_experiment():
-    layout = [[sg.Button("Run full experiment"), sg.Button("Choose config"), sg.Button("Cancel")]]
-    window = sg.Window('Choose Setup', layout, finalize=True, resizable=True)
+# def config_or_experiment():
+#     layout = [[sg.Button("Run full experiment"), sg.Button("Choose config"), sg.Button("Cancel")]]
+#     window = sg.Window('Choose Setup', layout, finalize=True, resizable=True)
 
-    while True:
-        event, values = window.read()
-        if (event == 'Cancel' or event == sg.WIN_CLOSED):
-            break
-        elif event == 'Run full experiment':
-            window.close()
-            exp = make_experiment()
-            if exp == None:
-                config_or_experiment()
-            else:
-                return make_experiment()
-        else:
-            window.close()
-            config = get_config()
-            if config == None:
-                config_or_experiment()
-            else:
-                return config
+#     while True:
+#         event, values = window.read()
+#         if (event == 'Cancel' or event == sg.WIN_CLOSED):
+#             break
+#         elif event == 'Run full experiment':
+#             window.close()
+#             exp = make_experiment()
+#             if exp == None:
+#                 config_or_experiment()
+#             else:
+#                 return make_experiment()
+#         else:
+#             window.close()
+#             config = get_config()
+#             if config == None:
+#                 config_or_experiment()
+#             else:
+#                 return config
     
-    return None
+#     return None
 
 
-def choose_setup():
-    layout = [[sg.Text("Choose a Python startup script.")], 
-                    [sg.Input(key='-SCRIPT-'),
-                        sg.FileBrowse(initial_folder='./bin')], 
+# def choose_setup():
+#     layout = [[sg.Text("Choose a Python startup script.")], 
+#                     [sg.Input(key='-SCRIPT-'),
+#                         sg.FileBrowse(initial_folder='./bin')], 
 
-                [sg.pin(sg.Text("Please select a Python script", key="-SCRIPT-ERR-", text_color="red", visible=False))],        
-             [sg.Button("Submit"), sg.Button("Cancel")]]
-    window = sg.Window('Choose Setup', layout, finalize=True, resizable=True)
+#                 [sg.pin(sg.Text("Please select a Python script", key="-SCRIPT-ERR-", text_color="red", visible=False))],        
+#              [sg.Button("Submit"), sg.Button("Cancel")]]
+#     window = sg.Window('Choose Setup', layout, finalize=True, resizable=True)
 
-    while True:
-        event, values = window.read()
-        if (event == 'Cancel' or event == sg.WIN_CLOSED):
-            window.close()
-            break
-        elif event == 'Submit':
-            if values["-SCRIPT-"] == "":
-                window['-SCRIPT-ERR-'].update(visible=True)
-            else:
-                window.close()
-                ret = config_or_experiment()
-                print(f"choose_setup: {ret}")
-                if ret == None:
-                    choose_setup()
-                else:
-                    return (values['-SCRIPT-'], ret)
+#     while True:
+#         event, values = window.read()
+#         if (event == 'Cancel' or event == sg.WIN_CLOSED):
+#             window.close()
+#             break
+#         elif event == 'Submit':
+#             if values["-SCRIPT-"] == "":
+#                 window['-SCRIPT-ERR-'].update(visible=True)
+#             else:
+#                 window.close()
+#                 ret = config_or_experiment()
+#                 print(f"choose_setup: {ret}")
+#                 if ret == None:
+#                     choose_setup()
+#                 else:
+#                     return (values['-SCRIPT-'], ret)
 
-    return (None, None)
+#     return (None, None)
 
 
 def start_gui():
@@ -1213,7 +1225,7 @@ def start_gui():
                 return ("start-maxlab.py", exp)
         elif event == 'Other':
             window.close()
-            setup = choose_setup()
+            setup = get_config()
             print(setup)
             if setup == None:
                 start_gui()
