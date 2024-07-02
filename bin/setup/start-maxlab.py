@@ -77,8 +77,11 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
         exp_params = json.load(f)
+        f.close()
     else:
-        exp_params = GUI.start_gui()
+        f = open(GUI.start_gui(), "r")
+        exp_params = json.load(f)
+        f.close()
 
     program_file = open("./bin/gui/programs.json", "r")
     program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]

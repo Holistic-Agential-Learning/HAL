@@ -23,6 +23,9 @@ from typing import List
 from time import sleep
 from h5py import File
 
+import json
+import sys
+
 ################################################################################
 # GLOBAL VARIABLES
 
@@ -63,6 +66,7 @@ configs = [
 # Modify this to contain the stimulation electrodes for each well. Note that 
 # these are electrode numbers (0-26399). Just use the first element of the list 
 # if using the MaxOne.
+#
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
 stimulation_electrodes = [
@@ -124,12 +128,34 @@ def get_config_electrodes(config_file):
         else:
             curr_word = curr_word + char
     
+    file.close()
+    
     return electrode_nums
+
+# parses json that was created with the GUI
+def parse_json(json_name):
+    global file_name, recording_dir, wells, configs
+    f = open(json_name, "r")
+    params = json.load(f)
+    f.close()
+
+    wells = params['WELLS']
+
+    file_name = params['NAME']
+    recording_dir = params['FOLDER']
+
+    for well in wells:
+        configs[well] = params['CONFIGS'][str(well)]['PATH']
 
 ################################################################################
 # MAIN
 #
 if __name__ == "__main__":
+
+    # used only if the script is called from HAL/init
+    # parses the josn that was created with the GUI
+    if len(sys.argv) > 1:
+        parse_json(sys.argv[1])
 
     ############################################################################
     # SETUP EXPERIMENT
