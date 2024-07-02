@@ -24,8 +24,6 @@ if __name__ == "__main__":
         if not json_name:
             print(":P")
             exit(1)
-
-    print(json_name)
     
     experiment_file = open(json_name, "r")
     params = json.load(experiment_file)
@@ -33,5 +31,7 @@ if __name__ == "__main__":
     script = params['-SCRIPT-']
 
     print(f"Executing {script} with {json_name}")
-    os.execvp(script, [script, json_name])
+    subprocess.run([script, json_name])
+
+    print("great success")
 
