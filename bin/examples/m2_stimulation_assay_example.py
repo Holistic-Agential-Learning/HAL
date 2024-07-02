@@ -62,7 +62,9 @@ configs = [
 #
 # Modify this to contain the stimulation electrodes for each well. Note that 
 # these are electrode numbers (0-26399). Just use the first element of the list 
-# if using the MaxOne
+# if using the MaxOne.
+# Important note: stimulation electrodes MUST come from the set of recording 
+# electrodes defined above. 
 stimulation_electrodes = [
     [1000, 2000, 3000], # well 0 stimulation electrodes
     [4000, 5000, 6000], # well 1 stimulation electrodes
