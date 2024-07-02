@@ -147,8 +147,8 @@ if __name__ == "__main__":
 
         # set recording and stimulation electrodes
         #
-        #       Note: stimulation electrodes must also be recording electrodes, 
-        #             so they are automatically added here
+        # Note: stimulation electrodes must also be recording electrodes, 
+        #       so they are automatically added here
         array.select_electrodes(stim_elecs + recording_electrodes)
         array.select_stimulation_electrodes(stimulation_electrodes)
         array.route()
@@ -188,9 +188,10 @@ if __name__ == "__main__":
     for well in wells:
         s.group_define(well, "all_channels", list(range(1024)))
 
+    ############################################################################
     # @edit
     #
-    # The next chunk of code defines a stimulation sequence.
+    # Define stimulation sequences here.
     # 
     # Notes:
     #   - The string in mx.Sequence() must be a unique identifier for each 
@@ -208,10 +209,15 @@ if __name__ == "__main__":
         sequence2.append(mx.DelaySamples(phase))
         sequence2.append(mx.DAC(1, 512))
         sequence2.append(mx.DelaySamples(inter_pulse_interval))
+    ############################################################################
 
     s.start_recording(wells)
-
-    print("Start recording")
+    
+    ############################################################################
+    # @edit
+    #
+    # Send stimulations and configure experiment timings here
+    print("Starting recording...")
     sleep(5)  # Pre-stimulation time
 
     print("Sending first stimulation...")
@@ -226,6 +232,8 @@ if __name__ == "__main__":
     sequence1.send()
     sleep(5)
 
+    ############################################################################
+    # end of recording
     s.stop_recording()
     sleep(mx.Timing.waitAfterRecording)
     s.stop_file()
