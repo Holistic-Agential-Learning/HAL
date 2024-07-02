@@ -40,7 +40,7 @@ using namespace maxlab;
 #define CHIP_HEIGHT 120
 
 
-#define USAGE "Usage: ./mouse_1d --config <config_path> \n\n\
+#define USAGE "Usage: ./mouse_1d --config <config_path> \t--durations <durations_path>\n\n\
 Options:\n\
 \t[--maxtwo]                Indicates running on the MaxTwo\n\
 \t[--threshold <value>]     Threshold for burst detection (must be a decimal between 0 and 1)\n\
@@ -67,11 +67,12 @@ struct args {
     string world;
     int loc;
     bool local;
+    string durations_path;
 };
 
 
 
-float get_avg_side(vector<FilteredFrameData> frameWindow, ElectrodeMap emap);
+float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
 bool runExperiment(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world, bool maxlab);
 int get_max_element(vector<int> v);
@@ -81,17 +82,18 @@ struct args getArgs(int argc, char *argv[]);
 
 
 void printUsage() {
-    cout << USAGE << endl
+    cout << USAGE << endl;
 }
 
 
 struct args getArgs(int argc, char *argv[]) {
     struct args ret;
-    if (!checkOption("--config", argc, argv) && !checkOption("--local", argc, argv)) {
+    if ((!checkOption("durations", argc, argv) || !checkOption("--config", argc, argv)) && !checkOption("--local", argc, argv)) {
         printUsage();
         exit(2);
     }
     ret.config_path = getStringArg("--config", argc, argv);
+    ret.durations_path = getStringArg("--durations", argc, argv);
     ret.maxtwo = checkOption("--maxtwo", argc, argv);
     ret.local = checkOption("--local", argc, argv);
 
@@ -141,7 +143,7 @@ void signal_interrupt_handler(int sig) {
 
 
 void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world) {
-    // Open data stream and check that no errors occurred
+     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     std::fstream file;
@@ -153,11 +155,7 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
 
-    // Keep in mind that start up causes a lot of spikes
-
-
-    
-    
+    // start up causes a lot of spikes
     // don't record the system startup stuff
     for (int i = 0; i < SYS_START_BUFFER; i++) {
         maxlab::FilteredFrameData frameData;
@@ -173,7 +171,7 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
     // the number of frames where the spike count goes over the threshold
     int spikeFrameCount = 0;
 
-    ChannelWindow win = ChannelWindow(200, emap);
+    ChannelWindow window = ChannelWindow(WINDOW, emap);
     
 
     // frame number representing the start of a burst
@@ -186,9 +184,6 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
        the threshold */ 
     int noSpikeFrameCount = 0;
 
-    // sum of the spikes in the window
-    int spikeCount = 0;
-
     // amount of blanking time
     int blanking = 0;
 
@@ -198,7 +193,32 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
     // spike count for each calculated location, mirroring locs
     vector <int> burstSpikeCounts(5);
 
-    // number of locs that can be storedmaxtwo
+    // number of locs that can be stored
+    int capacity = 5;
+
+    // number of locs that are currently being stored
+    int locCounter = 0;
+    
+    float monitoringLoc = 0;
+
+    // stores data for each frame in a 200-frame window
+    vector<FilteredFrameData> frameWindow;
+    cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
+
+
+    // initialize the vector with 200 frames
+    for (int i = 0; i < window.length(); i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+
+        window.add(frameData);
+    }
+
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
@@ -227,15 +247,8 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
         }
 
         // const SpikeEvent *spike = frameData.spikeEvents;
-
-        int oldSpikeCount = frameWindow[0].spikeCount;
-
-        frameWindow.erase(frameWindow.begin());
-        
-        spikeCount -= oldSpikeCount; 
-        spikeCount += frameData.spikeCount;
-
-        frameWindow.push_back(frameData);
+        window.shift(frameData);
+        int spikeCount = window.totalSpikeCount();
 
 
         if (blanking > 0) {
@@ -246,12 +259,12 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
         }
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
-            monitoringLoc = get_avg_side(frameWindow, emap);
+            monitoringLoc = get_avg_side(window);
             alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
         }
    
         if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            locs[locCounter] = get_avg_side(frameWindow, emap);
+            locs[locCounter] = get_avg_side(window);
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
         }
@@ -261,7 +274,7 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
 
             // start of the burst
             if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
-                locs[0] = get_avg_side(frameWindow, emap); // starting location
+                locs[0] = get_avg_side(window); // starting location
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
                 burstStart = i;
@@ -272,7 +285,7 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
         } else {
 
             // burst is over
-            if (noSpikeFrameCount > FRAMES_PER_SEC) {
+            if (noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
 
                 // burst is long enough to be significant
                 if (spikeFrameCount >= MIN_FRAMES) {
@@ -295,22 +308,12 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
                     
                     file << endl;
 
-                    //left to right stimulation
-                    //If in training phase
-                    if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
-                        if (left) {
-                            // maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
-                            // cout << i << ": sent left-to-right stimulation" << endl;
-                            world->move_right();
-                        } 
-                        else {
-                            // maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
-                            // cout << i << ": sent right-to-left stimulation" << endl;
-
-                            world->move_left();
-                        }
-
-                        blanking = 0.4 * FRAMES_PER_SEC;
+ 
+                    if (left) {
+                        world->move_right();
+                    } 
+                    else {
+                        world->move_left();
                     }
                     
                 }      
@@ -336,30 +339,34 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
  *                   200-frame window of frame data
  *  
  */
-float get_avg_side(vector<FilteredFrameData> frameWindow, ElectrodeMap emap) {
+float get_avg_side(ChannelWindow window) {
+    ElectrodeMap emap = window.electrodeMap();
 
     // used to make sure that each channel is only counted once
-    int channels[1024] = {0};
+    int channels[1024];
     float sum = 0;
     float count = 0;
-    for (int i = 0; i < frameWindow.size(); i++) {
-        const SpikeEvent *event = frameWindow[i].spikeEvents;
-        int spikeCount = frameWindow[i].spikeCount;
+    for (int i = 0; i < window.length(); i++) {
+        FilteredFrameData fd = window.get(i);
+        const SpikeEvent *event = fd.spikeEvents;
+        int spikeCount = fd.spikeCount;
         for (int j = 0; j < spikeCount; j++) {
             // compute column coordinate and add to sum
             int channel = event[j].channel;
             // if the channel has already been counted
-            if (channel < TOTAL_ELECTRODES && channels[channel] == 0){
+            if (channel < 1024 && channels[channel] == 0) {
+                if(channel > 1024) {
+                    cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
+                }
                 float x_coord = emap.get_x(channel);
                 if(x_coord < 0){ //channel number not found in the emap
-                    cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
+                    // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
                 }
-                else{
+                else {
                     sum += x_coord;
                     channels[channel] = 1;
                     count++;
                 }
-
             }
             
         }
@@ -461,8 +468,13 @@ int main(int argc, char * argv[]) {
         
     }
     else{
-        char *configPath = params.config_path;
+        const char *configPath = params.config_path.c_str();
+        const char *durationsPath = params.durations_path.c_str();
         ElectrodeMap emap = ElectrodeMap(configPath);
+
+
+        //READ IN DURATIONSPATH CSV
+
         int well = params.well;
         
         if(params.maxtwo) {

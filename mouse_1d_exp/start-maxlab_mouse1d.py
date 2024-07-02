@@ -18,6 +18,8 @@ import maxlab as mx
 from bin.lib.stimulation import *
 from world_stimulation import *
 
+import csv
+
 
 
 WORLD = "10000100"
@@ -76,7 +78,8 @@ if __name__ == '__main__':
         f = open(sys.argv[1], "r")
         exp_params = json.load(f)
     else:
-        exp_params = GUI.start_gui()
+        f = open(GUI.start_gui(), "r")
+        exp_params = json.load(f)
 
     program_file = open("./bin/gui/programs.json", "r")
     program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
@@ -221,20 +224,34 @@ if __name__ == '__main__':
         # s = mx.Sequence('test_seq', persistent=False)
 
         #CREATE STIMULI THAT ENCODE DISTANCE. PLEASE ENSURE THAT ALL OF THESE HAVE SIMILAR DURATIONS!!!!!!!
+        stimuli_durations = dict()
+
         objects_of_interest = {
             "1": ObjectDistanceParams(len(WORLD), np.linspace(80, 0, 4), 200, 5, 1, 10, 1)
         }
 
-        build_world_stimulation(WORLD, objects_of_interest, exp_params['-MAXTWO-'], well)
+        distance_stimuli = build_distance_stimuli(WORLD, objects_of_interest, exp_params['-MAXTWO-'], well)
+        
+        for stimulation in distance_stimuli:
+            stimulation.build_sequence()
+            stimuli_durations[stimulation.token] = stimulation.duration
 
         #CREATE STIMULI THAT ENCODE LOCATIONS
         object_stimuli = {
             "1": Stimulation("1", 2, 200, 500, 10, 3, 10, 1, maxtwo = exp_params['-MAXTWO-'], well = well)
         }
-
         for stimulation in object_stimuli.values():
-            stimulation.create_sequence()
+            stimulation.build_sequence()
+            stimuli_durations[stimulation.token] = stimulation.duration
 
+        #################################
+        #Create stimuli duration csv
+        stimuli_durations_csv = directory_name + "/" + file_name + f"_stimuli_durations.csv"
+        with open(stimuli_durations_csv, 'w') as csvfile:
+            writer = csv.DictWriter(csvfile)
+            for key, value in stimuli_durations.items():
+                writer.writerow([key, value])
+        
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)

@@ -16,7 +16,7 @@ import numpy as np
 
 
 import maxlab as mx
-from bin.lib.stimulation import Stimulation
+from bin.lib.stimulation import *
 
 import matplotlib.pyplot as plt
 
@@ -59,7 +59,7 @@ class ObjectDistanceParams:
 
 #parameters for stimulations:
     #amplitude, phase, pulses_per_train, num_trains, pulse_interval, pulse_train_interval
-def build_world_stimulation(world: str, object_distance_params: dict, maxtwo: bool = False, well: int = 0):
+def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: bool = False, well: int = 0)->List[ArbitraryStimulation]:
     """Function to create Sequences for every single position in the world. Stores sequences with tokens of the form f"loc{i}_distance".
 
     Args:
@@ -123,6 +123,7 @@ def build_world_stimulation(world: str, object_distance_params: dict, maxtwo: bo
         assert leftward_stim and rightward_stim, "no objects found"
 
         combined_stimuli = Stimulation.combine_stimuli(leftward_stim, rightward_stim, f"loc{i}_distance", maxtwo=maxtwo)
+    
         stimuli.append(combined_stimuli)
     return stimuli
 
@@ -136,7 +137,7 @@ if __name__ == '__main__':
         "3": ObjectDistanceParams(len(world))
 
     }
-    stimuli = build_world_stimulation("abc123", obj_params)
+    stimuli = build_distance_stimuli("abc123", obj_params)
 
     for i in stimuli:
         print(i.sequence_list)
