@@ -175,7 +175,7 @@ def createSelectFolder():
     window.close()
     return name
 
-def saveFile(values):
+def saveFile(values, is_config):
     from datetime import date
     fileName = values['NAME'] + ".json"
     f = open(values['FOLDER'] + "/" + fileName, "w")
@@ -185,10 +185,11 @@ def saveFile(values):
     date = today.strftime("%m/%d/%y")
     values['DATE'] = date
     # values['FOLDER_NAME'] = folderName
-    values['PROGRAM_EXEC'] = PROGRAMS[values['-PROGRAM-']]['exec']
-    if values['E_SELECTED'] != "":
-        values['E_SELECTED'] = values['E_SELECTED'].replace(" ", "")
-        values['E_SELECTED'] = [int(x) for x in values['E_SELECTED'].split(',')]
+    if not is_config:
+        values['PROGRAM_EXEC'] = PROGRAMS[values['-PROGRAM-']]['exec']
+        if values['E_SELECTED'] != "":
+            values['E_SELECTED'] = values['E_SELECTED'].replace(" ", "")
+            values['E_SELECTED'] = [int(x) for x in values['E_SELECTED'].split(',')]
     # else:
     #     for well in values['WELLS']:
     #         configs[str(well)] = config
@@ -730,7 +731,7 @@ def define_exp(old_experiment):
                     configs['0'] = config
                     experiment['WELLS'] = [0]
                 experiment['CONFIGS'] = configs
-                saveFile(experiment)
+                saveFile(experiment, False)
                 window.close()
                 return run_or_modify(experiment, f"Experiment '{experiment['NAME']}' has been saved successfully.")
 
@@ -1067,10 +1068,68 @@ def get_config():
                 
                 window['-SELECTED-WELLS-'].update(visible=False)
         else:
-            print("saving experiment!")
 
-        
-        
+            valid = True
+
+            for key in values.keys():
+                if (key == "NAME"):
+                    if (values[key] == ''):
+                        valid = False
+                        window["-NAME-ERR-"].update(visible=True)
+                    else:
+                        window["-NAME-ERR-"].update(visible=False)
+                elif key == 'FOLDER':
+                    if (values[key] == ''):
+                        valid = False
+                        window["-FOLDER-ERR-"].update(visible=True)
+                    else:
+                        window["-FOLDER-ERR-"].update(visible=False)
+                        
+                elif key == "-MAXONE-":
+                    # if values['-CONFIG-'] != None:
+                    if values[key]:
+                        if (read_config(values['-CONFIG-'], False)):
+                            window['-CONFIG-ERR-'].update(visible=False)
+                        else:
+                            valid = False
+                            window['-CONFIG-ERR-'].update(visible=True)
+                elif key == "-MAXTWO-":
+                    if values[key]:
+                        if wells == None:
+                            valid = False
+                            window['-WELLS-ERR-'].update(visible=True)
+                        else:
+                            window['-WELLS-ERR-'].update(visible=False)
+
+                if valid:
+                    experiment = values
+                    configs = {}
+                    if wells != None and values['-MAXTWO-']:
+                        wells_list = []
+                        for i in range(6):
+                            if (wells[str(i)]):
+                                wells_list.append(i)
+                        experiment['WELLS'] = wells_list
+                        for well in wells_list:
+                            val, electrode_nums, electrode_coords = read_config(wells[f'-CONFIG-{well}-'], False)
+                            config = {}
+                            config['PATH'] = wells[f'-CONFIG-{well}-']
+                            config['E_NUMS'] = electrode_nums
+                            config['E_COORDS'] = electrode_coords
+                            configs[str(well)] = config
+                    else:
+                        val, electrode_nums, electrode_coords = read_config(experiment['-CONFIG-'], False)
+                        config = {}
+                        config['PATH'] = experiment['-CONFIG-']
+                        config['E_NUMS'] = electrode_nums
+                        config['E_COORDS'] = electrode_coords
+                        configs['0'] = config
+                        experiment['WELLS'] = [0]
+                    
+                    experiment['CONFIGS'] = configs
+                    saveFile(experiment, True)
+                    window.close()
+                    return f"{experiment['NAME']}.json"
     
     return None
 
@@ -1086,18 +1145,18 @@ def config_or_experiment():
             break
         elif event == 'Run full experiment':
             window.close()
-            exp = experiment()
+            exp = make_experiment()
             if exp == None:
                 config_or_experiment()
             else:
-                return experiment()
+                return make_experiment()
         else:
             window.close()
             config = get_config()
             if config == None:
                 config_or_experiment()
             else:
-                return experiment()
+                return config
     
     return None
 
@@ -1122,6 +1181,7 @@ def choose_setup():
             else:
                 window.close()
                 ret = config_or_experiment()
+                print(f"choose_setup: {ret}")
                 if ret == None:
                     choose_setup()
                 else:
@@ -1146,7 +1206,7 @@ def start_gui():
             break
         elif event == 'start-maxlab':
             window.close()
-            exp = experiment()
+            exp = make_experiment()
             if exp == None:
                 start_gui()
             else:
@@ -1154,6 +1214,7 @@ def start_gui():
         elif event == 'Other':
             window.close()
             setup = choose_setup()
+            print(setup)
             if setup == None:
                 start_gui()
             else:
@@ -1162,7 +1223,7 @@ def start_gui():
     return (None, None)
 
 
-def experiment():
+def make_experiment():
 ### START WINDOW: 
     
     layout = [ 
@@ -1185,14 +1246,14 @@ def experiment():
             window.close()
             experiment = define_exp(None)
             if not experiment:
-                return start_gui()
+                return make_experiment()
             else:
                 break
         elif event == 'Choose Experiment':
             window.close()
             experiment = choose_exp(True)
             if not experiment:
-                return start_gui()
+                return make_experiment()
             else:
                 break
 
