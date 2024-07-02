@@ -5,15 +5,60 @@ sys.path.append(os.path.dirname(__file__) + "/..")
 from typing import List, Self, Optional
 
 import maxlab as mx
+from maxlab.api_object import ApiObject
 import math
 
 
 event_number = 100
 
+class ArbitraryStimulation:
+    def __init__(self, token: str, sequence_list: List[ApiObject]):
+        self.token = token
+        for command in sequence_list:
+            assert isinstance(command, ApiObject)
+        
+        self.sequence_list = sequence_list
+        self.fps = 20000
+        self.duration = self.get_duration()
+
+    def build_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
+        """Creates an mx.Sequence from the sequence list.
+
+        Args:
+            initial_delay (float, optional): _description_. Defaults to 5.
+            persistent (bool, optional): _description_. Defaults to True.
+        """
+        seq = mx.Sequence(self.token, persistent = False)
+        del seq
+        seq = mx.Sequence(self.token, int(initial_delay * self.fps/(10**3)), persistent)
+
+        for command in self.sequence_list:
+            if isinstance(command, ApiObject):
+                seq.append(command)
+        
+        return seq
+
+    def get_duration(self) -> float:
+        """Returns the duration of a sequence list, in seconds.
+
+        Args:
+            sequence_list (list): List of API objects that define a sequence.
+
+        Returns:
+            float: The duration of the sequence, in frames.
+        """
+        duration_frames = 0
+        for command in self.sequence_list:
+            if type(command) == mx.DelaySamples:
+                duration_frames += command.samples
+        
+        return duration_frames/20000 #because DelaySamples always seems to be in units of frames at 20000 fps
+
+
 #TODO: Make code to convert a sequence list into something that is human readable.
 #Big picture:
 #Different classes inherit from Stimulation (Regular stimulation). Stimulation has a way to create more abstract stimulation sequences (eg. turning stim_units on and off in the middle).
-class Stimulation:
+class Stimulation(ArbitraryStimulation):
     def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, maxtwo: bool = False, well: int = 0):
         """Create a Stimulation object.
 
@@ -32,9 +77,6 @@ class Stimulation:
         """
         #Everything is converted to frames.
         self.fps = 20000
-        if maxtwo:
-            self.fps = 20000 #TODO: CHECK ON THIS
-        self.token = token
         self.dac_source = dac_source
         self.stim_units = stim_units
         self.amplitude = amplitude
@@ -45,9 +87,9 @@ class Stimulation:
         self.pulse_train_interval = int(pulse_train_interval * self.fps)
         self.well = well
 
-        self.sequence_list = self.__create_sequence_list()
+        self.token = token
 
-        
+        super().__init__(token, self.__create_sequence_list())
         
     
     @classmethod
@@ -56,7 +98,7 @@ class Stimulation:
 
         Args:
             token (str): unique identifier
-            dac_source (int): The DAC channel to send signals to. Must be 0, 1, or 2.
+            dac_source (int): The DAC channel to send signals to. Must be 0, 1, or 2 to send to a single DAC channel.
             frequency (float): Stimulation frequency, in Hz.
             duration (float): How long the stimulus should last (for a single train), in s.
             amplitude (float, optional): Amplitude of oscillation, in mV. Suggested value between 0 and 1000. Defaults to 100.
@@ -94,7 +136,7 @@ class Stimulation:
         return seq
     
     
-    def __create_sequence_arbitrary(self, seq):
+    def __create_sequence_list(self):
         """Create a stim sequence for the given Stimulation pattern.
 
         Args:
@@ -104,6 +146,7 @@ class Stimulation:
             The sequence, in whatever type seq is.
         """
         global event_number
+        seq = list()
 
         if self.stim_units:
             #Power on appropriate stim_units.
@@ -132,35 +175,10 @@ class Stimulation:
                 seq.append(stim.power_up(False).connect(False))
         return seq
     
-    def __create_sequence_list(self):
-        return self.__create_sequence_arbitrary([])
-
-    def create_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
-        """Create a stim sequence for the given Stimulation pattern.
-
-        Args:
-            initial_delay (float, optional): The delay before the sequence, in ms. Defaults to 5.
-            persistent(bool, optional): Whether or not the sequence exists on the server after its scope is complete. Defaults to True.
-
-        Returns:
-            mx.Sequence: The sequence, in whatever type seq is.
-
-        Notes:
-            Has a delay of 100 frames (5 ms) (initial_delay) for downloading commands.
-            If the Stimulation specifies stim_units, all stim_units must be powered off to begin with.
-        """
-        global event_number
-        seq = mx.Sequence(self.token, persistent = False)
-        del seq
-        seq = mx.Sequence(self.token, int(initial_delay * self.fps/(10**3)), persistent)
-
-        event_number += 1
-        return self.__create_sequence_arbitrary(seq)
-    
 
 
     @classmethod
-    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str, initial_delay: float = 5, persistent = True, maxtwo = False, list_mode = False)->mx.Sequence:
+    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str, maxtwo = False)->ArbitraryStimulation:
         """Combine two Stimulation objects into a sequence that runs them simultaneously.
 
         Args:
@@ -170,10 +188,9 @@ class Stimulation:
             initial_delay (float, optional): The delay before the sequence, in ms. Defaults to 5.
             persistent(bool, optional): Whether or not the sequence exists on the server after its scope is complete. Defaults to True.
             maxtwo (bool, optional): whether or not the maxtwo is being used. If True, fps is equal to 10000.
-            list_mode (bool, optional): Whether or not to return the stimulus in list form as opposed to the Sequence. Used for debugging purposes when the Maxwell server is not connected.
 
         Returns:
-            mx.Sequence: The sequence that runs both stim1 and stim2 simultaneously.
+            ArbitraryStimulation: The ArbitraryStimulation object that runs both stim1 and stim2 simultaneously.
 
         Notes:
             Not configured to deal with mx.DelayCycles objects.
@@ -198,19 +215,16 @@ class Stimulation:
 
         global event_number
 
+        if stim1.dac_source == stim2.dac_source:
+            print("WARNING: the two stimuli selected are controlled by the same DAC.")
 
-
-        assert stim1.dac_source == 0, "stim1 must have a dac source of 0."
-        assert stim2.dac_source == 1, "stim2 must have a dac source of 1."
+        # assert stim1.dac_source != 0, "stim1 must have a dac source of 0."
+        # assert stim2.dac_source == 1, "stim2 must have a dac source of 1."
         fps = 20000
         if maxtwo:
             fps = 10000
 
         seq = list()
-        if not list_mode:
-            seq = mx.Sequence(token, persistent = False)
-            del seq
-            seq = mx.Sequence(token, int(initial_delay * fps/(10**3)), persistent)
         
         stim1_seq_list = stim1.sequence_list.copy()
         stim2_seq_list = stim2.sequence_list.copy()
@@ -233,15 +247,9 @@ class Stimulation:
         #if timing offset < 0, stim1 has a longer time delay.
 
 
-        while(type(next_command_1 := stim1_seq_list.pop(0)) != mx.DelaySamples):
-            seq.append(next_command_1)
-        
-        while(type(next_command_2 := stim2_seq_list.pop(0)) != mx.DelaySamples):
-            seq.append(next_command_2)
-
         #right now, both are DelaySamples
-        delay_time_1 = next_command_1.samples
-        delay_time_2 = next_command_2.samples
+        delay_time_1 = 0
+        delay_time_2 = 0
 
 
         while not math.isinf(delay_time_1) or not math.isinf(delay_time_2):
@@ -258,6 +266,4 @@ class Stimulation:
         for command in stim1_seq_list + stim2_seq_list:
             seq.append(command)
 
-        event_number += 1
-
-        return seq
+        return ArbitraryStimulation(token, seq)

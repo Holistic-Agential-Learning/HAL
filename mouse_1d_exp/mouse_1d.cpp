@@ -39,14 +39,94 @@ using namespace maxlab;
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
 
+
+#define USAGE "Usage: ./mouse_1d --config <config_path> \n\n\
+Options:\n\
+\t[--maxtwo]                Indicates running on the MaxTwo\n\
+\t[--threshold <value>]     Threshold for burst detection (must be a decimal between 0 and 1)\n\
+\t[--minutes <value>]       Number of minutes to run\n\
+\t[--well <value>]          Well number\n\
+\t[--world <value>]         String representing the layout of the 1D circular world\n\
+\t[--loc <value>]           Number indicating the index of the world to start at\n\
+\t[--local]                 Indicates running locally\n\
+"
+
+#define THRESHOLD_DEFAULT WINDOW/1000
+#define FRAMES_DEFAULT 15*60*20000
+#define MINUTES_DEFAULT 15
+
 int FRAMES_PER_SEC = 20000;
+
+
+struct args {
+    bool maxtwo;
+    string config_path;
+    float threshold;
+    int minutes;
+    int well;
+    string world;
+    int loc;
+    bool local;
+};
+
+
 
 float get_avg_side(vector<FilteredFrameData> frameWindow, ElectrodeMap emap);
 float framesToSeconds(int frames);
 bool runExperiment(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world, bool maxlab);
 int get_max_element(vector<int> v);
 void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world);
+void printUsage();
+struct args getArgs(int argc, char *argv[]);
 
+
+void printUsage() {
+    cout << USAGE << endl
+}
+
+
+struct args getArgs(int argc, char *argv[]) {
+    struct args ret;
+    if (!checkOption("--config", argc, argv) && !checkOption("--local", argc, argv)) {
+        printUsage();
+        exit(2);
+    }
+    ret.config_path = getStringArg("--config", argc, argv);
+    ret.maxtwo = checkOption("--maxtwo", argc, argv);
+    ret.local = checkOption("--local", argc, argv);
+
+    if (checkOption("--threshold", argc, argv)) {
+        ret.threshold = getFloatArg("--threshold", argc, argv);
+    } else {
+        ret.threshold = THRESHOLD_DEFAULT;
+    }
+
+    if (checkOption("--well", argc, argv)) {
+        ret.well = getIntArg("--well", argc, argv);
+    } else {
+        ret.well = 0;
+    }
+
+    if (checkOption("--minutes", argc, argv)) {
+        ret.minutes = getIntArg("--minutes", argc, argv);
+    } else {
+        ret.minutes = MINUTES_DEFAULT;
+    }
+
+    if (checkOption("--world", argc, argv)) {
+        ret.world = getStringArg("--world", argc, argv);
+    } else {
+        ret.world = "00100";
+    }
+
+    if (checkOption("--loc", argc, argv)) {
+        ret.loc = getIntArg("--loc", argc, argv);
+    } else {
+        ret.loc = 0;
+    }
+
+    return ret; 
+}
 
 /* signal_interrupt_handler
  * 
@@ -118,33 +198,7 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
     // spike count for each calculated location, mirroring locs
     vector <int> burstSpikeCounts(5);
 
-    // number of locs that can be stored
-    int capacity = 5;
-
-    // number of locs that are currently being stored
-    int locCounter = 0;
-    
-    float monitoringLoc = 0;
-
-    // stores data for each frame in a 200-frame window
-    vector<FilteredFrameData> frameWindow;
-    cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
-
-
-    // initialize the vector with 200 frames
-    for (int i = 0; i < WINDOW; i++) {
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
-
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
-            continue;
-        }
-        spikeCount += frameData.spikeCount;
-
-        frameWindow.push_back(frameData);
-    }
-
+    // number of locs that can be storedmaxtwo
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
@@ -380,24 +434,13 @@ int main(int argc, char * argv[]) {
     //NECESSARY PARAMS
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
-
-    WorldState world;
-    if(argc >= 3){
-        world = WorldState(argv[1], stoi(argv[2]));
-    }
-    else{
-        world = WorldState();
-    } 
-
-    int maxlab = 0;
-
-    if (argc >= 4){
-        maxlab = stoi(argv[3]);
-    }
+    struct args params = getArgs(argc, argv);
+    WorldState world = WorldState(params.world, params.loc);
+    
+    int maxlab = !params.local;
 
     world.display();
     
-
     if(!maxlab){
         bool next = true;
         cout << "Press x to escape. Use arrow keys to go right/left, followed by enter. "<< endl;
@@ -418,22 +461,17 @@ int main(int argc, char * argv[]) {
         
     }
     else{
-        char *configPath = argv[4];
+        char *configPath = params.config_path;
         ElectrodeMap emap = ElectrodeMap(configPath);
-        int well = 0;
+        int well = params.well;
         
-        if(argc >= 6 && stoi(argv[5])) {
+        if(params.maxtwo) {
             FRAMES_PER_SEC = 10000;
         }
-
-        if(argc >= 7) {
-            well = stoi(argv[6]);
-        }
-
         
-        int frames = 30*60*FRAMES_PER_SEC;
+        int frames = params.minutes*60*FRAMES_PER_SEC;
         
-        float threshold = WINDOW/1000;
+        float threshold = params.threshold;
 
         cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
         cout << "Min frames: " << MIN_FRAMES << endl;
