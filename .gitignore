@@ -12,3 +12,4 @@ data/*
 Makefile
 guitest
 ERR_LOG
+*.cfg
