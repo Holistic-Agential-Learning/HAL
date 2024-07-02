@@ -183,9 +183,8 @@ if __name__ == "__main__":
 
         # set recording and stimulation electrodes
         #
-        # Note: stimulation electrodes must also be recording electrodes, 
-        #       so they are automatically added here
-        array.select_electrodes(stim_elecs + recording_electrodes)
+        # Note: stimulation electrodes must also be recording electrodes
+        array.select_electrodes(recording_electrodes)
         array.select_stimulation_electrodes(stimulation_electrodes)
         array.route()
 
