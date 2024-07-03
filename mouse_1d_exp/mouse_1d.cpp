@@ -52,7 +52,6 @@ Options:\n\
 "
 
 #define THRESHOLD_DEFAULT WINDOW/1000
-#define FRAMES_DEFAULT 15*60*20000
 #define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;
@@ -88,7 +87,7 @@ void printUsage() {
 
 struct args getArgs(int argc, char *argv[]) {
     struct args ret;
-    if ((!checkOption("durations", argc, argv) || !checkOption("--config", argc, argv)) && !checkOption("--local", argc, argv)) {
+    if ((!checkOption("--durations", argc, argv) || !checkOption("--config", argc, argv)) && !checkOption("--local", argc, argv)) {
         printUsage();
         exit(2);
     }

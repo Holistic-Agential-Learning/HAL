@@ -2,7 +2,7 @@
 import sys
 import os
 sys.path.append(os.path.dirname(__file__) + "/..")
-from typing import List
+from typing import List, Iterable
 from pathlib import Path
 
 
@@ -24,6 +24,7 @@ from h5py import File
 
 
 
+
 class ObjectDistanceParams:
     def __init__(self, world_size: int, amplitudes: list = [], phases: list = [], pulses_per_train: list = [], num_trains: list = [], pulse_intervals: list = [], pulse_train_intervals: list = []):
         """Stores how stimulus parameters change with distance. 
@@ -39,22 +40,22 @@ class ObjectDistanceParams:
             pulse_intervals (_type_): _description_
             pulse_train_intervals (_type_): _description_
         """
-        def assign_list_int(size, list_or_int):
+        def assign_list_num(size, list_or_num):
             ret = [0] * size
-            if isinstance(list_or_int, int):
+            if not isinstance(list_or_num, Iterable):
                 for i in range(0, size):
-                    ret[i] = list_or_int
+                    ret[i] = list_or_num
             else:
-                ret[0:min(len(list_or_int), size)] = list_or_int[0:min(len(list_or_int), size)]
+                ret[0:min(len(list_or_num), size)] = list_or_num[0:min(len(list_or_num), size)]
 
             return ret
 
-        self.amplitudes = assign_list_int(world_size, amplitudes)
-        self.phases = assign_list_int(world_size, phases)
-        self.pulses_per_train = assign_list_int(world_size, pulses_per_train)
-        self.num_trains = assign_list_int(world_size, num_trains)
-        self.pulse_intervals = assign_list_int(world_size, pulse_intervals)
-        self.pulse_train_intervals = assign_list_int(world_size, pulse_train_intervals)
+        self.amplitudes = assign_list_num(world_size, amplitudes)
+        self.phases = assign_list_num(world_size, phases)
+        self.pulses_per_train = assign_list_num(world_size, pulses_per_train)
+        self.num_trains = assign_list_num(world_size, num_trains)
+        self.pulse_intervals = assign_list_num(world_size, pulse_intervals)
+        self.pulse_train_intervals = assign_list_num(world_size, pulse_train_intervals)
 
 
 #parameters for stimulations:
@@ -85,7 +86,6 @@ def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: boo
                 print(f"loc {i}: object {leftward_loc} found {j} spaces to the left")
                 distance_index = j-1
                 obj_params = object_distance_params[leftward_loc]
-
                 leftward_stim = Stimulation(f"l{i}", 0, 
                                             amplitude = obj_params.amplitudes[distance_index], 
                                             phase = obj_params.phases[distance_index],

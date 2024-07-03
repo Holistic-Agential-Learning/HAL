@@ -1,11 +1,14 @@
 #!/usr/bin/env python
+import sys
+
+sys.path.append("./bin")
 from typing import List
 
 import random
 import time
-import bin.gui.GUI as GUI
+#import bin.gui.GUI as GUI
+import gui.GUI as GUI
 import json
-import sys
 import subprocess
 import os
 
@@ -15,18 +18,18 @@ import numpy as np
 
 import maxlab as mx
 
-from bin.lib.stimulation import *
+from lib.stimulation import *
 from world_stimulation import *
 
 import csv
 
 
 
-WORLD = "10000100"
+WORLD = "10200100"
 POSITION = 4
-LEFT_STIM_ELECTRODES = []
-RIGHT_STIM_ELECTRODES = []
-CENTER_STIM_ELECTRODES = []
+LEFT_STIM_ELECTRODES = [3102]
+RIGHT_STIM_ELECTRODES = [20866]
+CENTER_STIM_ELECTRODES = [int((20866 + 3102)/2)]
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -82,7 +85,6 @@ if __name__ == '__main__':
         exp_params = json.load(f)
 
     program_file = open("./bin/gui/programs.json", "r")
-    program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
     
     fps = 20000
     if exp_params['-MAXTWO-']:
@@ -95,7 +97,6 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        stim_electrodes = exp_params["E_SELECTED"]
         rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
 
 
@@ -182,8 +183,8 @@ if __name__ == '__main__':
             else:
                 center_stimulation_units.append(stim_unit_int)
                 stimulation_units.append(stim_unit_int)
-        
-        assert left_stimulation_units + right_stimulation_units + center_stimulation_units == center_stimulation_units
+
+        assert left_stimulation_units + right_stimulation_units + center_stimulation_units == stimulation_units
         ############################################################################
         # WES LOOK HERE
         # change directory and file name of the recording here
@@ -197,8 +198,6 @@ if __name__ == '__main__':
         file_name = exp_params["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
 
         config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
-
-        print(config_file_name)
         #save the config prior to running the code
         array.save_config(config_file_name)
         ############################################################################
@@ -229,7 +228,8 @@ if __name__ == '__main__':
         stimuli_durations = dict()
 
         objects_of_interest = {
-            "1": ObjectDistanceParams(len(WORLD), np.linspace(80, 0, 4), 200, 5, 1, 10, 1)
+            "1": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 4), 200, 5, 1, 10, 1),
+            "2": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 4), 200, 5, 2, 10, 0.5)
         }
 
         distance_stimuli = build_distance_stimuli(WORLD, objects_of_interest, exp_params['-MAXTWO-'], well)
@@ -240,7 +240,8 @@ if __name__ == '__main__':
 
         #CREATE STIMULI THAT ENCODE LOCATIONS
         object_stimuli = {
-            "1": Stimulation("1", 2, 200, 500, 10, 3, 10, 1, maxtwo = exp_params['-MAXTWO-'], well = well)
+            "1": Stimulation("1", 2, 200, 500, 10, 3, 10, 1, maxtwo = exp_params['-MAXTWO-'], well = well),
+            "2": Stimulation("2", 2, 200, 500, 5, 3, 10, 1, maxtwo = exp_params['-MAXTWO-'], well = well)
         }
         for stimulation in object_stimuli.values():
             stimulation.build_sequence()
@@ -250,9 +251,8 @@ if __name__ == '__main__':
         #Create stimuli duration csv
         stimuli_durations_csv = directory_name + "/" + file_name + f"_stimuli_durations.csv"
         with open(stimuli_durations_csv, 'w') as csvfile:
-            writer = csv.DictWriter(csvfile)
             for key, value in stimuli_durations.items():
-                writer.writerow([key, int(value * fps)])
+                csvfile.write(key + ", " + str(int(value * fps)) + "\n")
         
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
@@ -276,14 +276,10 @@ if __name__ == '__main__':
         
         ##############################################################################
 
-        program_args = [f"./bin/build/{exp_params['PROGRAM_EXEC']}", "2>", "ERR_LOG", "--config", config_file_name]
+        program_args = [f"./bin/build/mouse_1d", "2>", "ERR_LOG", "--config", config_file_name]
         if exp_params['-MAXTWO-']:
             program_args.append("--maxtwo")
 
-        for name in program_parameters.keys():
-            if exp_params[name] != "":
-                program_args.append(program_parameters[name]["arg"])
-                program_args.append(exp_params[name])
         
         program_args.append("--well")
 
@@ -292,7 +288,7 @@ if __name__ == '__main__':
         program_args.append("--world")
         program_args.append(WORLD)
         program_args.append("--loc")
-        program_args.append(POSITION)
+        program_args.append(str(POSITION))
 
         program_args.append("--durations")
         program_args.append(stimuli_durations_csv)
@@ -313,7 +309,8 @@ if __name__ == '__main__':
         # WES LOOK HERE
         # change timing pattern here
         # time.sleep(600)
-        print("calling c++ script... well" + str(well))
+        print("calling c++ script... well " + str(well))
+        print(program_args)
         # This is the command to run (will last as long as the cpp files lasts)
         try:
             subprocess.run(program_args)
