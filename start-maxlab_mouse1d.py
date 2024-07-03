@@ -7,7 +7,7 @@ from typing import List
 import random
 import time
 #import bin.gui.GUI as GUI
-import gui.GUI as GUI
+import bin.gui.GUI as GUI
 import json
 import subprocess
 import os
@@ -18,8 +18,8 @@ import numpy as np
 
 import maxlab as mx
 
-from lib.stimulation import *
-from world_stimulation import *
+from bin.lib.py_src.stimulation import *
+from bin.lib.py_src.world_stimulation import *
 
 import csv
 
