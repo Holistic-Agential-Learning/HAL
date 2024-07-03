@@ -1,4 +1,5 @@
 Stimulation Class
 =================
 
-.. automodule:: stimulation.Stimulation
+.. autoclass:: stimulation.Stimulation
+    .. autofunction:: combine_stimuli
