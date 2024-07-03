@@ -9,7 +9,6 @@ maxlab/__pycache__/*
 **.vscode
 build
 data/*
-Makefile
 guitest
 ERR_LOG
 
