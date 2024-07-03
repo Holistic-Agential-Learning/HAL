@@ -70,8 +70,8 @@ configs = [
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
 stimulation_electrodes = [
-    [1000, 2000, 3000], # well 0 stimulation electrodes
-    [4000, 5000, 6000], # well 1 stimulation electrodes
+    [14915, 14551, 14919], # well 0 stimulation electrodes
+    [20590], # well 1 stimulation electrodes
     [], # ... 
     [],
     [],
