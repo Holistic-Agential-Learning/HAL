@@ -81,7 +81,7 @@ int main(int argc, char * argv[]) {
 
 void runExperiment(int frames) {
     // Open data stream and check that no errors occurred
-    maxlab::verifyStatus(maxlab::DataStreamerRaw_open(maxlab::FilterType::IIR));
+    maxlab::verifyStatus(maxlab::DataStreamerRaw_open());
 
     std::fstream rawdata_file;
     rawdata_file.open("data/raw_data_test.csv", std::fstream::out);
@@ -126,7 +126,7 @@ void runExperiment(int frames) {
 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerRaw_close());
-    rawdata_file.close()
+    rawdata_file.close();
 }
 
 float framesToSeconds(int frames) {
