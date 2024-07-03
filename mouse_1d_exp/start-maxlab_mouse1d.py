@@ -83,9 +83,11 @@ if __name__ == '__main__':
 
     program_file = open("./bin/gui/programs.json", "r")
     program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
-        
+    
+    fps = 20000
     if exp_params['-MAXTWO-']:
         wells = exp_params['WELLS']
+        fps = 10000
     else:
         wells = [0]
     
@@ -250,7 +252,7 @@ if __name__ == '__main__':
         with open(stimuli_durations_csv, 'w') as csvfile:
             writer = csv.DictWriter(csvfile)
             for key, value in stimuli_durations.items():
-                writer.writerow([key, value])
+                writer.writerow([key, int(value * fps)])
         
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
@@ -291,6 +293,9 @@ if __name__ == '__main__':
         program_args.append(WORLD)
         program_args.append("--loc")
         program_args.append(POSITION)
+
+        program_args.append("--durations")
+        program_args.append(stimuli_durations_csv)
 
         
 

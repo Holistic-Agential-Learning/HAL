@@ -51,7 +51,6 @@ void WorldState::display(){
         cout << "─";
     }
     cout << "┘" << endl;
-    cout << "stimulus pattern " << location << endl << endl;
 }
 
 void WorldState::move_left(){
@@ -62,4 +61,8 @@ void WorldState::move_left(){
 void WorldState::move_right(){
     this->location = remainder(location + 1, nodes);
     display();
+}
+
+char WorldState::get_position(){
+    return world_map[location];
 }

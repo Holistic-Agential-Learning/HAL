@@ -30,4 +30,6 @@ class WorldState{
         void move_left();
 
         void move_right();
+
+        char get_position();
     };

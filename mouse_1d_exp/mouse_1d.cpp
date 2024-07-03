@@ -74,9 +74,9 @@ struct args {
 
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
-bool runExperiment(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world, bool maxlab);
 int get_max_element(vector<int> v);
-void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world);
+void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations, int frames, float threshold, int well, WorldState * world);
+map<string, int> readDictCsv(const char *filepath);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
 
@@ -142,13 +142,12 @@ void signal_interrupt_handler(int sig) {
 }
 
 
-void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world) {
+void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations, int frames, float threshold, int well, WorldState * world) {
      // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     std::fstream file;
     std::fstream alldata_file;
-    std::fstream rawdata_file;
     file.open("data/side_test_" + to_string(well) + ".csv", std::fstream::out);
     alldata_file.open("data/side_test_alldata" + to_string(well) + ".csv", std::fstream::out);
 
@@ -219,8 +218,10 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
         window.add(frameData);
     }
 
-
+    cout << "Window initialized" << endl;
     // start processing frames
+    int stimulus_cooldown = 0;
+
     for (int i = 0; i < frames; i++) {
         if (i == 0){
             maxlab::verifyStatus(maxlab::sendSequence("before-training"));
@@ -236,6 +237,23 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
             cout << i << ": after training" << endl;
         }
 
+        if (stimulus_cooldown > 0){
+            stimulus_cooldown --;
+        }
+        //check the world state, determine stimuli appropriately.
+        if (stimulus_cooldown <= 0){
+            string stimulus_name = "loc" + to_string(world->location) + "_distance";
+            int duration = stimulusDurations[stimulus_name];
+            
+            maxlab::verifyStatus(maxlab::sendSequence(stimulus_name.c_str()));
+
+            stimulus_cooldown += (duration + FRAMES_PER_SEC/100);
+        }
+        
+
+
+
+
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
@@ -250,13 +268,6 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
         window.shift(frameData);
         int spikeCount = window.totalSpikeCount();
 
-
-        if (blanking > 0) {
-            blanking--;
-            if (blanking != 0) {
-                continue;
-            }
-        }
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
             monitoringLoc = get_avg_side(window);
@@ -314,6 +325,16 @@ void runTrainWaveDirection(ElectrodeMap emap, int frames, float threshold, int w
                     } 
                     else {
                         world->move_left();
+                    }
+                    string position = to_string(world->get_position());
+                    if (stimulusDurations.count(position) > 0){
+                        //we are at a point of interest
+                        int duration = stimulusDurations[position];
+                        
+                        maxlab::verifyStatus(maxlab::sendSequence(position.c_str()));
+
+                        stimulus_cooldown += (duration + FRAMES_PER_SEC/100);
+
                     }
                     
                 }      
@@ -403,39 +424,39 @@ int get_max_element(vector<int> v){
 
 
 
-
-
-
-
-bool runExperiment(ElectrodeMap emap, int frames, float threshold, int well, WorldState * world, bool maxlab){
-    if(!maxlab){
-        bool next = true;
-        cout << "Press x to escape. Use arrow keys to go right/left, followed by enter. "<< endl;
-        while(next){
-            int a = cin.get();
-            switch(a){
-                case 67://right
-                    world->move_right();
-                break;
-                case 68: //left
-                    world->move_left();
-                break;
-                case 'x': //esc
-                    next = false;
-                break;
-            }
-        }
-        
-    }
-    else{
-        runTrainWaveDirection(emap, frames, threshold, well, world);
-        //copied from stim-burst-side.cpp
+//THIS COULD PROBABLY GO INTO SOME UTILS PACKAGE
+/* readDictCsv
+ * 
+ * Reads a CSV made with a dictionary from python with keys in one column and values in another.
+ * For the future, needs to be made type-general.
+ * 
+ */
+map<string, int> readDictCsv(const char *filepath){
+    std::ifstream fin(filepath);
+    if (!fin) { 
+        cout << "Error, could not open file." << endl; 
+        exit(2);
     }
 
-    return true;
+    map<string, int> dict;
+
+    string key;
+    string value;
+
+    // while (fin >> key >> value){
+    //     dict[key] = value;
+    // }
+    while(getline(fin, key, ',')){
+        getline(fin, value);
+
+        dict[key] = stoi(value);
+    }
+
+    fin.close();
+
+    return dict;
+
 }
-
-
 
 int main(int argc, char * argv[]) {
     //NECESSARY PARAMS
@@ -456,9 +477,11 @@ int main(int argc, char * argv[]) {
             switch(a){
                 case 67://right
                     world.move_right();
+                    cout << "at position " << world.get_position() << endl;
                 break;
                 case 68: //left
                     world.move_left();
+                    cout << "at position " << world.get_position() << endl;
                 break;
                 case 'x': //esc
                     next = false;
@@ -474,6 +497,7 @@ int main(int argc, char * argv[]) {
 
 
         //READ IN DURATIONSPATH CSV
+        map<string, int> stimulusDurations = readDictCsv(durationsPath);
 
         int well = params.well;
         
@@ -489,7 +513,7 @@ int main(int argc, char * argv[]) {
         cout << "Min frames: " << MIN_FRAMES << endl;
 
         try{
-            runTrainWaveDirection(emap, frames, threshold, well, &world);
+            runTrainWaveDirection(emap, stimulusDurations, frames, threshold, well, &world);
         } catch (int err) {
             cout << "Program failed with error code " << err << endl;
             maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
