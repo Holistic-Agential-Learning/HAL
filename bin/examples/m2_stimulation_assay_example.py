@@ -185,7 +185,7 @@ if __name__ == "__main__":
         #
         # Note: stimulation electrodes must also be recording electrodes
         array.select_electrodes(recording_electrodes)
-        array.select_stimulation_electrodes(stimulation_electrodes)
+        array.select_stimulation_electrodes(stim_elecs)
         array.route()
 
         # connect stimulation units
@@ -206,6 +206,8 @@ if __name__ == "__main__":
         # download data to the well
         array.download([well])
 
+    mx.activate(wells)
+
     sleep(mx.Timing.waitAfterDownload)
     mx.offset()
     sleep(15)
@@ -223,17 +225,20 @@ if __name__ == "__main__":
     #     sequence
     #   - An event can only correspond to one well--if you want it to be visible
     #     on all wells, then you have to make an event for each well
-    #   - The first argument of mx.Event is the well number, the second MUST 
-    #     be 1, the third is a unique integer identifier for each event, and 
-    #     the last is a string description of the event
+    #   - mx.Event arguments (in order):
+    #       - well number
+    #       - the integer 1 (this is the only way that it works)
+    #       - unique identifier for each event (integer, cannot be 0)
+    #       - a string key-value pair, separated by a space (can be used to 
+    #         describe the event)
 
     event_id = 0 # always contains a unique event ID if updated after each event
 
     example_sequence = mx.Sequence("example_stimulation")
 
     # add event to indicate the start of the stimulation
-    example_sequence.append(mx.Event(wells[0], 1, event_id, 
-                                "well 0, before stimulation 1"))
+    example_sequence.append(mx.Event(wells[0], 1, -1, 
+                                "before example_stimulation"))
     event_id += 1 # make sure that the event ID is always unique
 
     # send 3 trains
@@ -251,7 +256,7 @@ if __name__ == "__main__":
     
     # add event to indicate the end of the stimulation
     example_sequence.append(mx.Event(wells[0], 1, event_id, 
-                                "well 0, after stimulation 1"))
+                                "after example_stimulation"))
     event_id += 1
 
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -278,14 +283,25 @@ if __name__ == "__main__":
     print("Starting recording...")
     sleep(5)
 
+    # this will stimulate all wells, since they are all activated
     print("Sending first stimulation...")
     example_sequence.send() # send stimulation 
     sleep(5) # wait for 5 seconds
 
+    # switches which well is viewed in the MaxWell GUI 
+    mx.set_primary_well(0)
+
+    # use this to activate the wells that you want to stimulate...this will 
+    # stimulate well 0
+    mx.activate([0])
     print("Sending second stimulation...")
     example_sequence.send()
-    sleep(10)
+    sleep(5)
 
+    mx.set_primary_well(1)
+
+    # stimulate well 1
+    mx.activate([1])
     print("Sending third stimulation...")
     example_sequence.send()
     sleep(5)
