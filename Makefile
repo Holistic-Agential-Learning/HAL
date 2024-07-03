@@ -33,7 +33,7 @@ train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_O)
 raw-data-test: $(SRC)/raw-data-test.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-mouse_1d: mouse_1d_exp/mouse_1d.o mouse_1d_exp/worldstate.o $(HAL_O)
+mouse_1d: $(SRC)/mouse_1d.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 reward-punish: $(SRC)/closed_loop_rp.o $(HAL_O)

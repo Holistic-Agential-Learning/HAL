@@ -222,6 +222,21 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
     int stimulus_cooldown = 0;
 
     for (int i = 0; i < frames; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+
+        // If no data was read in, try again (happens when loop finishes before 
+        // the machine takes another sample)
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+
+        // const SpikeEvent *spike = frameData.spikeEvents;
+        window.shift(frameData);
+        int spikeCount = window.totalSpikeCount();
+
+
         if (i == 0){
             maxlab::verifyStatus(maxlab::sendSequence("before-training"));
             cout << i << ": before training" << endl;
@@ -237,8 +252,21 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
         }
 
         if (stimulus_cooldown > 0){
-            stimulus_cooldown --;
+            if(stimulus_cooldown == 1){
+                cout << "stimulus_cooldown done" << endl;
+            }
+            stimulus_cooldown--;
         }
+
+        if (blanking > 0){
+            if (blanking == 1){
+                cout << "balnking done" << endl;
+            }
+            blanking--;
+            continue;
+            cout << "hi" << endl;
+        }
+        
         //check the world state, determine stimuli appropriately.
         if (stimulus_cooldown <= 0){
             string stimulus_name = "loc" + to_string(world->location) + "_distance";
@@ -248,24 +276,6 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
 
             stimulus_cooldown += (duration + FRAMES_PER_SEC/100);
         }
-        
-
-
-
-
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
-
-        // If no data was read in, try again (happens when loop finishes before 
-        // the machine takes another sample)
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
-            continue;
-        }
-
-        // const SpikeEvent *spike = frameData.spikeEvents;
-        window.shift(frameData);
-        int spikeCount = window.totalSpikeCount();
 
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
@@ -325,14 +335,18 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
                     else {
                         world->move_left();
                     }
-                    string position = to_string(world->get_position());
+                    string position = string{world->get_position()};
+                    cout << "moved to position " << position << endl;
                     if (stimulusDurations.count(position) > 0){
                         //we are at a point of interest
+                        cout << "AT POINT OF INTEREST" << endl;
                         int duration = stimulusDurations[position];
+                        cout << "duration: " << duration << endl;
                         
                         maxlab::verifyStatus(maxlab::sendSequence(position.c_str()));
-
+                        
                         stimulus_cooldown += (duration + FRAMES_PER_SEC/100);
+                        blanking += (duration + FRAMES_PER_SEC/100);
 
                     }
                     
