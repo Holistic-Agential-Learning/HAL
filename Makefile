@@ -15,7 +15,7 @@ HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 # all .o files in hal lib
 HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(basename $(cpp)).o)
 
-PROGRAMS = train-wave-direction mouse_1d raw-data-test
+PROGRAMS = train-wave-direction mouse_1d raw-data-test reward-punish
 
 all : dir $(PROGRAMS)
 

@@ -2,21 +2,21 @@ import maxlab as mx
 import random
 
 PULSE_PER_TRAIN_LLIMIT: int = 1
-PULSE_PER_TRAIN_ULIMIT: int = 200_000 #this is arbitrary;' but the longer, the more unreliable
+PULSE_PER_TRAIN_ULIMIT: int = 200 #this is arbitrary;' but the longer, the more unreliable
 STABLE_AMPLITUDE_LLIMIT: int = 0
-STABLE_AMPLITUDE_ULIMIT: int = 5 #the limit is [0,1023]
+STABLE_AMPLITUDE_ULIMIT: int = 240 #the limit is [0,1023]
 
 
 #100 uS for MaxTwo and 50uS for MaxOne
 STABLE_PULSEWIDTH_LLIMIT: int = 10 #these limits matter a lot for the random num gen so set them properly
 STABLE_PULSEWIDTH_ULIMIT: int = 1_000
 STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10  
-STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 10_000
+STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
 
 #Note: treating each pulse as MonoPhasic by default 
-def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 500,
-                 stable_amplitude: int = 200, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
+def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50,
+                 stable_amplitude: int = 150, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
     '''
     inputs:
     1) type of punishment you want, currently available options: "PULSE_WIDTH", "AMPLITUDE" and "INTER_PHASE"

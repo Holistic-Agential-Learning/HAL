@@ -55,11 +55,12 @@ Options:
 Options:\n\
 \t[--maxtwo]             Indicates running on the MaxTwo\n\
 \t[--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)\n\
-\t[--frames <value>]     Number of frames to run for\n\
+\t[--minutes <value>]     Number of minutes to run\n\
 \t[--well <value>]       Well number\n"
 
 #define THRESHOLD_DEFAULT WINDOW/1000
 #define FRAMES_DEFAULT 15*60*20000
+#define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;
 
@@ -67,7 +68,7 @@ struct args {
     bool maxtwo;
     string config_path;
     float threshold;
-    int frames;
+    int minutes;
     int well;
 };
 
@@ -103,10 +104,10 @@ struct args getArgs(int argc, char *argv[]) {
         ret.well = 0;
     }
 
-    if (checkOption("--frames", argc, argv)) {
-        ret.frames = getIntArg("--frames", argc, argv);
+    if (checkOption("--minutes", argc, argv)) {
+        ret.minutes = getIntArg("--minutes", argc, argv);
     } else {
-        ret.frames = FRAMES_DEFAULT;
+        ret.minutes = MINUTES_DEFAULT;
     }
 
     return ret; 
@@ -130,39 +131,26 @@ void signal_interrupt_handler(int sig) {
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
-    // struct args params = getArgs(argc, argv);
-    // cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.frames << " frames..." << endl;
-    // cout << "Config: " << params.config_path << endl;
-    // cout << "Threshold: " << params.threshold << endl;
-    // cout << "Well: " << params.well << endl;
+    struct args params = getArgs(argc, argv);
+    cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.minutes << " minutes..." << endl;
+    cout << "Config: " << params.config_path << endl;
+    cout << "Threshold: " << params.threshold << endl;
+    cout << "Well: " << params.well << endl;
     // exit(1);
-    char *configPath = argv[1];
-    ElectrodeMap emap = ElectrodeMap(configPath);
-    int well = 0;
+    ElectrodeMap emap = ElectrodeMap(params.config_path.c_str());
+    int well = params.well;
     
-    if(argc >= 3 && stoi(argv[2])) {
+    if (params.maxtwo) {
         FRAMES_PER_SEC = 10000;
     }
-
-    if(argc >= 4) {
-        well = stoi(argv[3]);
-    }
-
     
-    int frames = 15*60*FRAMES_PER_SEC;
+    int frames = params.minutes*60*FRAMES_PER_SEC;
     
-    float threshold = WINDOW/1000;
+    float threshold = params.threshold;
 
     cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
     cout << "Min frames: " << MIN_FRAMES << endl;
 
-    
-
-    if (argc >= 5) {
-        frames = stoi(argv[4]);
-    } if (argc >= 6) {
-        threshold = stof(argv[5]);
-    }
     try {
         runExperiment(emap, frames, threshold, well);
     } catch (int err) {
@@ -344,22 +332,27 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
                     //left to right stimulation
                     //If in training phase
                     if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
+                        //if (i < (int)((float)(2*frames)/3)) {
                         if (left) {
-                            maxlab::verifyStatus(maxlab::sendSequence("reward"));
-                            cout << i << ": sent left-to-right stimulation" << endl;
-                        } 
-                        else {
                             std::random_device rd;
                             std::mt19937 gen(rd());
                             std::uniform_int_distribution<> dis(0, 999);
                             int randomInt = dis(gen);
                             std::string punish_no = std::to_string(randomInt);
                             std::string final_punish = "punish" + punish_no;
-                            maxlab::verifyStatus(maxlab::sendSequence(final_punish));
+                            cout << final_punish << endl;
+                            maxlab::verifyStatus(maxlab::sendSequence(final_punish.c_str()));
+                            //maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
+                            cout << i << ": sent left-to-right stimulation" << endl;
+                        } 
+                        else {
+                            //maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
+                            maxlab::verifyStatus(maxlab::sendSequence("reward"));
+                            cout << i << ": sent right-to-left stimulation" << endl;
                             cout << i << ": sent right-to-left stimulation" << endl;
                         }
 
-                        blanking = 0.4 * FRAMES_PER_SEC;
+                        blanking = 3*FRAMES_PER_SEC;
                     }
                     
                 }      
@@ -389,7 +382,7 @@ float get_avg_side(ChannelWindow window) {
     ElectrodeMap emap = window.electrodeMap();
 
     // used to make sure that each channel is only counted once
-    int channels[1024] = {0};
+    int channels[1024];
     float sum = 0;
     float count = 0;
     for (int i = 0; i < window.length(); i++) {
@@ -400,20 +393,19 @@ float get_avg_side(ChannelWindow window) {
             // compute column coordinate and add to sum
             int channel = event[j].channel;
             // if the channel has already been counted
-            if (channel < 1024 && channels[channel] == 0){
-                if(channel > 1024){
+            if (channel < 1024 && channels[channel] == 0) {
+                if(channel > 1024) {
                     cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
                 }
                 float x_coord = emap.get_x(channel);
                 if(x_coord < 0){ //channel number not found in the emap
                     // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
                 }
-                else{
+                else {
                     sum += x_coord;
                     channels[channel] = 1;
                     count++;
                 }
-
             }
             
         }

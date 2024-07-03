@@ -3,7 +3,7 @@ import random
 
 
 PULSE_PER_TRAIN_LLIMIT: int = 1
-PULSE_PER_TRAIN_ULIMIT: int = 200_000 #this is arbitrary;' but the longer, the more unreliable
+PULSE_PER_TRAIN_ULIMIT: int = 200 #this is arbitrary;' but the longer, the more unreliable
 STABLE_AMPLITUDE_LLIMIT: int = 0
 STABLE_AMPLITUDE_ULIMIT: int = 512 #the limit is [0,1023]
 
@@ -11,11 +11,11 @@ STABLE_AMPLITUDE_ULIMIT: int = 512 #the limit is [0,1023]
 STABLE_PULSEWIDTH_LLIMIT: int = 1 
 STABLE_PULSEWIDTH_ULIMIT: int = 1_000
 STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10 
-STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 10_000
+STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
 #Note: treating each pulse as biphasic
-def macro_reward(seq_name: str, num_pulses_per_train: int = 500,
-                 stable_amplitude: int = 200, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
+def macro_reward(seq_name: str, num_pulses_per_train: int = 50,
+                 stable_amplitude: int = 150, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
     
     '''
     inputs:

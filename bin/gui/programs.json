@@ -7,6 +7,14 @@
         "Minutes": {"arg": "--minutes", "type": "int"}
     }
 },
+"Punish Reward": {
+    "exec": "reward-punish",
+    "stim_names": [],
+    "parameters": {
+        "Threshold": {"arg": "--threshold", "type": "float"},
+        "Minutes": {"arg": "--minutes", "type": "int"}
+    }
+},
 "Switch Wells": {
     "exec": "switch-wells",
     "stim_names": ["Switch-Well"],

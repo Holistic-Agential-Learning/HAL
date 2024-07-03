@@ -213,9 +213,7 @@ if __name__ == '__main__':
         train_seq = mx.Sequence("training", persistent = False)
         del train_seq
         train_seq = mx.Sequence("training", persistent = True)
-        train_seq.append(mx.Event(well, 1, 3, "training 1"))
-
-        end_seq = mx.Sequence("after-training", persistent = False)
+        train_seq.append(mx.Event(well, 1, 3, "training bin/setup/start-maxlab.pynt = False)
         del end_seq
         end_seq = mx.Sequence("after-training", persistent = True)
         end_seq.append(mx.Event(well, 1, 4, "after_training 1"))

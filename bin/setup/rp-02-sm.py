@@ -1,23 +1,21 @@
 #!/usr/bin/env python
 from typing import List
+
 import random
 import time
+import bin.gui.GUI as GUI
 import json
 import sys
 import subprocess
 import os
+
+
+
 import maxlab as mx
 
-
-top_level_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-sys.path.append(top_level_dir)
+from bin.lib.py_src.stimulation import Stimulation
 from punish_reward.macro_punish import macro_punish
 from punish_reward.macro_reward import macro_reward
-import bin.gui.GUI as GUI
-from bin.lib.stimulation import Stimulation
-
-
-
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -77,11 +75,17 @@ def create_stim_pulse(seq: mx.Sequence, amplitude: int, phase: int) -> mx.Sequen
     return seq
 
 if __name__ == '__main__':
+    print("running start-maxlab...")
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
         exp_params = json.load(f)
+        f.close()
     else:
-        exp_params = GUI.start_gui()
+        f = open(GUI.start_gui(), "r")
+        exp_params = json.load(f)
+        f.close()
+
+    program_file = open("./bin/gui/programs.json", "r")
         
     if exp_params['-MAXTWO-']:
         wells = exp_params['WELLS']
@@ -92,12 +96,10 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        stim_electrodes = exp_params["E_SELECTED"]
+        stim_electrodes = [22409, 5619, 12593]
         rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = True
-        if exp_params["STIMULATIONS"] == {}:
-            does_stimulations = False
 
         mx.initialize()
         mx.send(mx.Core().enable_stimulation_power(True))
@@ -151,11 +153,11 @@ if __name__ == '__main__':
         directory_name = exp_params["FOLDER"]
         file_name = exp_params["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
 
-        config_file_name = directory_name + "/" + file_name + "_config.cfg"
+        config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
 
         print(config_file_name)
         #save the config prior to running the code
-        array.save_config(str(config_file_name))
+        array.save_config(config_file_name)
         ############################################################################
 
 
@@ -181,29 +183,12 @@ if __name__ == '__main__':
 
         # conda activate jkts
         # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
-        if does_stimulations:
-            stimulations = exp_params['STIMULATIONS']
-            for stim_name in stimulations.keys():
-                stim = Stimulation(stim_name, 0, 
-                    amplitude = float(stimulations[stim_name]["AMPLITUDE"]), 
-                    phase = float(stimulations[stim_name]["PHASE"]), 
-                    pulses_per_train = int(stimulations[stim_name]["NUM_PER_TRAIN"]),
-                    num_trains = int(stimulations[stim_name]["NUM_TRAINS"]),
-                    pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
-                    pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
-                    maxtwo = exp_params['-MAXTWO-'],
-                    well = well, 
-                )
 
-                seq = stim.create_sequence(persistent = True)
-
-        reward_seq = macro_reward("reward", 100, 10, 200, 2000)
+        reward_seq = macro_reward("reward")
         for i in range(0,1000):
-            var_name = f"punish_seq_{i}"
-            globals()[var_name] = macro_punish("PULSE_WIDTH", f"punish{i}" + str(i), 20, 5, 200, 2000)
+            var_name = f"punish{i}"
+            globals()[var_name] = macro_punish("PULSE_WIDTH", f"punish{i}")
 
-            
-        #TODO: ADD MY OTHER PUNISH HERE
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)
         del start_seq
@@ -225,6 +210,20 @@ if __name__ == '__main__':
         
         ##############################################################################
 
+        program_args = [f"./bin/build/reward-punish", "2>", "ERR_LOG", "--config", config_file_name]
+        if exp_params['-MAXTWO-']:
+            program_args.append("--maxtwo")
+        
+        program_args.append("--threshold")
+        program_args.append("0.1")
+        program_args.append("--minutes")
+        program_args.append("30")
+        program_args.append("--well")
+
+        program_args.append(str(well))
+
+        
+
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name + "_well_" + str(well))
@@ -243,7 +242,7 @@ if __name__ == '__main__':
         # This is the command to run (will last as long as the cpp files lasts)
         mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
         try:
-            subprocess.run([f"./bin/build/{exp_params['PROGRAM_EXEC']}", config_file_name, str(int(exp_params['-MAXTWO-'])), str(well)])
+            subprocess.run(program_args)
         except KeyboardInterrupt:
             print("start-maxlab.py: ^C signalled")
         except Exception as err:

@@ -24,7 +24,7 @@
 #include "hal.h"
 #include <map>
 
-#include "worldstate.h"
+// #include "worldstate.h"
 
 using namespace std;
 using namespace maxlab;
