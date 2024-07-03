@@ -10,6 +10,7 @@ Project HAL Documentation
    overview
    code 
    results
+   stimulation
    :maxdepth: 2
    :caption: Contents:
 
@@ -21,3 +22,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+* :doc:`stimulation`

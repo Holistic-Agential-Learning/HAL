@@ -5,15 +5,23 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+import pathlib
+import sys
+
+sys.path.insert(0, pathlib.Path("../bin/lib/py_src"))
 
 project = 'HAL'
-copyright = '2024, Wesley Clawson, Trevor Sullivan, Nathan Wu'
-author = 'Wesley Clawson, Trevor Sullivan, Nathan Wu'
+copyright = '2024, Wesley Clawson, Nathan Wu, Trevor Sullivan, Viraj Chhajed'
+author = 'Wesley Clawson, Nathan Wu, Trevor Sullivan, Viraj Chhajed'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = [
+    'sphinx.ext.duration',
+    'sphinx.ext.doctest',
+    'sphinx.ext.autodoc',
+]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
