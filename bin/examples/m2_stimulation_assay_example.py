@@ -165,8 +165,12 @@ if __name__ == "__main__":
         raise RuntimeError("The system didn't initialize correctly.")
     sleep(mx.Timing.waitInit)
 
+    print("Initializing wells...")
+
     # sets up recording and stimulation electrodes for each well
     for well in wells:
+
+        print(f"Setting up well {well}...")
 
         # activate the current well
         mx.activate([well])
@@ -208,12 +212,14 @@ if __name__ == "__main__":
 
     mx.activate(wells)
 
+    print("Offsetting...")
     sleep(mx.Timing.waitAfterDownload)
     mx.offset()
     sleep(15)
 
     mx.clear_events()
 
+    print("Making stimulations...")
 
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # @edit
@@ -228,16 +234,17 @@ if __name__ == "__main__":
     #   - mx.Event arguments (in order):
     #       - well number
     #       - the integer 1 (this is the only way that it works)
-    #       - unique identifier for each event (integer, cannot be 0)
+    #       - unique unique positive integer used as an identifier for each 
+    #         event (CANNOT be less than 1)
     #       - a string key-value pair, separated by a space (can be used to 
     #         describe the event)
 
-    event_id = 0 # always contains a unique event ID if updated after each event
+    event_id = 1 # always contains a unique event ID if updated after each event
 
     example_sequence = mx.Sequence("example_stimulation")
 
     # add event to indicate the start of the stimulation
-    example_sequence.append(mx.Event(wells[0], 1, -1, 
+    example_sequence.append(mx.Event(wells[0], 1, event_id, 
                                 "before example_stimulation"))
     event_id += 1 # make sure that the event ID is always unique
 
