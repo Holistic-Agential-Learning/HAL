@@ -10,6 +10,8 @@ def getMessage():
         f"{name}, you're cooking right now",
         f"I think it's lunch time, {name}",
         f"Drink more water, {name}",
+        f"You're giving off top-right energy, {name}",
+        f"You're being a bottom-left, {name}",
         f"Welcome to the experiment, {name}"
     ]
 
