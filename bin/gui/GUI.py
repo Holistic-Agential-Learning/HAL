@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
 matplotlib.use('TkAgg')
+from datetime import date
 
 w, h = sg.Window.get_screen_size()
 sg.set_options(font=('bitstream charter', 18), element_padding=(6, 6), text_justification='left')
@@ -176,15 +177,26 @@ def createSelectFolder():
     window.close()
     return name
 
-def saveFile(values, is_config):
-    from datetime import date
+
+
+def save_file(values, is_config):
+    full_folder_path = f"{values['FOLDER']}/{values['NAME']}"
+
+    if not os.path.exists(full_folder_path):
+        os.mkdir(full_folder_path)
+    full_folder_path += f"/{values['CHIP_ID']}"
+    if not os.path.exists(full_folder_path):
+        os.mkdir(full_folder_path)
+
     fileName = values['NAME'] + ".json"
+    values['FOLDER'] = full_folder_path
+
+    print(f"Path: {full_folder_path}")
+    
     f = open(values['FOLDER'] + "/" + fileName, "w")
 
     # write to JSON file
-    today = date.today()
-    date = today.strftime("%m/%d/%y")
-    values['DATE'] = date
+    
     # values['FOLDER_NAME'] = folderName
     if not is_config:
         values['PROGRAM_EXEC'] = PROGRAMS[values['-PROGRAM-']]['exec']
@@ -442,7 +454,9 @@ def define_exp_window(old_exp):
 
     layout = [[sg.Text(message, font=("Helvetica", 16, "bold"))],
             [[sg.Text('Experiment name:'), sg.InputText(key='NAME', size=(40,1))]],
-                [sg.pin(sg.Text("Invalid name", text_color="red", visible=False, key='-NAME-ERR-'))],
+            [sg.pin(sg.Text("Invalid name", text_color="red", visible=False, key='-NAME-ERR-'))],
+            [[sg.Text('Chip ID: '), sg.Input(key='CHIP_ID')]],
+            [sg.pin(sg.Text('Chip ID: ', text_color="red", visible=False, key='-CHIP_ID-ERR-'))],
             [[sg.Text("Create or select folder: ")], [sg.Input(key='FOLDER'), sg.Button('Create'), sg.Button('Select')],
             [sg.pin(sg.Text("Please select or create a folder", text_color="red", visible=False, key='-FOLDER-ERR-'))]],
             [[sg.Checkbox('', key='-MAXONE-', enable_events=True, default=True, disabled=True), 
@@ -656,6 +670,12 @@ def define_exp(old_experiment):
                         window["-NAME-ERR-"].update(visible=True)
                     else:
                         window["-NAME-ERR-"].update(visible=False)
+                elif key == 'CHIP_ID':
+                    if values[key] == '':
+                        valid = False
+                        window["-CHIP_ID-ERR-"].update(visible=True)
+                    else:
+                         window["-CHIP_ID-ERR-"].update(visible=False)
                 elif key == 'FOLDER':
                     if (values[key] == ''):
                         valid = False
@@ -710,6 +730,11 @@ def define_exp(old_experiment):
                         values.pop(f"-{p}-{param}-")
 
                 experiment = values
+                experiment['-SCRIPT-'] = START_MAXLAB
+                today = date.today()
+                date_str = today.strftime("%m/%d/%y")
+                values['DATE'] = date_str
+                
                 configs = {}
                 if wells != None:
                     wells_list = []
@@ -733,9 +758,8 @@ def define_exp(old_experiment):
                     configs['0'] = config
                     experiment['WELLS'] = [0]
                 experiment['CONFIGS'] = configs
-                experiment['-SCRIPT-'] = START_MAXLAB
                 print(f"saving script {START_MAXLAB}...")
-                saveFile(experiment, False)
+                save_file(experiment, False)
                 window.close()
                 return run_or_modify(experiment, f"Experiment '{experiment['NAME']}' has been saved successfully.")
 
@@ -1143,7 +1167,7 @@ def get_config():
                         experiment['WELLS'] = [0]
                     
                     experiment['CONFIGS'] = configs
-                    saveFile(experiment, True)
+                    save_file(experiment, True)
                     window.close()
                     return f"{experiment['FOLDER']}/{experiment['NAME']}.json"
     
