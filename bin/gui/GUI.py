@@ -575,6 +575,14 @@ def define_exp(old_experiment):
             window['-CONFIG-'].update(value=config_path)
         old_experiment.pop('CONFIGS')
         old_experiment.pop('WELLS')
+
+        old_name = old_experiment["NAME"]
+        old_chipid = old_experiment["CHIP_ID"]
+        old_folder = old_experiment['FOLDER']
+        new_folder = old_folder.removesuffix(f"/{old_name}/{old_chipid}")
+
+        old_experiment['FOLDER'] = new_folder
+
         if old_experiment['E_SELECTED'] != None:
             old_experiment['E_SELECTED'] = ", ".join(str(elec) for elec in old_experiment['E_SELECTED'])
         for param in old_experiment:
