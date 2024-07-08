@@ -16,7 +16,7 @@ import numpy as np
 
 
 import maxlab as mx
-from bin.lib.stimulation import Stimulation
+from bin.lib.py_src.stimulation import Stimulation
 
 import matplotlib.pyplot as plt
 

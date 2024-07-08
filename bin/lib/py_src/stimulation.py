@@ -156,7 +156,7 @@ class Stimulation(ArbitraryStimulation):
 
 
 
-        seq.append(mx.Event(self.well, 1, event_number, "start_stimulation " + self.token))
+        seq.append(mx.Event(self.well, 1, event_number, f"start_stimulation {self.token} dac {self.dac_source} amp {self.amplitude} phase {self.phase} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval {self.pulse_interval} pulse_train_interval {self.pulse_train_interval} duration {self.duration}"))
         event_number += 1
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
@@ -210,6 +210,7 @@ class Stimulation(ArbitraryStimulation):
                 min_delay = next_command.samples
             else:
                 min_delay = math.inf
+                seq.append(next_command)
             return min_delay, max_delay, min_delay_seq
 
 
@@ -237,8 +238,12 @@ class Stimulation(ArbitraryStimulation):
         while(type(next_command_2 := stim2_seq_list.pop(0)) != mx.Event or next_command_2.properties[0:17] != "start_stimulation"):
             seq.append(next_command_2)
 
-        seq.append(mx.Event(stim1.well, 1, event_number, "start_stimulation " + token))
-        event_number += 1
+        seq.append(next_command_1)
+        seq.append(next_command_2)
+        
+        #seq.append(mx.Event(stim1.well, 1, event_number, "start_stimulation " + token))
+        #event_number += 1
+
         #Right now, next_command_1 and next_command_2 are both either DAC or DelaySamples.
         #Step through commands 
         
@@ -260,10 +265,31 @@ class Stimulation(ArbitraryStimulation):
             elif delay_time_1 <= delay_time_2: #TODO: Implement DAC code 3 if delays are equal?
                 delay_time_1, delay_time_2, stim1_seq_list = process_delay_times(delay_time_1, delay_time_2, stim1_seq_list)
 
-        seq.append(mx.Event(stim1.well, 1, event_number, "end_stimulation " + token))
-        event_number += 1
+        #seq.append(mx.Event(stim1.well, 1, event_number, "end_stimulation " + token))
+        #event_number += 1
 
         for command in stim1_seq_list + stim2_seq_list:
             seq.append(command)
 
         return ArbitraryStimulation(token, seq)
+    
+
+
+
+
+
+
+
+
+if __name__ == '__main__':
+
+    print("hello world")
+    
+    stim = Stimulation("test", 3)
+    print(stim)
+    print(stim.__dict__)
+    print(dir(stim))
+
+
+
+#maybe we rely on outside code to create the stimuli when at a given location?
