@@ -87,7 +87,7 @@ if __name__ == '__main__':
         f.close()
 
     program_file = open("./bin/gui/programs.json", "r")
-    program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
+    # program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
         
     if exp_params['-MAXTWO-']:
         wells = exp_params['WELLS']
@@ -98,12 +98,12 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        stim_electrodes = exp_params["E_SELECTED"]
+        # stim_electrodes = exp_params["E_SELECTED"]
         rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
         
-        does_stimulations = True
-        if exp_params["STIMULATIONS"] == {}:
-            does_stimulations = False
+        does_stimulations = False
+        # if exp_params["STIMULATIONS"] == {}:
+        #     does_stimulations = False
 
         mx.initialize()
         mx.send(mx.Core().enable_stimulation_power(True))
@@ -200,15 +200,15 @@ if __name__ == '__main__':
     end_seq = mx.Sequence("after-training", persistent = True)
     end_seq.append(mx.Event(well, 1, 4, "after_training 1"))
 
-    program_args = [f"./bin/build/{exp_params['PROGRAM_EXEC']}"]
+    program_args = [f"./bin/build/raw-data-test"]
 
     if exp_params['-MAXTWO-']:
         program_args.append("--maxtwo")
 
-    for name in program_parameters.keys():
-        if exp_params[name] != "":
-            program_args.append(program_parameters[name]["arg"])
-            program_args.append(exp_params[name])
+    # for name in program_parameters.keys():
+    #     if exp_params[name] != "":
+    #         program_args.append(program_parameters[name]["arg"])
+    #         program_args.append(exp_params[name])
     
     for well in wells:
         program_args.append(f"--config{well}")
