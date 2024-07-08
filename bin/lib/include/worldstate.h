@@ -7,7 +7,6 @@ class WorldState{
     private:
         int nodes;
         
-        string world_map;//How do we encode different types of rewards? Maybe a char * of length "nodes"?
         //int resetTime;
         //int currentTime;
         //bool circular;
@@ -21,6 +20,8 @@ class WorldState{
 
     public:
         int location;
+        string world_map;//How do we encode different types of rewards? Maybe a char * of length "nodes"?
+
         WorldState();
 
         WorldState(string map, int loc);
