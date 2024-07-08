@@ -147,8 +147,13 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
 
     std::fstream file;
     std::fstream alldata_file;
+    std::fstream mapdata_file;
     file.open("data/side_test_" + to_string(well) + ".csv", std::fstream::out);
-    alldata_file.open("data/side_test_alldata" + to_string(well) + ".csv", std::fstream::out);
+    alldata_file.open("data/side_test_alldata_" + to_string(well) + ".csv", std::fstream::out);
+    mapdata_file.open("data/mouse1d_mapdata_" + to_string(well) + ".csv", std::fstream::out);
+
+    mapdata_file << "frame, worldmap, location" << endl;
+    mapdata_file << 0 << ", " << world->world_map << ", " << world->location  << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -337,6 +342,9 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
                     }
                     string position = string{world->get_position()};
                     cout << "moved to position " << position << endl;
+
+                    mapdata_file << i + SYS_START_BUFFER + WINDOW << ", " << world->world_map << ", " << world->location  << endl;
+
                     if (stimulusDurations.count(position) > 0){
                         //we are at a point of interest
                         cout << "AT POINT OF INTEREST" << endl;
@@ -361,6 +369,7 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     file.close();
     alldata_file.close();
+    mapdata_file.close();
 }
 
 
