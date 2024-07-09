@@ -3,16 +3,18 @@ from typing import List
 
 import random
 import time
-import bin.gui.GUI as GUI
+
 import json
 import sys
 import subprocess
 import os
 
-
+top_level_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.append(top_level_dir)
 
 import maxlab as mx
 
+import bin.gui.GUI as GUI
 from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
@@ -154,7 +156,7 @@ if __name__ == '__main__':
         # The date also needs to be updated in the param file to make sure it's the 
         # day the experiment was done. 
 
-        directory_name = f"{trial_path}/{well}"
+        directory_name = f"{trial_path}/well{well}"
         file_name = exp_args["NAME"]
 
         config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
