@@ -90,6 +90,7 @@ class Stimulation(ArbitraryStimulation):
         self.token = token
 
         super().__init__(token, self.__create_sequence_list())
+
         
     
     @classmethod
@@ -156,7 +157,7 @@ class Stimulation(ArbitraryStimulation):
 
 
 
-        seq.append(mx.Event(self.well, 1, event_number, f"start_stimulation {self.token} dac {self.dac_source} amp {self.amplitude} phase {self.phase} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval {self.pulse_interval} pulse_train_interval {self.pulse_train_interval} duration {self.duration}"))
+        seq.append(mx.Event(self.well, 1, event_number, f"start_stimulation {self.token} dac {self.dac_source} amp {self.amplitude} phase {self.phase} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval {self.pulse_interval} pulse_train_interval {self.pulse_train_interval}"))
         event_number += 1
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
@@ -210,7 +211,7 @@ class Stimulation(ArbitraryStimulation):
                 min_delay = next_command.samples
             else:
                 min_delay = math.inf
-                seq.append(next_command)
+                #seq.append(next_command)
             return min_delay, max_delay, min_delay_seq
 
 
@@ -238,8 +239,8 @@ class Stimulation(ArbitraryStimulation):
         while(type(next_command_2 := stim2_seq_list.pop(0)) != mx.Event or next_command_2.properties[0:17] != "start_stimulation"):
             seq.append(next_command_2)
 
-        seq.append(next_command_1)
-        seq.append(next_command_2)
+        #seq.append(next_command_1)
+        #seq.append(next_command_2)
         
         seq.append(mx.Event(stim1.well, 1, event_number, "start_stimulation " + token))
         event_number += 1

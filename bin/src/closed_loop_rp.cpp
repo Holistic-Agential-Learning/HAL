@@ -333,7 +333,7 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
                     //If in training phase
                     if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
                         //if (i < (int)((float)(2*frames)/3)) {
-                        if (left) {
+                        if (!left) {
                             std::random_device rd;
                             std::mt19937 gen(rd());
                             std::uniform_int_distribution<> dis(0, 999);
@@ -343,13 +343,13 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
                             cout << final_punish << endl;
                             maxlab::verifyStatus(maxlab::sendSequence(final_punish.c_str()));
                             //maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
-                            cout << i << ": sent left-to-right stimulation" << endl;
+                            cout << i << ": punish stimulation" << endl;
                         } 
                         else {
                             //maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
                             maxlab::verifyStatus(maxlab::sendSequence("reward"));
-                            cout << i << ": sent right-to-left stimulation" << endl;
-                            cout << i << ": sent right-to-left stimulation" << endl;
+                            cout << i << ": sent reward stimulation" << endl;
+
                         }
 
                         blanking = 3*FRAMES_PER_SEC;

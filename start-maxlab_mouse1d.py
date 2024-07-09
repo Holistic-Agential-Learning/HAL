@@ -27,9 +27,10 @@ import csv
 
 WORLD = "10200100"
 LOCATION = 4
-LEFT_STIM_ELECTRODES = [3102]
-RIGHT_STIM_ELECTRODES = [20866]
-CENTER_STIM_ELECTRODES = [int((20866 + 3102)/2)]
+LEFT_STIM_ELECTRODES = [3805]
+RIGHT_STIM_ELECTRODES = [24617]
+CENTER_STIM_ELECTRODES = [17057]
+MINUTES = 3
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -300,6 +301,9 @@ if __name__ == '__main__':
 
         program_args.append("--durations")
         program_args.append(stimuli_durations_csv)
+
+        program_args.append("--minutes")
+        program_args.append(str(MINUTES))
 
         
 

@@ -15,7 +15,7 @@ STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
 
 #Note: treating each pulse as MonoPhasic by default 
-def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50,
+def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 20,
                  stable_amplitude: int = 150, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
     '''
     inputs:

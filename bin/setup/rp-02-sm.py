@@ -187,7 +187,7 @@ if __name__ == '__main__':
         reward_seq = macro_reward("reward")
         for i in range(0,1000):
             var_name = f"punish{i}"
-            globals()[var_name] = macro_punish("PULSE_WIDTH", f"punish{i}")
+            globals()[var_name] = macro_punish("INTER_PHASE", f"punish{i}")
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)

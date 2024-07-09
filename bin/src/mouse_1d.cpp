@@ -51,7 +51,7 @@ Options:\n\
 \t[--local]                 Indicates running locally\n\
 "
 
-#define THRESHOLD_DEFAULT WINDOW/1000
+#define THRESHOLD_DEFAULT 0.1
 #define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;
@@ -349,6 +349,7 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
                     }
                     string position = string{world->get_position()};
                     cout << "moved to position " << position << endl;
+                    cout << "sending sequence " << ("move_to_" + to_string(world->location)).c_str() << endl;
                     maxlab::verifyStatus(maxlab::sendSequence(("move_to_" + to_string(world->location)).c_str()));
                     mapdata_file << i + SYS_START_BUFFER + WINDOW << ", " << world->world_map << ", " << world->location  << endl;
 
