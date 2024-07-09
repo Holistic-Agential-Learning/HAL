@@ -272,13 +272,13 @@ if __name__ == '__main__':
         end_seq = mx.Sequence("after-training", persistent = True)
         end_seq.append(mx.Event(well, 1, 3, "after_training 1"))
 
-
+        location_seq = dict()
         for location in range(0, len(WORLD)):
             location_seq_name = f"move_to_{location}"
-            location_seq = mx.Sequence(location_seq_name,  persistent = False)
-            del location_seq
-            location_seq = mx.Sequence(location_seq_name,  persistent = False)
-            location_seq.append(mx.Event(well, 1, location + 4, f"moveto {location} map {WORLD} object {WORLD[location]}"))
+            location_seq[location] = mx.Sequence(location_seq_name,  persistent = False)
+            del location_seq[location]
+            location_seq[location] = mx.Sequence(location_seq_name,  persistent = False)
+            location_seq[location].append(mx.Event(well, 1, location + 4, f"moveto {location} map {WORLD} object {WORLD[location]}"))
 
         # converted_params["NUM_TRAINS"] = int(experiment_params["NUM_TRAINS"])
         # converted_params["TRAIN_INTERVAL"] = int(float(experiment_params["TRAIN_INTERVAL"]) * 20000)
