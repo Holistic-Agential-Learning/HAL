@@ -49,7 +49,7 @@ Options:
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
 
-#define USAGE "Usage: ./train-wave-direction --config <config_path> \n\n\
+#define USAGE "Usage: ./train-wave-direction --config <config_path> --folder <path> \n\n\
 Options:\n\
 \t[--maxtwo]             Indicates running on the MaxTwo\n\
 \t[--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)\n\
@@ -83,10 +83,11 @@ void printUsage() {
 
 struct args getArgs(int argc, char *argv[]) {
     struct args ret;
-    if (!checkOption("--config", argc, argv)) {
+    if (!checkOption("--config", argc, argv) || !checkOption("--folder", argc, argv)) {
         printUsage();
         exit(2);
     }
+
     ret.config_path = getStringArg("--config", argc, argv);
     ret.maxtwo = checkOption("--maxtwo", argc, argv);
 
