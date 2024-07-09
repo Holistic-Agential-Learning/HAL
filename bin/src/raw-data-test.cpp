@@ -46,7 +46,7 @@ using namespace std;
 int FRAMES_PER_SEC = 10000;
 
 float framesToSeconds(int frames);
-void runExperiment(int frames);
+void runExperiment(int frames, string path);
 
 /* signal_interrupt_handler
  * 
@@ -63,12 +63,19 @@ void signal_interrupt_handler(int sig) {
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
-    float minutes = getFloatArgSecure("--minutes", 1, argc, argv);
+    float minutes = getFloatArgSecure("--minutes", 0.1, argc, argv);
+
+    if (!checkOption("--folder", argc, argv)) {
+        cout << "use --folder to add path for csv" << endl;
+        exit(1);
+    }
+
+    string path = getStringArgSecure("--folder", "data", argc, argv);
     
     int frames = minutes * 60 * FRAMES_PER_SEC;
 
     try {
-        runExperiment(frames);
+        runExperiment(frames, path);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerRaw_close());
@@ -79,12 +86,16 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(int frames) {
+void runExperiment(int frames, string path) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerRaw_open());
 
     std::fstream rawdata_file;
-    rawdata_file.open("data/raw_data_test.csv", std::fstream::out);
+    string fileName = "raw_data_test.csv";
+    
+    string dataFile = path + "/" + fileName;
+    cout << "Putting data in " << dataFile << endl;
+    rawdata_file.open(dataFile, std::fstream::out);
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
