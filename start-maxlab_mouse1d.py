@@ -20,17 +20,18 @@ import maxlab as mx
 
 from bin.lib.py_src.stimulation import *
 from bin.lib.py_src.world_stimulation import *
+import bin.lib.py_src.hal as hal
 
 import csv
 
 
 
-WORLD = "10200100"
-LOCATION = 4
+WORLD = "100010"
+LOCATION = 3
 LEFT_STIM_ELECTRODES = [3805]
 RIGHT_STIM_ELECTRODES = [24617]
 CENTER_STIM_ELECTRODES = [17057]
-MINUTES = 3
+MINUTES = 40
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -80,16 +81,17 @@ def config_electrodes(electrode_config, stim_electrodes):
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
-        exp_params = json.load(f)
+        exp_args = json.load(f)
     else:
         f = open(GUI.start_gui(), "r")
-        exp_params = json.load(f)
+        exp_args = json.load(f)
 
+    trial_path = hal.make_trial_folders(exp_args)
     program_file = open("./bin/gui/programs.json", "r")
     
     fps = 20000
-    if exp_params['-MAXTWO-']:
-        wells = exp_params['WELLS']
+    if exp_args['-MAXTWO-']:
+        wells = exp_args['WELLS']
         fps = 10000
     else:
         wells = [0]
@@ -98,13 +100,13 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
+        rec_electrodes = exp_args["CONFIGS"][str(well)]["E_NUMS"]
 
 
         stim_electrodes = LEFT_STIM_ELECTRODES + RIGHT_STIM_ELECTRODES + CENTER_STIM_ELECTRODES
         
         # does_stimulations = True
-        # if exp_params["STIMULATIONS"] == {}:
+        # if exp_args["STIMULATIONS"] == {}:
         #     does_stimulations = False
 
         mx.initialize()
@@ -195,8 +197,8 @@ if __name__ == '__main__':
         # The date also needs to be updated in the param file to make sure it's the 
         # day the experiment was done. 
 
-        directory_name = exp_params["FOLDER"]
-        file_name = exp_params["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
+        directory_name = f"{trial_path}/well{well}"
+        file_name = exp_args["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
 
         config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
         #save the config prior to running the code
@@ -233,7 +235,7 @@ if __name__ == '__main__':
             "2": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 4), 200, 5, 2, 10, 0.5)
         }
 
-        distance_stimuli = build_distance_stimuli(WORLD, objects_of_interest, exp_params['-MAXTWO-'], well)
+        distance_stimuli = build_distance_stimuli(WORLD, objects_of_interest, exp_args['-MAXTWO-'], well)
         
         for stimulation in distance_stimuli:
             stimulation.build_sequence()
@@ -241,8 +243,8 @@ if __name__ == '__main__':
 
         #CREATE STIMULI THAT ENCODE LOCATIONS
         object_stimuli = {
-            "1": Stimulation("1", 2, 200, 500, 10, 3, 10, 1, maxtwo = exp_params['-MAXTWO-'], well = well),
-            "2": Stimulation("2", 2, 200, 500, 5, 3, 10, 1, maxtwo = exp_params['-MAXTWO-'], well = well)
+            "1": Stimulation("1", 2, 200, 500, 10, 3, 10, 1, maxtwo = exp_args['-MAXTWO-'], well = well),
+            "2": Stimulation("2", 2, 200, 500, 5, 3, 10, 1, maxtwo = exp_args['-MAXTWO-'], well = well)
         }
         for stimulation in object_stimuli.values():
             stimulation.build_sequence()
@@ -285,8 +287,8 @@ if __name__ == '__main__':
         
         ##############################################################################
 
-        program_args = [f"./bin/build/mouse_1d", "2>", "ERR_LOG", "--config", config_file_name]
-        if exp_params['-MAXTWO-']:
+        program_args = [f"./bin/build/mouse_1d", "2>", "ERR_LOG", "--config", config_file_name, "--folder", directory_name]
+        if exp_args['-MAXTWO-']:
             program_args.append("--maxtwo")
 
         

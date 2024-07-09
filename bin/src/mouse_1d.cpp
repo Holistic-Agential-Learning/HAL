@@ -74,7 +74,7 @@ struct args {
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
 int get_max_element(vector<int> v);
-void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations, int frames, float threshold, int well, WorldState * world);
+void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stimulusDurations, int frames, float threshold, int well, WorldState * world);
 map<string, int> readDictCsv(const char *filepath);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
@@ -141,16 +141,16 @@ void signal_interrupt_handler(int sig) {
 }
 
 
-void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations, int frames, float threshold, int well, WorldState * world) {
+void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stimulusDurations, int frames, float threshold, int well, WorldState * world) {
      // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     std::fstream file;
     std::fstream alldata_file;
     std::fstream mapdata_file;
-    file.open("data/side_test_" + to_string(well) + ".csv", std::fstream::out);
-    alldata_file.open("data/side_test_alldata_" + to_string(well) + ".csv", std::fstream::out);
-    mapdata_file.open("data/mouse1d_mapdata_" + to_string(well) + ".csv", std::fstream::out);
+    file.open(path + "/burst_direction_" + to_string(well) + ".csv", std::fstream::out);
+    alldata_file.open(path + "/alldata_" + to_string(well) + ".csv", std::fstream::out);
+    mapdata_file.open(path + "/mapdata_" + to_string(well) + ".csv", std::fstream::out);
 
     mapdata_file << "frame, worldmap, location" << endl;
 
@@ -252,16 +252,16 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
             mapdata_file << 0 << ", " << world->world_map << ", " << world->location  << endl;
 
         }
-        else if (i == (int)((float)(frames)/3)) {
+        else if (i == (int)((float)(frames)/2)) {
             maxlab::verifyStatus(maxlab::sendSequence("training"));
             cout << i << ": training" << endl;
             training = true;
         }
-        else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
-            cout << i << ": after training" << endl;
-            training = false;
-        }
+        // else if (i == (int)((float)(2*frames)/3)) {
+        //     maxlab::verifyStatus(maxlab::sendSequence("after-training"));
+        //     cout << i << ": after training" << endl;
+        //     training = false;
+        // }
 
         if (stimulus_cooldown > 0){
             if(stimulus_cooldown == 1){
@@ -438,22 +438,6 @@ int get_max_element(vector<int> v){
     return maxVal;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //THIS COULD PROBABLY GO INTO SOME UTILS PACKAGE
 /* readDictCsv
  * 
@@ -538,12 +522,17 @@ int main(int argc, char * argv[]) {
         int frames = params.minutes*60*FRAMES_PER_SEC;
         
         float threshold = params.threshold;
+        if (!checkOption("--folder", argc, argv)) {
+            printUsage();
+            exit(1);
+        }
+        string path = getStringArg("--folder", argc, argv);
 
         cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
         cout << "Min frames: " << MIN_FRAMES << endl;
 
         try{
-            runTrainWaveDirection(emap, stimulusDurations, frames, threshold, well, &world);
+            runTrainWaveDirection(path, emap, stimulusDurations, frames, threshold, well, &world);
         } catch (int err) {
             cout << "Program failed with error code " << err << endl;
             maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
