@@ -21,7 +21,7 @@ PROGRAMS = json.load(PROGRAMS_PATH)
     # "Stim Direction": {"exec": "stim-burst-direction",
     #                 "stim_names": ["General Stimulation"]},
     
-START_MAXLAB = './start-maxlab.py'
+START_MAXLAB = './bin/setup/start-maxlab.py'
 
 
 CONFIG_PATH = '/home/mxwbio/configs'
