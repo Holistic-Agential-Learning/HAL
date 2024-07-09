@@ -6,6 +6,7 @@ using namespace maxlab;
 ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
     emap = electrodeMap;
     size = length;
+    sum = 0;
 }
 
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
@@ -128,7 +129,7 @@ void ChannelWindow::debug(string message) {
     file << "Window Length: " << window.size() << endl;
     file << "Sum: " << sum << endl;
     int tempSum = 0;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < window.size(); i++) {
         maxlab::FilteredFrameData fd = get(i);
         file << "Index " << i << endl;
         file << "Spike count: " << fd.spikeCount << endl;
