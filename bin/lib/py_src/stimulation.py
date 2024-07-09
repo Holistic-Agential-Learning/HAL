@@ -241,8 +241,8 @@ class Stimulation(ArbitraryStimulation):
         seq.append(next_command_1)
         seq.append(next_command_2)
         
-        #seq.append(mx.Event(stim1.well, 1, event_number, "start_stimulation " + token))
-        #event_number += 1
+        seq.append(mx.Event(stim1.well, 1, event_number, "start_stimulation " + token))
+        event_number += 1
 
         #Right now, next_command_1 and next_command_2 are both either DAC or DelaySamples.
         #Step through commands 
@@ -265,8 +265,8 @@ class Stimulation(ArbitraryStimulation):
             elif delay_time_1 <= delay_time_2: #TODO: Implement DAC code 3 if delays are equal?
                 delay_time_1, delay_time_2, stim1_seq_list = process_delay_times(delay_time_1, delay_time_2, stim1_seq_list)
 
-        #seq.append(mx.Event(stim1.well, 1, event_number, "end_stimulation " + token))
-        #event_number += 1
+        seq.append(mx.Event(stim1.well, 1, event_number, "end_stimulation " + token))
+        event_number += 1
 
         for command in stim1_seq_list + stim2_seq_list:
             seq.append(command)

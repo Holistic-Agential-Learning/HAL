@@ -153,7 +153,6 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
     mapdata_file.open("data/mouse1d_mapdata_" + to_string(well) + ".csv", std::fstream::out);
 
     mapdata_file << "frame, worldmap, location" << endl;
-    mapdata_file << 0 << ", " << world->world_map << ", " << world->location  << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -170,6 +169,8 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
     }
     cout << "Finished buffer, looking for spikes..." << endl;
     // cout << threshold * TOTAL_ELECTRODES << endl;
+
+    bool training = false;
 
     // the number of frames where the spike count goes over the threshold
     int spikeFrameCount = 0;
@@ -241,19 +242,25 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
         window.shift(frameData);
         int spikeCount = window.totalSpikeCount();
 
-
+        
         if (i == 0){
             maxlab::verifyStatus(maxlab::sendSequence("before-training"));
             cout << i << ": before training" << endl;
+            training = false;
+            //initialize the initial location of the agent.
+            maxlab::verifyStatus(maxlab::sendSequence(("move_to_" + to_string(world->location)).c_str()));
+            mapdata_file << 0 << ", " << world->world_map << ", " << world->location  << endl;
 
         }
         else if (i == (int)((float)(frames)/3)) {
             maxlab::verifyStatus(maxlab::sendSequence("training"));
             cout << i << ": training" << endl;
+            training = true;
         }
         else if (i == (int)((float)(2*frames)/3)) {
             maxlab::verifyStatus(maxlab::sendSequence("after-training"));
             cout << i << ": after training" << endl;
+            training = false;
         }
 
         if (stimulus_cooldown > 0){
@@ -273,7 +280,7 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
         }
         
         //check the world state, determine stimuli appropriately.
-        if (stimulus_cooldown <= 0){
+        if (stimulus_cooldown <= 0 && training){
             string stimulus_name = "loc" + to_string(world->location) + "_distance";
             int duration = stimulusDurations[stimulus_name];
             
@@ -342,10 +349,10 @@ void runTrainWaveDirection(ElectrodeMap emap, map<string, int> stimulusDurations
                     }
                     string position = string{world->get_position()};
                     cout << "moved to position " << position << endl;
-
+                    maxlab::verifyStatus(maxlab::sendSequence(("move_to_" + to_string(world->location)).c_str()));
                     mapdata_file << i + SYS_START_BUFFER + WINDOW << ", " << world->world_map << ", " << world->location  << endl;
 
-                    if (stimulusDurations.count(position) > 0){
+                    if (stimulusDurations.count(position) > 0 && training){
                         //we are at a point of interest
                         cout << "AT POINT OF INTEREST" << endl;
                         int duration = stimulusDurations[position];

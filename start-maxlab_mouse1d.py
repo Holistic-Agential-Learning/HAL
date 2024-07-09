@@ -26,7 +26,7 @@ import csv
 
 
 WORLD = "10200100"
-POSITION = 4
+LOCATION = 4
 LEFT_STIM_ELECTRODES = [3102]
 RIGHT_STIM_ELECTRODES = [20866]
 CENTER_STIM_ELECTRODES = [int((20866 + 3102)/2)]
@@ -271,6 +271,14 @@ if __name__ == '__main__':
         end_seq = mx.Sequence("after-training", persistent = True)
         end_seq.append(mx.Event(well, 1, 3, "after_training 1"))
 
+
+        for location in range(0, len(WORLD)):
+            location_seq_name = f"move_to_{location}"
+            location_seq = mx.Sequence(location_seq_name,  persistent = False)
+            del location_seq
+            location_seq = mx.Sequence(location_seq_name,  persistent = False)
+            location_seq.append(mx.Event(well, 1, location + 4, f"moveto {location} map {WORLD} object {WORLD[location]}"))
+
         # converted_params["NUM_TRAINS"] = int(experiment_params["NUM_TRAINS"])
         # converted_params["TRAIN_INTERVAL"] = int(float(experiment_params["TRAIN_INTERVAL"]) * 20000)
         
@@ -288,7 +296,7 @@ if __name__ == '__main__':
         program_args.append("--world")
         program_args.append(WORLD)
         program_args.append("--loc")
-        program_args.append(str(POSITION))
+        program_args.append(str(LOCATION))
 
         program_args.append("--durations")
         program_args.append(stimuli_durations_csv)
