@@ -13,7 +13,8 @@ import os
 
 import maxlab as mx
 
-from bin.lib.stimulation import Stimulation
+from bin.lib.py_src.stimulation import Stimulation
+import bin.lib.py_src.hal as hal
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -76,18 +77,20 @@ if __name__ == '__main__':
     print("running start-maxlab...")
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
-        exp_params = json.load(f)
+        exp_args = json.load(f)
         f.close()
     else:
         f = open(GUI.start_gui(), "r")
-        exp_params = json.load(f)
+        exp_args = json.load(f)
         f.close()
 
+    trial_path = hal.make_trial_folders(exp_args)
+
     program_file = open("./bin/gui/programs.json", "r")
-    program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
+    program_parameters = json.load(program_file)[exp_args["-PROGRAM-"]]["parameters"]
         
-    if exp_params['-MAXTWO-']:
-        wells = exp_params['WELLS']
+    if exp_args['-MAXTWO-']:
+        wells = exp_args['WELLS']
     else:
         wells = [0]
     
@@ -95,11 +98,11 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        stim_electrodes = exp_params["E_SELECTED"]
-        rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
+        stim_electrodes = exp_args["E_SELECTED"]
+        rec_electrodes = exp_args["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = True
-        if exp_params["STIMULATIONS"] == {}:
+        if exp_args["STIMULATIONS"] == {}:
             does_stimulations = False
 
         mx.initialize()
@@ -151,8 +154,8 @@ if __name__ == '__main__':
         # The date also needs to be updated in the param file to make sure it's the 
         # day the experiment was done. 
 
-        directory_name = exp_params["FOLDER"]
-        file_name = exp_params["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
+        directory_name = f"{trial_path}/{well}"
+        file_name = exp_args["NAME"]
 
         config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
 
@@ -185,7 +188,7 @@ if __name__ == '__main__':
         # conda activate jkts
         # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
         if does_stimulations:
-            stimulations = exp_params['STIMULATIONS']
+            stimulations = exp_args['STIMULATIONS']
             for stim_name in stimulations.keys():
                 stim = Stimulation(stim_name, 0, 
                     amplitude = float(stimulations[stim_name]["AMPLITUDE"]), 
@@ -194,7 +197,7 @@ if __name__ == '__main__':
                     num_trains = int(stimulations[stim_name]["NUM_TRAINS"]),
                     pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
                     pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
-                    maxtwo = exp_params['-MAXTWO-'],
+                    maxtwo = exp_args['-MAXTWO-'],
                     well = well, 
                 )
 
@@ -221,14 +224,14 @@ if __name__ == '__main__':
         
         ##############################################################################
 
-        program_args = [f"./bin/build/{exp_params['PROGRAM_EXEC']}", "2>", "ERR_LOG", "--config", config_file_name]
-        if exp_params['-MAXTWO-']:
+        program_args = [f"./bin/build/{exp_args['PROGRAM_EXEC']}", "2>", "ERR_LOG", "--config", config_file_name]
+        if exp_args['-MAXTWO-']:
             program_args.append("--maxtwo")
 
         for name in program_parameters.keys():
-            if exp_params[name] != "":
+            if exp_args[name] != "":
                 program_args.append(program_parameters[name]["arg"])
-                program_args.append(exp_params[name])
+                program_args.append(exp_args[name])
         
         program_args.append("--well")
 
