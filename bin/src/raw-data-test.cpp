@@ -63,7 +63,7 @@ void signal_interrupt_handler(int sig) {
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
-    float minutes = getFloatArgSecure("--minutes", 1, argc, argv);
+    float minutes = getFloatArgSecure("--minutes", 0.1, argc, argv);
 
     if (!checkOption("--folder", argc, argv)) {
         cout << "use --folder to add path for csv" << endl;
@@ -92,6 +92,7 @@ void runExperiment(int frames) {
     string fileName = "raw_data_test.csv";
     string path = getStringArgSecure("--folder", "data", argc, argv);
     string dataFile = path + "/" + fileName;
+    cout << "Putting data in " << dataFile << endl;
     rawdata_file.open(dataFile, std::fstream::out);
 
     // activate interrupt handler
