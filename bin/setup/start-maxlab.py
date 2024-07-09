@@ -224,7 +224,7 @@ if __name__ == '__main__':
         
         ##############################################################################
 
-        program_args = [f"./bin/build/{exp_args['PROGRAM_EXEC']}", "2>", "ERR_LOG", "--config", config_file_name]
+        program_args = [f"./bin/build/{exp_args['PROGRAM_EXEC']}", "2>", "ERR_LOG", "--config", config_file_name, "--folder", directory_name]
         if exp_args['-MAXTWO-']:
             program_args.append("--maxtwo")
 
