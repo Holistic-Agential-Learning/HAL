@@ -1,4 +1,15 @@
 import random
+from shutil import which
+import subprocess
+
+
+cows = ["apt", "bud-frogs", "bunny", "calvin", "cheese", "cock", "cower", "daemon", "default", "dragon",
+        "dragon-and-cow", "duck", "elephant", "elephant-in-snake", "eyes", "flaming-sheep", "fox",
+        "ghostbusters", "gnu", "hellokitty", "kangaroo", "kiss", "koala", "kosh", "luke-koala",
+        "mech-and-cow", "milk", "moofasa", "moose", "pony", "pony-smaller", "ren", "sheep", "skeleton",
+        "snowman", "stegosaurus", "stimpy", "suse", "three-eyes", "turkey", "turtle", "tux", "unipony",
+        "unipony-smaller", "vader", "vader-koala", "www"]
+
 
 def getMessage():
     names = ["Wes", "Trevor", "Nathan", "Viraj"]
@@ -16,6 +27,40 @@ def getMessage():
     ]
 
     return random.choice(messages)
+
+def fortune():
+    subprocess.call("fortune | cowsay")
+
+def fortune_with_cow():
+    subprocess.run(["fortune", "|", "cowsay", "-f", random.choice(cows)])
+
+def cow_with_message(msg):
+    subprocess.run(["cowsay", "-f", msg])
+
+def shenanigans():
+    msg = getMessage
+
+    print("--------------")
+    if which("fortune"):
+        fort = random.choice([True, False])
+        if which("cowsay"):
+            if fort:
+                fortune_with_cow()
+            else:
+                cow_with_message(msg)
+        else:
+            if fort:
+                fortune()
+            else:
+                print(msg)
+    else:
+        if which("cowsay"):
+            cow_with_message(msg)
+        else:
+            print(msg)
+    print("--------------")
+        
+
 
 if __name__=="main":    
     print(getMessage())
