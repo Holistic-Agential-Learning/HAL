@@ -1,5 +1,6 @@
 import os
 import datetime
+import shutil
 
 
 def make_trial_folders(experiment_parameters):
@@ -7,7 +8,11 @@ def make_trial_folders(experiment_parameters):
 
     today_str = today.strftime("%y%m%d")
 
-    full_folder_path = f"{experiment_parameters['FOLDER']}/{today_str}"
+    home_folder = experiment_parameters['FOLDER']
+
+    json_path = f"{home_folder}/{experiment_parameters['NAME']}.json"
+
+    full_folder_path = f"{home_folder}/{today_str}"
     print(f"full_folder_path: {full_folder_path}")
 
     if not os.path.exists(full_folder_path):
@@ -29,12 +34,18 @@ def make_trial_folders(experiment_parameters):
     
     wells = experiment_parameters['WELLS']
 
+    # create well folders
     for well in wells:
         well_path = f"{trial_path}/well{well}"
 
         print(f"Making well folder: {well_path}")
 
         os.mkdir(well_path)
+
+        json_copy = f"{well_path}/arguments.json"
+        print(f"Creating {json_copy}")
+
+        shutil.copyfile(json_path, json_copy)
 
 
     return trial_path
