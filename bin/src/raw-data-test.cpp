@@ -1,8 +1,26 @@
+/* raw-data-test.cpp
+ *
+ * This file serves as a test for the RawDataStreamer on the MaxTwo. When using 
+ * the RawDataStreamer, it should get data frames from all active wells on the 
+ * MaxTwo. This file tests to see 1) if that is true and 2) in what order does
+ * that happen?
+ * 
+ * Run with:
+ *  
+ *      ./raw-data-test [--minutes <value>]
+ * 
+ * Where the value associated with the -minutes option is the amount of time 
+ * that the experiment will run for. The default is 1.
+ * 
+ * Written by Trevor M. Sullivan
+ * July 3, 2024
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h>
-// #include "maxlab.h"
+#include "maxlab.h"
 #include <signal.h>
 #include <vector>
 #include <unistd.h>
@@ -13,34 +31,6 @@
 #include <map>
 
 using namespace std;
-using namespace maxlab;
-
-/*
-Arguments:
-    - frames
-    - well
-    - config path
-    - threshold
-    - maxtwo (int)
-
-*/
-
-/*
-
-Usage: ./train-wave-direction --config <config_path> 
-
-Options:
-    [--maxtwo]             Indicates running on the MaxTwo          
-    [--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)
-    [--frames <value>]     Number of frames to run for
-    [--well <value>]       Well number
-
-*/
-
-// 220 x 120
-
-// amount of time to wait for system startup
-//#define FRAMES_PER_SEC 10000
 
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define TOTAL_ELECTRODES emap.size()
@@ -49,70 +39,14 @@ Options:
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
 
-#define USAGE "Usage: ./train-wave-direction --config <config_path> \n\n\
-Options:\n\
-\t[--maxtwo]             Indicates running on the MaxTwo\n\
-\t[--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)\n\
-\t[--minutes <value>]     Number of minutes to run\n\
-\t[--well <value>]       Well number\n"
-
 #define THRESHOLD_DEFAULT WINDOW/1000
 #define FRAMES_DEFAULT 15*60*20000
 #define MINUTES_DEFAULT 15
 
-int FRAMES_PER_SEC = 20000;
+int FRAMES_PER_SEC = 10000;
 
-struct args {
-    bool maxtwo;
-    string config_path;
-    float threshold;
-    int minutes;
-    int well;
-};
-
-float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
-void runExperiment(ElectrodeMap emap, int frames, float threshold, int well);
-int get_max_element(vector<int> v);
-void printUsage();
-struct args getArgs(int argc, char *argv[]);
-
-void printUsage() {
-    cout << USAGE << endl;
-}
-
-struct args getArgs(int argc, char *argv[]) {
-    struct args ret;
-    if (!checkOption("--config", argc, argv)) {
-        printUsage();
-        exit(2);
-    }
-    ret.config_path = getStringArg("--config", argc, argv);
-    ret.maxtwo = checkOption("--maxtwo", argc, argv);
-
-    if (checkOption("--threshold", argc, argv)) {
-        ret.threshold = getFloatArg("--threshold", argc, argv);
-    } else {
-        ret.threshold = THRESHOLD_DEFAULT;
-    }
-
-    if (checkOption("--well", argc, argv)) {
-        ret.well = getIntArg("--well", argc, argv);
-    } else {
-        ret.well = 0;
-    }
-
-    if (checkOption("--minutes", argc, argv)) {
-        ret.minutes = getIntArg("--minutes", argc, argv);
-    } else {
-        ret.minutes = MINUTES_DEFAULT;
-    }
-
-    return ret; 
-}
-
-
-
+void runExperiment(int frames);
 
 /* signal_interrupt_handler
  * 
@@ -121,7 +55,7 @@ struct args getArgs(int argc, char *argv[]) {
  */
 void signal_interrupt_handler(int sig) {
     cout << " signalled!" << endl;
-    maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+    maxlab::verifyStatus(maxlab::DataStreamerRaw_close());
     exit(sig);
 }
 
@@ -129,31 +63,15 @@ void signal_interrupt_handler(int sig) {
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
-    struct args params = getArgs(argc, argv);
-    cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.minutes << " minutes..." << endl;
-    cout << "Config: " << params.config_path << endl;
-    cout << "Threshold: " << params.threshold << endl;
-    cout << "Well: " << params.well << endl;
-    // exit(1);
-    ElectrodeMap emap = ElectrodeMap(params.config_path.c_str());
-    int well = params.well;
+    float minutes = getFloatArgSecure("--minutes", 1, argc, argv);
     
-    if (params.maxtwo) {
-        FRAMES_PER_SEC = 10000;
-    }
-    
-    int frames = params.minutes*60*FRAMES_PER_SEC;
-    
-    float threshold = params.threshold;
-
-    cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
-    cout << "Min frames: " << MIN_FRAMES << endl;
+    int frames = minutes * 60 * FRAMES_PER_SEC;
 
     try {
-        runExperiment(emap, frames, threshold, well);
+        runExperiment(frames);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
-        maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+        maxlab::verifyStatus(maxlab::DataStreamerRaw_close());
         return err;
     }
 
@@ -161,15 +79,12 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
+void runExperiment(int frames) {
     // Open data stream and check that no errors occurred
-    maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
+    maxlab::verifyStatus(maxlab::DataStreamerRaw_open());
 
-    std::fstream file;
-    std::fstream alldata_file;
     std::fstream rawdata_file;
-    file.open("data/side_test_" + to_string(well) + ".csv", std::fstream::out);
-    alldata_file.open("data/side_test_alldata" + to_string(well) + ".csv", std::fstream::out);
+    rawdata_file.open("data/raw_data_test.csv", std::fstream::out);
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -177,86 +92,20 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
     // start up causes a lot of spikes
     // don't record the system startup stuff
     for (int i = 0; i < SYS_START_BUFFER; i++) {
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        maxlab::RawFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerRaw_receiveNextFrame(&frameData);
         if (status == maxlab::Status::MAXLAB_NO_FRAME) {
             i--;
             continue;
         }
     }
-    cout << "Finished buffer, looking for spikes..." << endl;
-    // cout << threshold * TOTAL_ELECTRODES << endl;
-
-    // the number of frames where the spike count goes over the threshold
-    int spikeFrameCount = 0;
-
-    ChannelWindow window = ChannelWindow(WINDOW, emap);
-    
-
-    // frame number representing the start of a burst
-    int burstStart = 0;
-
-    // frame number representing the end of a burst 
-    int burstEnd = 0;
-
-    /* the number of frames since the last frame where the spike count went over
-       the threshold */ 
-    int noSpikeFrameCount = 0;
-
-    // amount of blanking time
-    int blanking = 0;
-
-    // stores calculated average side at certain frames
-    vector<float> locs(5);
-
-    // spike count for each calculated location, mirroring locs
-    vector <int> burstSpikeCounts(5);
-
-    // number of locs that can be stored
-    int capacity = 5;
-
-    // number of locs that are currently being stored
-    int locCounter = 0;
-    
-    float monitoringLoc = 0;
-
-    // stores data for each frame in a 200-frame window
-    vector<FilteredFrameData> frameWindow;
-    cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
-
-
-    // initialize the vector with 200 frames
-    for (int i = 0; i < window.length(); i++) {
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
-
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
-            continue;
-        }
-
-        window.add(frameData);
-    }
-
+    cout << "Finished buffer, monitoring data..." << endl;
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
-        if (i == 0){
-            maxlab::verifyStatus(maxlab::sendSequence("before-training"));
-            cout << i << ": before training" << endl;
 
-        }
-        else if (i == (int)((float)(frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("training"));
-            cout << i << ": training" << endl;
-        }
-        else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
-            cout << i << ": after training" << endl;
-        }
-
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        maxlab::RawFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerRaw_receiveNextFrame(&frameData);
 
         // If no data was read in, try again (happens when loop finishes before 
         // the machine takes another sample)
@@ -265,150 +114,22 @@ void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
             continue;
         }
 
-        // const SpikeEvent *spike = frameData.spikeEvents;
-        window.shift(frameData);
-        int spikeCount = window.totalSpikeCount();
+        maxlab::FrameInfo fi = frameData.frameInfo;
+        int relativeFrame = i;
+        int frame = fi.frame_number;
+        int well = fi.well_id;
+        bool corrupted = fi.corrupted;
 
-
-        if (blanking > 0) {
-            blanking--;
-            if (blanking != 0) {
-                continue;
-            }
-        }
-
-        if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
-            monitoringLoc = get_avg_side(window);
-            alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
-        }
-   
-        if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            locs[locCounter] = get_avg_side(window);
-            burstSpikeCounts[locCounter] = spikeCount;
-            locCounter++;
-        }
-        
-        // if the current spike count is over the threshold
-        if  (spikeCount > threshold * TOTAL_ELECTRODES) {
-
-            // start of the burst
-            if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
-                locs[0] = get_avg_side(window); // starting location
-                burstSpikeCounts[0] = spikeCount;
-                locCounter = 1;
-                burstStart = i;
-            }
-            
-            spikeFrameCount++; // spike at this frame
-            noSpikeFrameCount = 0;
-        } else {
-
-            // burst is over
-            if (noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
-
-                // burst is long enough to be significant
-                if (spikeFrameCount >= MIN_FRAMES) {
-                    burstEnd = i-200;
-                    
-                    // // edge case: startingLocDiff = 0 (right for now)
-                    int left = locs[0] < locs[capacity - 1];
-                    string loc_string = left ? "left to right" : "right to left";
-                    file <<"BURST" << endl;
-                    file << burstStart + SYS_START_BUFFER + WINDOW << ", " << burstEnd + SYS_START_BUFFER + WINDOW << ", ";
-                    
-                    for(int m = 0; m < capacity; m++) {
-                        file << locs[m] << ", ";
-                    }
-
-                    file << loc_string << endl << ", ,";
-                    for(int m = 0; m < capacity; m++) {
-                        file << burstSpikeCounts[m] << ", ";
-                    }
-                    
-                    file << endl;
-
-                    //left to right stimulation
-                    //If in training phase
-                    if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
-                        if (left) {
-                            // maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
-                            cout << i << ": sent left-to-right stimulation" << endl;
-                        } 
-                        else {
-                            // maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
-                            cout << i << ": sent right-to-left stimulation" << endl;
-                        }
-
-                        blanking = 0.4 * FRAMES_PER_SEC;
-                    }
-                    
-                }      
-                spikeFrameCount = 0;
-            }
-            noSpikeFrameCount++;
-        }
+        rawdata_file << relativeFrame << "," << frame << ",";
+        rawdata_file << well << "," << corrupted << endl;
     } 
 
     cout << "program over  " << endl;
-    maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
-    file.close();
-    alldata_file.close();
-}
-
-
-/* get_avg_side
- * 
- * Returns the average starting column of the spike events in a given window
- * 
- * Parameters:
- *      frameWindow: vector of FilteredFrameData structs, representing a 
- *                   200-frame window of frame data
- *  
- */
-float get_avg_side(ChannelWindow window) {
-    ElectrodeMap emap = window.electrodeMap();
-
-    // used to make sure that each channel is only counted once
-    int channels[1024];
-    float sum = 0;
-    float count = 0;
-    for (int i = 0; i < window.length(); i++) {
-        FilteredFrameData fd = window.get(i);
-        const SpikeEvent *event = fd.spikeEvents;
-        int spikeCount = fd.spikeCount;
-        for (int j = 0; j < spikeCount; j++) {
-            // compute column coordinate and add to sum
-            int channel = event[j].channel;
-            // if the channel has already been counted
-            if (channel < 1024 && channels[channel] == 0) {
-                if(channel > 1024) {
-                    cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
-                }
-                float x_coord = emap.get_x(channel);
-                if(x_coord < 0){ //channel number not found in the emap
-                    // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
-                }
-                else {
-                    sum += x_coord;
-                    channels[channel] = 1;
-                    count++;
-                }
-            }
-            
-        }
-    }
-    return sum / count;
+    maxlab::verifyStatus(maxlab::DataStreamerRaw_close());
+    rawdata_file.close();
 }
 
 float framesToSeconds(int frames) {
     float seconds = (float) frames / (float) FRAMES_PER_SEC;
     return seconds;
-}
-
-int get_max_element(vector<int> v){
-    int maxVal = INT_MIN;
-    for(int i = 0; i < v.size(); i++){
-        maxVal = max(v[i], maxVal);
-    }
-    return maxVal;
 }
