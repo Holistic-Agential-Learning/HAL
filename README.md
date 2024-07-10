@@ -4,21 +4,21 @@ Wesley Clawson, Trevor Sullivan, Nathan Wu, and Viraj Cz
 Data Storage:
 -------------
 
-    Each trial of an experiment has a variety of data stored along with it (h5, 
+Each trial of an experiment has a variety of data stored along with it (h5, 
 csv, etc.), and it is all saved in a specific folder system. When an experiment
 is created and run, the folling folder structure is created:
 
-(parent_folder)
-  └-(experiment_name)
-      └-(chip_ID)
-          └-experiment_name.json
-          └-(date)
-              └-(trial_number)
-                  └-(wellN)
-                      └- experiment_name.h5
-                      └- experiment_name_well_N.cfg
-                      └- arguments.json
-                      └- other data files
+(parent_folder)\
+  └-(experiment_name)\
+      └-(chip_ID)\
+          └-experiment_name.json\
+          └-(date)\
+              └-(trial_number)\
+                  └-(wellN)\
+                      └- experiment_name.h5\
+                      └- experiment_name_well_N.cfg\
+                      └- arguments.json\
+                      └- other data files\
 
 experiment_name, parent_folder and chip_ID are values that are taken in the GUI and are 
 stored in experiment_name.json. If an experiment with the same name and 
