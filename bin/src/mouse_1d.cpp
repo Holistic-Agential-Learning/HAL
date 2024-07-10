@@ -51,7 +51,7 @@ Options:\n\
 \t[--local]                 Indicates running locally\n\
 "
 
-#define THRESHOLD_DEFAULT 0.15
+#define THRESHOLD_DEFAULT 0.1
 #define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;

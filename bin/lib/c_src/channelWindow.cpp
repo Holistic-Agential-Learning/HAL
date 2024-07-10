@@ -90,7 +90,7 @@ ElectrodeMap ChannelWindow::electrodeMap() {
 float ChannelWindow::getAvgX() {
 
     // used to make sure that each channel is only counted once
-    int channels[1024];
+    int channels[1024] = {0};
     float avgSum = 0;
     float count = 0;
     for (int i = 0; i < size; i++) {
