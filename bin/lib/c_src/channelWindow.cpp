@@ -44,11 +44,12 @@ void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
     const maxlab::SpikeEvent *spikeEvents = firstFrame.spikeEvents;
     int spikeCount = firstFrame.spikeCount;
     // int beforeSum = sum;
-    for (int i = 0; i < spikeCount; i++) {
-        if (emap.exists(spikeEvents[i].channel)) {
-            sum--;
-        }
-    }
+    // for (int i = 0; i < spikeCount; i++) {
+    //     if (emap.exists(spikeEvents[i].channel)) {
+    //         sum--;
+    //     }
+    // }
+    sum -= spikeCount;
     if (spikeCount > 0) {
         free((void *)firstFrame.spikeEvents);
     }
@@ -100,19 +101,11 @@ float ChannelWindow::getAvgX() {
             // compute column coordinate and add to sum
             int channel = event[j].channel;
             // if the channel has already been counted
-            if (channel < 1024 && channels[channel] == 0) {
-                if(channel > 1024) {
-                    cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
-                }
+            if (channels[channel] == 0) {
                 float x_coord = emap.get_x(channel);
-                if(x_coord < 0){ //channel number not found in the emap
-                    // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
-                }
-                else {
-                    avgSum += x_coord;
-                    channels[channel] = 1;
-                    count++;
-                }
+                avgSum += x_coord;
+                channels[channel] = 1;
+                count++;
             }
             
         }
