@@ -9,7 +9,7 @@ csv, etc.), and it is all saved in a specific folder system. When an experiment
 is created and run, the folling folder structure is created:
 
 (parent_folder)\
-  └-(experiment_name)\
+  └-(experiment_name)\
       └-(chip_ID)\
           └-experiment_name.json\
           └-(date)\
@@ -18,7 +18,7 @@ is created and run, the folling folder structure is created:
                       └- experiment_name.h5\
                       └- experiment_name_well_N.cfg\
                       └- arguments.json\
-                      └- other data files\
+                      └- other data files
 
 experiment_name, parent_folder and chip_ID are values that are taken in the GUI and are 
 stored in experiment_name.json. If an experiment with the same name and 
