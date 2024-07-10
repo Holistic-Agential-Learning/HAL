@@ -51,7 +51,7 @@ Options:\n\
 \t[--local]                 Indicates running locally\n\
 "
 
-#define THRESHOLD_DEFAULT 0.1
+#define THRESHOLD_DEFAULT 0.15
 #define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;
@@ -291,12 +291,13 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
 
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
-            monitoringLoc = get_avg_side(window);
+            //monitoringLoc = get_avg_side(window);
+            monitoringLoc = window.getAvgX();
             alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
         }
    
         if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            locs[locCounter] = get_avg_side(window);
+            locs[locCounter] = window.getAvgX();
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
         }
@@ -306,7 +307,7 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
 
             // start of the burst
             if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
-                locs[0] = get_avg_side(window); // starting location
+                locs[0] = window.getAvgX(); // starting location
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
                 burstStart = i;
