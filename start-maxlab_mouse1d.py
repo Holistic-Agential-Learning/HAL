@@ -103,7 +103,8 @@ if __name__ == '__main__':
         rec_electrodes = exp_args["CONFIGS"][str(well)]["E_NUMS"]
 
 
-        stim_electrodes = LEFT_STIM_ELECTRODES + RIGHT_STIM_ELECTRODES + CENTER_STIM_ELECTRODES
+        stim_electrodes = exp_args["CONFIGS"][str(well)]["STIM_ELECS"]
+        # stim_electrodes = LEFT_STIM_ELECTRODES + RIGHT_STIM_ELECTRODES + CENTER_STIM_ELECTRODES
         
         # does_stimulations = True
         # if exp_args["STIMULATIONS"] == {}:
