@@ -141,6 +141,8 @@ if __name__ == '__main__':
 
     for i in stimuli:
         print(i.sequence_list)
+        for j in i.sequence_list:
+            print(j.properties)
         print(i.duration)
         print(i.token)
     print(stimuli)
