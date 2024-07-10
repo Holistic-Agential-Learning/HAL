@@ -741,7 +741,7 @@ def define_exp(old_experiment):
                 experiment['-SCRIPT-'] = START_MAXLAB
                 today = date.today()
                 date_str = today.strftime("%m/%d/%y")
-                values['DATE'] = date_str
+                experiment['DATE'] = date_str
                 
                 configs = {}
                 if wells != None:
@@ -1045,6 +1045,8 @@ def get_config():
     wells = None
     layout = [[[sg.Text('Experiment name:'), sg.InputText(key='NAME', size=(40,1))]],
                 [sg.pin(sg.Text("Invalid name", text_color="red", visible=False, key='-NAME-ERR-'))],
+                [[sg.Text('Chip ID: '), sg.Input(key='CHIP_ID')]],
+            [sg.pin(sg.Text('Chip ID: ', text_color="red", visible=False, key='-CHIP_ID-ERR-'))],
                 [sg.Text("Choose a Python startup script.")], 
                     [sg.Input(key='-SCRIPT-'),
                         sg.FileBrowse(initial_folder='./bin')], 
@@ -1126,7 +1128,12 @@ def get_config():
                         window["-FOLDER-ERR-"].update(visible=True)
                     else:
                         window["-FOLDER-ERR-"].update(visible=False)
-                        
+                elif key == 'CHIP_ID':
+                    if values[key] == '':
+                        valid = False
+                        window["-CHIP_ID-ERR-"].update(visible=True)
+                    else:
+                         window["-CHIP_ID-ERR-"].update(visible=False)  
                 elif key == "-MAXONE-":
                     # if values['-CONFIG-'] != None:
                     if values[key]:
@@ -1151,6 +1158,10 @@ def get_config():
 
                 if valid:
                     experiment = values
+                    today = date.today()
+                    date_str = today.strftime("%m/%d/%y")
+                    experiment['DATE'] = date_str
+                    
                     configs = {}
                     if wells != None and values['-MAXTWO-']:
                         wells_list = []
