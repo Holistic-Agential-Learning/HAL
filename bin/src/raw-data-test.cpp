@@ -111,12 +111,12 @@ void runExperiment(int frames, string path) {
         }
     }
     cout << "Finished buffer, monitoring data..." << endl;
-    
+
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
 
-        maxlab::Response r = maxlab::sendRaw("system_set_primary_well 5");
+        maxlab::Response r = maxlab::sendRaw("stream_get_amplitude 0, 1, 2, 3, 4, 5");
         if (r.content != nullptr) {
             rawdata_file << r.status << ", " << r.content << endl;
         } else {
