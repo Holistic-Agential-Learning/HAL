@@ -116,7 +116,7 @@ void runExperiment(int frames, string path) {
     // start processing frames
     for (int i = 0; i < frames; i++) {
 
-        maxlab::Response r = maxlab::sendRaw("stream_get_amplitude 0,1,2,3,4,5");
+        maxlab::Response r = maxlab::sendRaw("stream_get_amplitude 0, 1, 2, 3, 4, 5");
         if (r.content != nullptr) {
             rawdata_file << r.status << ", " << r.content << endl;
         } else {
