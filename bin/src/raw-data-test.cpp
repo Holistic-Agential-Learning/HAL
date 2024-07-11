@@ -116,24 +116,13 @@ void runExperiment(int frames, string path) {
     // start processing frames
     for (int i = 0; i < frames; i++) {
 
-        maxlab::RawFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerRaw_receiveNextFrame(&frameData);
-
-        // If no data was read in, try again (happens when loop finishes before 
-        // the machine takes another sample)
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+        maxlab::Response r = maxlab::sendRaw("system_set_primary_well 5");
+        if (r.content != nullptr) {
+            rawdata_file << r.status << ", " << r.content << endl;
+        } else {
             i--;
             continue;
         }
-
-        maxlab::FrameInfo fi = frameData.frameInfo;
-        int relativeFrame = i;
-        int frame = fi.frame_number;
-        int well = fi.well_id;
-        bool corrupted = fi.corrupted;
-
-        rawdata_file << relativeFrame << "," << frame << ",";
-        rawdata_file << well << "," << corrupted << endl;
     } 
 
     cout << "program over  " << endl;
