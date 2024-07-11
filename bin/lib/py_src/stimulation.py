@@ -24,9 +24,12 @@ class ArbitraryStimulation:
     def build_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
         """Creates an mx.Sequence from the sequence list.
 
-        Args:
-            initial_delay (float, optional): _description_. Defaults to 5.
-            persistent (bool, optional): _description_. Defaults to True.
+        Parameters
+        ----------
+            initial_delay : float
+                _description_. Defaults to 5.
+            persistent : bool 
+                _description_. Defaults to True.
         """
         seq = mx.Sequence(self.token, persistent = False)
         del seq
