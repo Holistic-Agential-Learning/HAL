@@ -29,6 +29,7 @@
 #include <limits.h>
 #include "hal.h"
 #include <map>
+#include <chrono>
 
 using namespace std;
 
@@ -56,12 +57,13 @@ void runExperiment(int frames, string path);
 void signal_interrupt_handler(int sig) {
     cout << " signalled!" << endl;
     maxlab::verifyStatus(maxlab::DataStreamerRaw_close());
-    maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+    // maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     exit(sig);
 }
 
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
+    cout << "RUNNING RAW VS FILTERED" << endl;
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
     float minutes = getFloatArgSecure("--minutes", 0.1, argc, argv);
@@ -80,7 +82,7 @@ int main(int argc, char * argv[]) {
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerRaw_close());
-        maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+        // maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
         return err;
     }
 
@@ -91,9 +93,9 @@ int main(int argc, char * argv[]) {
 void runExperiment(int frames, string path) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerRaw_open());
-    maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
-
+    // maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     std::fstream data_file;
+
     string fileName = "raw_vs_filtered.csv";
     
     string dataFile = path + "/" + fileName;
@@ -118,12 +120,12 @@ void runExperiment(int frames, string path) {
         maxlab::FilteredFrameData filteredData;
         maxlab::Status filteredStatus = maxlab::DataStreamerFiltered_receiveNextFrame(&filteredData);
 
-        if (rawStatus == maxlab::Status::maxlab::Status::MAXLAB_OK) {
+        if (rawStatus == maxlab::Status::MAXLAB_OK) {
             rawCount++;
             data_file << "raw, " << rawCount << endl;
         }
 
-        if (filteredStatus == maxlab::Status::maxlab::Status::MAXLAB_OK) {
+        if (filteredStatus == maxlab::Status::MAXLAB_OK) {
             filteredCount++;
             data_file << "filtered, " << filteredCount << endl;
         }

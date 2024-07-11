@@ -3,17 +3,20 @@ from typing import List
 
 import random
 import time
-import bin.gui.GUI as GUI
+
 import json
 import sys
 import subprocess
 import os
 
-
+# top_level_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+# sys.path.append(top_level_dir)
 
 import maxlab as mx
 
-from bin.lib.stimulation import Stimulation
+from bin.lib.py_src.stimulation import Stimulation
+import bin.gui.GUI as GUI
+import bin.lib.py_src.hal as hal
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -79,18 +82,19 @@ if __name__ == '__main__':
 
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
-        exp_params = json.load(f)
+        exp_args = json.load(f)
         f.close()
     else:
         f = open(GUI.start_gui(), "r")
-        exp_params = json.load(f)
+        exp_args = json.load(f)
         f.close()
 
     program_file = open("./bin/gui/programs.json", "r")
-    # program_parameters = json.load(program_file)[exp_params["-PROGRAM-"]]["parameters"]
+    trial_path = hal.make_trial_folders(exp_args)
+    # program_parameters = json.load(program_file)[exp_args["-PROGRAM-"]]["parameters"]
         
-    if exp_params['-MAXTWO-']:
-        wells = exp_params['WELLS']
+    if exp_args['-MAXTWO-']:
+        wells = exp_args['WELLS']
     else:
         wells = [0]
     
@@ -98,11 +102,11 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        # stim_electrodes = exp_params["E_SELECTED"]
-        rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
+        # stim_electrodes = exp_args["E_SELECTED"]
+        rec_electrodes = exp_args["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = False
-        # if exp_params["STIMULATIONS"] == {}:
+        # if exp_args["STIMULATIONS"] == {}:
         #     does_stimulations = False
 
         mx.initialize()
@@ -150,9 +154,9 @@ if __name__ == '__main__':
                 stimulation_unit_commands.append(stimulation)
                 mx.send(stimulation)
 
-        directory_name = exp_params["FOLDER"]
-        file_name = exp_params["NAME"] 
-        config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
+        directory_name = trial_path
+        file_name = exp_args["NAME"] 
+        config_file_name = directory_name + f"/well{well}/" + file_name + f"_well_{well}_config.cfg"
 
         print(config_file_name)
         #save the config prior to running the code
@@ -169,7 +173,7 @@ if __name__ == '__main__':
     mx.clear_events() 
 
     if does_stimulations:
-        stimulations = exp_params['STIMULATIONS']
+        stimulations = exp_args['STIMULATIONS']
         for stim_name in stimulations.keys():
             stim = Stimulation(stim_name, 0, 
                 amplitude = float(stimulations[stim_name]["AMPLITUDE"]), 
@@ -178,7 +182,7 @@ if __name__ == '__main__':
                 num_trains = int(stimulations[stim_name]["NUM_TRAINS"]),
                 pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
                 pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
-                maxtwo = exp_params['-MAXTWO-'],
+                maxtwo = exp_args['-MAXTWO-'],
                 well = well, 
             )
 
@@ -202,19 +206,22 @@ if __name__ == '__main__':
 
     program_args = [f"./bin/build/raw-data-test"]
 
-    if exp_params['-MAXTWO-']:
+    if exp_args['-MAXTWO-']:
         program_args.append("--maxtwo")
 
     # for name in program_parameters.keys():
-    #     if exp_params[name] != "":
+    #     if exp_args[name] != "":
     #         program_args.append(program_parameters[name]["arg"])
-    #         program_args.append(exp_params[name])
+    #         program_args.append(exp_args[name])
     
     for well in wells:
         program_args.append(f"--config{well}")
         program_args.append(configs[well])
+    
+    program_args.append("--folder")
+    program_args.append(f"{trial_path}")
 
-    mx.activate_wells(wells)
+    mx.activate(wells)
 
     s = mx.Saving()
     s.open_directory(directory_name)
