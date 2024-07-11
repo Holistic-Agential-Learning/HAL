@@ -214,7 +214,7 @@ if __name__ == '__main__':
         program_args.append(f"--config{well}")
         program_args.append(configs[well])
 
-    mx.activate(wells)
+    mx.activate_wells(wells)
 
     s = mx.Saving()
     s.open_directory(directory_name)
