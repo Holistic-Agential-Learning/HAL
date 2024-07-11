@@ -22,11 +22,16 @@ class ArbitraryStimulation:
         self.duration = self.get_duration()
 
     def build_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
-        """Creates an mx.Sequence from the sequence list.
+        """Creates an ``mx.Sequence`` from the sequence list.
 
-        Args:
-            initial_delay (float, optional): _description_. Defaults to 5.
-            persistent (bool, optional): _description_. Defaults to True.
+        :param initial_delay: Defaults to ``5``
+        :type initial_delay: float
+
+        :param persistent: Defaults to ``True``
+        :type persistent: bool
+        
+        :returns: Initialized stimulation sequence
+        :rtype: ``mx.Sequence``
         """
         seq = mx.Sequence(self.token, persistent = False)
         del seq
@@ -41,11 +46,11 @@ class ArbitraryStimulation:
     def get_duration(self) -> float:
         """Returns the duration of a sequence list, in seconds.
 
-        Args:
-            sequence_list (list): List of API objects that define a sequence.
+        :param sequence_list: List of API objects that define a sequence.
+        :type sequence_list: ``mx.ApiObject`` list
 
-        Returns:
-            float: The duration of the sequence, in frames.
+        :returns: The duration of the sequence, in frames.
+        :rtype: float
         """
         duration_frames = 0
         for command in self.sequence_list:
@@ -194,7 +199,7 @@ class Stimulation(ArbitraryStimulation):
             ArbitraryStimulation: The ArbitraryStimulation object that runs both stim1 and stim2 simultaneously.
 
         Notes:
-            Not configured to deal with mx.DelayCycles objects.
+            Not configured to deal with ``mx.DelayCycles`` objects.
         """         
 
 
