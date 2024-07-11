@@ -29,7 +29,7 @@ def getMessage():
     return random.choice(messages)
 
 def fortune():
-    subprocess.call("fortune | cowsay")
+    subprocess.call("fortune")
 
 def fortune_with_cow():
     fortune = subprocess.Popen(("fortune"), stdout=subprocess.PIPE)
