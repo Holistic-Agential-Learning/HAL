@@ -237,6 +237,9 @@ if __name__ == '__main__':
 
     print("calling c++ script...")
 
+    data = Stream.get_amplitudes(wells)
+    print(data)
+
     # This is the command to run (will last as long as the cpp files lasts)
     try:
         subprocess.run(program_args)
