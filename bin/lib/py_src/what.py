@@ -5,7 +5,7 @@ import subprocess
 
 cows = ["apt", "bud-frogs", "bunny", "calvin", "cheese", "cock", "cower", "daemon", "default", "dragon",
         "dragon-and-cow", "duck", "elephant", "elephant-in-snake", "eyes", "flaming-sheep", "fox",
-        "ghostbusters", "gnu", "hellokitty", "kangaroo", "kiss", "koala", "kosh", "luke-koala",
+        "ghostbusters", "gnu", "hellokitty", "kangaroo", "koala", "kosh", "luke-koala",
         "mech-and-cow", "milk", "moofasa", "moose", "pony", "pony-smaller", "ren", "sheep", "skeleton",
         "snowman", "stegosaurus", "stimpy", "suse", "three-eyes", "turkey", "turtle", "tux", "unipony",
         "unipony-smaller", "vader", "vader-koala", "www"]
@@ -32,13 +32,15 @@ def fortune():
     subprocess.call("fortune | cowsay")
 
 def fortune_with_cow():
-    subprocess.run(["fortune", "|", "cowsay", "-f", random.choice(cows)])
+    cow = random.choice(cows)
+    fortune = subprocess.Popen(("fortune"), stdout=subprocess.PIPE)
+    subprocess.run(["cowsay", "-f", cow], stdin=fortune.stdout)
 
 def cow_with_message(msg):
-    subprocess.run(["cowsay", "-f", msg])
+    subprocess.run(["cowsay", "-f", random.choice(cows), msg])
 
 def shenanigans():
-    msg = getMessage
+    msg = getMessage()
 
     print("--------------")
     if which("fortune"):
