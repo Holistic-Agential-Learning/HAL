@@ -11,6 +11,7 @@ Welcome to Project HAL's documentation!
    overview
    code/stimulation
    results
+   modules
 
 
 

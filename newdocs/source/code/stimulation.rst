@@ -1,5 +1,6 @@
 Stimulation Class
 =================
 
-.. autoclass:: stimulation.Stimulation
-    .. autofunction:: combine_stimuli
+Stimulation class (written in Python):  
+
+.. autofunction:: what.shenanigans
