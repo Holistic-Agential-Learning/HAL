@@ -1,7 +1,0 @@
-Test file!
-
-Here is a **paragraph**.
-
-*Anotha* one.
-
-``printf("There aren't any clouds today.\n")``
