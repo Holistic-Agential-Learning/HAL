@@ -111,6 +111,7 @@ void runExperiment(int frames, string path) {
         }
     }
     cout << "Finished buffer, monitoring data..." << endl;
+    
 
     // start processing frames
     for (int i = 0; i < frames; i++) {

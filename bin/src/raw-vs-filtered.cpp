@@ -106,6 +106,9 @@ void runExperiment(int frames, string path) {
     int rawCount = 0;
     int filteredCount = 0;
 
+    auto t1 = high_resolution_clock::now();
+    
+
     // start processing frames
     for (int i = 0; i < frames; i++) {
 
@@ -126,8 +129,15 @@ void runExperiment(int frames, string path) {
         }
     } 
 
-    cout << "great success" << endl;
+    auto t2 = high_resolution_clock::now();
+
+    duration<double, std::milli> ms_double = t2 - t1;
+    
+    data_file << ms_double.count() << " milliseconds." << endl;
+
     maxlab::verifyStatus(maxlab::DataStreamerRaw_close());
+
+    cout << "great success" << endl;
     data_file.close();
 }
 
