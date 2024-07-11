@@ -32,9 +32,12 @@ def fortune():
     subprocess.call("fortune | cowsay")
 
 def fortune_with_cow():
-    cow = random.choice(cows)
     fortune = subprocess.Popen(("fortune"), stdout=subprocess.PIPE)
-    subprocess.run(["cowsay", "-f", cow], stdin=fortune.stdout)
+    subprocess.run(["cowsay", "-f", random.choice(cows)], stdin=fortune.stdout)
+    # while (True):
+    #     process = subprocess.run(["cowsay", "-f", random.choice(cows)], stdin=fortune.stdout)
+    #     if process.returncode == 0:
+    #         break
 
 def cow_with_message(msg):
     subprocess.run(["cowsay", "-f", random.choice(cows), msg])

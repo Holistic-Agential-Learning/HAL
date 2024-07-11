@@ -11,6 +11,7 @@ from shutil import which
 
 if __name__ == "__main__":
     what.shenanigans()
+    exit(1)
     
     # if which("fortune"):
         # subprocess.call("fortune")
