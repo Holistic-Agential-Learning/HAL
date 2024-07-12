@@ -77,8 +77,8 @@ def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: boo
     stimuli = list()
     world_size = len(world)
     for i, loc in enumerate(world):
-        leftward_stim = None
-        rightward_stim = None
+        leftward_stim = Stimulation(f"l{i}", 0, amplitude = 0, phase = 0, pulses_per_train = 0, num_trains = 0, pulse_train_interval = 0, pulse_interval = 0, maxtwo = maxtwo, well = well)
+        rightward_stim = Stimulation(f"l{i}", 1, amplitude = 0, phase = 0, pulses_per_train = 0, num_trains = 0, pulse_train_interval = 0, pulse_interval = 0, maxtwo = maxtwo, well = well)
         #find nearest object to the left
         for j in range(1, world_size):
             leftward_loc = world[i-j]
@@ -100,7 +100,7 @@ def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: boo
                 break   
 
         #find nearest object to the right
-        for j in range(1, world_size):
+        for j in range(1, world_size + 1):
             rightward_loc = world[(i+j) % world_size]
             if rightward_loc in object_distance_params.keys():
                 print(f"loc {i}: object {rightward_loc} found {j} spaces to the right")
@@ -120,7 +120,7 @@ def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: boo
                 
                 break   
 
-        assert leftward_stim and rightward_stim, "no objects found"
+        #assert leftward_stim and rightward_stim, "no objects found"
 
         combined_stimuli = Stimulation.combine_stimuli(leftward_stim, rightward_stim, f"loc{i}_distance", maxtwo=maxtwo)
     
