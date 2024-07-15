@@ -26,12 +26,13 @@ import csv
 
 
 
-WORLD = "100010"
+WORLD = "1000"
 LOCATION = 3
-LEFT_STIM_ELECTRODES = [8205]
-RIGHT_STIM_ELECTRODES = [24617]
-CENTER_STIM_ELECTRODES = [17055]
+LEFT_STIM_ELECTRODES = [8647]
+RIGHT_STIM_ELECTRODES = [24173]
+CENTER_STIM_ELECTRODES = [16615]
 MINUTES = 120
+THRESH = 0.2
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -232,8 +233,8 @@ if __name__ == '__main__':
         stimuli_durations = dict()
 
         objects_of_interest = {
-            "1": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 4), 200, 5, 1, 10, 1),
-            "2": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 4), 200, 5, 2, 10, 0.5)
+            "1": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 3), 200, 5, 1, 10, 1),
+            "2": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 3), 200, 5, 2, 10, 0.5)
         }
 
         distance_stimuli = build_distance_stimuli(WORLD, objects_of_interest, exp_args['-MAXTWO-'], well)
@@ -308,8 +309,10 @@ if __name__ == '__main__':
         program_args.append("--minutes")
         program_args.append(str(MINUTES))
 
-        
+        program_args.append("--threshold")
+        program_args.append(str(THRESH))
 
+        
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name + "_well_" + str(well))
