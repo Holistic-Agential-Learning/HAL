@@ -1,5 +1,6 @@
 import maxlab as mx
 import random
+from math import floor
 
 
 PULSE_PER_TRAIN_LLIMIT: int = 1
@@ -14,9 +15,9 @@ STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10
 STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
 #Note: treating each pulse as biphasic
-#enter the value of amp in mV and rest in us
+#units in mV for Amplitude amd uS for all time related
 def macro_reward(seq_name: str, num_pulses_per_train: int = 50,
-                 stable_amplitude: int = 150, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
+                 stable_amplitude: int = 435, stable_pulsewidth: int = 2500, stable_inter_pulse_interval: int = 10_000):
     
     '''
     inputs:
@@ -29,9 +30,12 @@ def macro_reward(seq_name: str, num_pulses_per_train: int = 50,
     1) reward sequence
 
     '''
+    #converting to maxOne units:
     dac_lsb_mV = float(mx.query_DAC_lsb_mV())
     stable_amplitude = int(stable_amplitude/dac_lsb_mV)
-
+    stable_pulsewidth = floor(stable_pulsewidth/50)
+    stable_inter_pulse_interval = floor(stable_inter_pulse_interval/50)
+    
     assert PULSE_PER_TRAIN_LLIMIT <= num_pulses_per_train <= PULSE_PER_TRAIN_ULIMIT, (
     f"num_pulses_per_train must be between {PULSE_PER_TRAIN_LLIMIT} and {PULSE_PER_TRAIN_ULIMIT}"
     )
