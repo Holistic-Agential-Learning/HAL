@@ -11,12 +11,13 @@ import sys
 def load_events(filename, well_no = 0, recording_no = 0):
     with h5py.File(filename, "r") as h5_file:
         h5_object = h5_file['wells']['well{0:0>3}'.format(well_no)]['rec{0:0>4}'.format(recording_no)]
+        frames =h5_object['groups'][list(h5_object['groups'])[0]]['frame_nos'][0:50]
 
         events = h5_object['events']
         events_arr= np.array(events)
         events_dataset = pd.DataFrame(events_arr)
     
-    events_dataset["frameno_adjusted"] = events_dataset["frameno"] - events_dataset.loc[0, "frameno"]
+    events_dataset["frameno_adjusted"] = events_dataset["frameno"] - frames[0]
     events_dataset["eventmessage_decoded"] = events_dataset["eventmessage"].apply(lambda x: x.decode("utf8"))
     events_dataset.loc[1100, "eventmessage_decoded"]
 
