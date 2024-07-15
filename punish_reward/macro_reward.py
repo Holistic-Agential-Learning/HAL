@@ -53,7 +53,7 @@ def macro_reward(seq_name: str, num_pulses_per_train: int = 50,
     del(seq)
     seq = mx.Sequence(seq_name, persistent=True)
     
-    #cathodic biphasic
+    #anodic biphasic
     for _ in range(num_pulses_per_train):
         seq.append(mx.DAC(0, 512 - stable_amplitude))
         seq.append(mx.DelaySamples(stable_pulsewidth))
