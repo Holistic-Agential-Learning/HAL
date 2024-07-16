@@ -55,4 +55,5 @@ def sine_reward(seq_name: str, frequency: int = 100,
             seq.append(mx.DelaySamples(stable_pulsewidth))
             seq.append(mx.DAC(0, 512))
             seq.append(mx.DelaySamples(stable_inter_pulse_interval))
+    return seq
 

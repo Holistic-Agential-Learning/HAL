@@ -8,6 +8,8 @@ from pathlib import Path
 
 from macro_reward import macro_reward
 from macro_punish import macro_punish
+from poission_punish import poission_punish
+from sine_reward import sine_reward
 
 recording_dir = str("/home/mxwbio/")
 file_name = "stim"
@@ -130,7 +132,8 @@ if __name__ == "__main__":
 
     # myseq = macro_reward("test", 20, 100, 200, 2000)
     print("building stimulation")
-    myseq = macro_punish("PULSE_WIDTH", "test", 20, 5, 200, 2000)
+    #myseq = sine_reward("sine", stable_pulsewidth=5_000, num_waves=1, stable_inter_pulse_interval=50_000, peak_amp=10, steps_per_wave=10)
+    # myseq = macro_punish("PULSE_WIDTH", "test", 20, 5, 200, 2000)
     print("done building stimulation")
 
     s.start_recording(wells)
