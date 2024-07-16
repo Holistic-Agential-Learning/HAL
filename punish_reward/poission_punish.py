@@ -15,7 +15,7 @@ STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
 #this is so that we don't want many values below 10 or above 1000, cause that can potentially skew the distribution
 LAMDA_LLIMIT = 25 
-LAMDA_ULIMIT = 500
+LAMDA_ULIMIT = 800
 
 #for interphase
 def poission_punish(seq_name: str, num_pulses_per_train: int = 50, stable_amplitude: int = 435, stable_pulsewidth: int = 2500, lamda: int = 50):
