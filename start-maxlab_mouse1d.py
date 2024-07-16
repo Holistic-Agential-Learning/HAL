@@ -28,11 +28,11 @@ import csv
 
 WORLD = "1000"
 LOCATION = 3
-LEFT_STIM_ELECTRODES = [8647]
-RIGHT_STIM_ELECTRODES = [24173]
-CENTER_STIM_ELECTRODES = [16615]
-MINUTES = 120
-THRESH = 0.2
+LEFT_STIM_ELECTRODES = [2459,2601]
+RIGHT_STIM_ELECTRODES = [21079,21379]
+CENTER_STIM_ELECTRODES = [10899]
+MINUTES = 60
+THRESH = 0.1
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -233,8 +233,8 @@ if __name__ == '__main__':
         stimuli_durations = dict()
 
         objects_of_interest = {
-            "1": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 3), 200, 5, 1, 10, 1),
-            "2": ObjectDistanceParams(len(WORLD), np.linspace(40, 0, 3), 200, 5, 2, 10, 0.5)
+            "1": ObjectDistanceParams(len(WORLD), np.linspace(60, 20, 3), 200, 5, 1, 10, 1),
+            #"2": ObjectDistanceParams(len(WORLD), np.linspace(60, 20, 3), 200, 5, 2, 10, 0.5)
         }
 
         distance_stimuli = build_distance_stimuli(WORLD, objects_of_interest, exp_args['-MAXTWO-'], well)
@@ -245,8 +245,8 @@ if __name__ == '__main__':
 
         #CREATE STIMULI THAT ENCODE LOCATIONS
         object_stimuli = {
-            "1": Stimulation("1", 2, 200, 500, 10, 3, 10, 1, maxtwo = exp_args['-MAXTWO-'], well = well),
-            "2": Stimulation("2", 2, 200, 500, 5, 3, 10, 1, maxtwo = exp_args['-MAXTWO-'], well = well)
+            "1": Stimulation("1", 2, 200, 500, 10, 5, 10, 1, maxtwo = exp_args['-MAXTWO-'], well = well),
+            #"2": Stimulation("2", 2, 200, 500, 5, 3, 10, 1, maxtwo = exp_args['-MAXTWO-'], well = well)
         }
         for stimulation in object_stimuli.values():
             stimulation.build_sequence()

@@ -12,7 +12,19 @@ import math
 event_number = 100
 
 class ArbitraryStimulation:
+    """
+    A class that holds any stimulation that could be passed to the MaxLab system. Initialized with a list of ``ApiObject``. 
+    It remains unclear whether the sample rate is always 20000 samples per second when generating stimuli, regardless of the system being used.
+    """    
     def __init__(self, token: str, sequence_list: List[ApiObject]):
+        """Initialize an ``ArbitraryStimulation`` from a list of ``ApiObject``.
+
+        :param token: The unique token identifying the sequence
+        :type token: str
+
+        :param sequence_list: A list of ``ApiObject`` defining the sequence
+        :type sequence_list: List[ApiObject]
+        """        
         self.token = token
         for command in sequence_list:
             assert isinstance(command, ApiObject)
@@ -127,7 +139,7 @@ class Stimulation(ArbitraryStimulation):
     
 
 
-    def __create_stim_pulse(seq: mx.Sequence, amplitude: float, phase: int, dac_source: int) -> mx.Sequence:
+    def __create_stim_pulse(seq: mx.Sequence, amplitude: float, phase: int, dac_source: int) -> mx.Sequence:   
         try:
             dac_lsb_mV = float(mx.query_DAC_lsb_mV())
         except TypeError:
@@ -171,7 +183,7 @@ class Stimulation(ArbitraryStimulation):
             
             seq.append(mx.DelaySamples(self.pulse_train_interval))
 
-        seq.append(mx.Event(self.well, 1, event_number, "end_stimulation "  + self.token))
+        seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {self.phase} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {self.pulse_interval} pulse_train_interval_s {self.pulse_train_interval}"))
         event_number += 1
 
         if self.stim_units:
