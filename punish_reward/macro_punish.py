@@ -9,15 +9,15 @@ STABLE_AMPLITUDE_ULIMIT: int = 240 #the limit is [0,1023]
 
 
 #100 uS for MaxTwo and 50uS for MaxOne
-STABLE_PULSEWIDTH_LLIMIT: int = 10 #these limits matter a lot for the random num gen so set them properly
-STABLE_PULSEWIDTH_ULIMIT: int = 1_000
+STABLE_PULSEWIDTH_LLIMIT: int = 5 #these limits matter a lot for the random num gen so set them properly
+STABLE_PULSEWIDTH_ULIMIT: int = 100
 STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10  
 STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
 
 #Note: treating each pulse as MonoPhasic by default 
 #units in mV for Amplitude amd uS for all time related
-def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 20,
+def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50,
                  stable_amplitude: int = 435, stable_pulsewidth: int = 2500, stable_inter_pulse_interval: int = 10_000):
     '''
     inputs:
