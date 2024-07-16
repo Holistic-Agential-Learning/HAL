@@ -11,7 +11,7 @@ STABLE_AMPLITUDE_ULIMIT: int = 240 #the limit is [0,1023]
 #100 uS for MaxTwo and 50uS for MaxOne
 STABLE_PULSEWIDTH_LLIMIT: int = 5 #these limits matter a lot for the random num gen so set them properly
 STABLE_PULSEWIDTH_ULIMIT: int = 100
-STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10  
+STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 100  
 STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
 
@@ -65,6 +65,7 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50
 
     generated_values = []
     
+    #change this brute logic later, but this is ok for now
     if (num_pulses_per_train % 2 != 0):
         num_pulses_per_train += 1
         print("num_pulses_per_train was not even, now num_pulses_per_train += 1! Value Changed!")
