@@ -1,5 +1,6 @@
 import maxlab as mx
 import random
+from math import floor
 
 PULSE_PER_TRAIN_LLIMIT: int = 1
 PULSE_PER_TRAIN_ULIMIT: int = 200 #this is arbitrary;' but the longer, the more unreliable
@@ -8,15 +9,16 @@ STABLE_AMPLITUDE_ULIMIT: int = 240 #the limit is [0,1023]
 
 
 #100 uS for MaxTwo and 50uS for MaxOne
-STABLE_PULSEWIDTH_LLIMIT: int = 10 #these limits matter a lot for the random num gen so set them properly
-STABLE_PULSEWIDTH_ULIMIT: int = 1_000
-STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10  
+STABLE_PULSEWIDTH_LLIMIT: int = 5 #these limits matter a lot for the random num gen so set them properly
+STABLE_PULSEWIDTH_ULIMIT: int = 100
+STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 100  
 STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
 
 #Note: treating each pulse as MonoPhasic by default 
-def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 20,
-                 stable_amplitude: int = 150, stable_pulsewidth: int = 50, stable_inter_pulse_interval: int = 200):
+#units in mV for Amplitude amd uS for all time related
+def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 50,
+                 stable_amplitude: int = 435, stable_pulsewidth: int = 2500, stable_inter_pulse_interval: int = 10_000):
     '''
     inputs:
     1) type of punishment you want, currently available options: "PULSE_WIDTH", "AMPLITUDE" and "INTER_PHASE"
@@ -29,6 +31,13 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 20
     1) punishment sequence
 
     '''
+
+    #converting to maxOne units:
+    dac_lsb_mV = float(mx.query_DAC_lsb_mV())
+    stable_amplitude = int(stable_amplitude/dac_lsb_mV)
+    stable_pulsewidth = floor(stable_pulsewidth/50)
+    stable_inter_pulse_interval = floor(stable_inter_pulse_interval/50)
+
     assert PULSE_PER_TRAIN_LLIMIT <= num_pulses_per_train <= PULSE_PER_TRAIN_ULIMIT, (
     f"num_pulses_per_train must be between {PULSE_PER_TRAIN_LLIMIT} and {PULSE_PER_TRAIN_ULIMIT}"
     )
@@ -56,6 +65,7 @@ def macro_punish(punish_type: str, seq_name: str, num_pulses_per_train: int = 20
 
     generated_values = []
     
+    #change this brute logic later, but this is ok for now
     if (num_pulses_per_train % 2 != 0):
         num_pulses_per_train += 1
         print("num_pulses_per_train was not even, now num_pulses_per_train += 1! Value Changed!")
