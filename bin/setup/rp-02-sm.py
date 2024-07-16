@@ -16,6 +16,7 @@ import maxlab as mx
 from bin.lib.py_src.stimulation import Stimulation
 from punish_reward.macro_punish import macro_punish
 from punish_reward.macro_reward import macro_reward
+from punish_reward.sine_reward import sine_reward
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -96,7 +97,8 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        stim_electrodes = [2623,3761,6579,6925,8729,15661,22243,22855]
+        #stim_electrodes = [2623,3761,6579,6925,8729,15661,22243,22855]
+        stim_electrodes = [4347,4647,6923,9653,13473,15795,19165,22823]
         rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = True
@@ -181,7 +183,7 @@ if __name__ == '__main__':
         # conda activate jkts
         # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
 
-        reward_seq = macro_reward("reward")
+        reward_seq = sine_reward("reward")
         for i in range(0,1000):
             var_name = f"punish{i}"
             globals()[var_name] = macro_punish("INTER_PHASE", f"punish{i}")
