@@ -318,7 +318,7 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
         } else {
 
             // burst is over
-            if (noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
+            if (noSpikeFrameCount > 1 * FRAMES_PER_SEC) {
 
                 // burst is long enough to be significant
                 if (spikeFrameCount >= MIN_FRAMES) {
