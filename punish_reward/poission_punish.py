@@ -3,13 +3,13 @@ import numpy as np
 from math import floor
 
 PULSE_PER_TRAIN_LLIMIT: int = 1
-PULSE_PER_TRAIN_ULIMIT: int = 200 # this is arbitrary;' but the longer, the more unreliable
+PULSE_PER_TRAIN_ULIMIT: int = 200 #this is arbitrary;' but the longer, the more unreliable
 STABLE_AMPLITUDE_LLIMIT: int = 0
-STABLE_AMPLITUDE_ULIMIT: int = 340 #the limit is [0,1023], so can be 512
+STABLE_AMPLITUDE_ULIMIT: int = 512 #the limit is [0,1023]
 
 #100 uS for MaxTwo and 50uS for MaxOne
-STABLE_PULSEWIDTH_LLIMIT: int = 1 
-STABLE_PULSEWIDTH_ULIMIT: int = 1_000
+STABLE_PULSEWIDTH_LLIMIT: int = 5 
+STABLE_PULSEWIDTH_ULIMIT: int = 100
 STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10 
 STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 

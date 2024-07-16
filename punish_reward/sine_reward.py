@@ -8,8 +8,8 @@ STABLE_AMPLITUDE_LLIMIT: int = 0
 STABLE_AMPLITUDE_ULIMIT: int = 512 #the limit is [0,1023]
 
 #100 uS for MaxTwo and 50uS for MaxOne
-STABLE_PULSEWIDTH_LLIMIT: int = 1 
-STABLE_PULSEWIDTH_ULIMIT: int = 1_000
+STABLE_PULSEWIDTH_LLIMIT: int = 5 
+STABLE_PULSEWIDTH_ULIMIT: int = 100
 STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10 
 STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1_000
 
@@ -20,18 +20,15 @@ FREQUENCY_ULIMIT = 1000
 def sine_reward(seq_name: str, num_pulses_per_train: int = 50, frequency: int = 100,
                 stable_pulsewidth: int = 2500, stable_inter_pulse_interval: int = 10_000,
                 init_amp: int = 100, peak_amp: int = 400, total_steps: int = 10 ):
-     #converting to maxOne units:
+    
+    #converting to maxOne units:
     dac_lsb_mV = float(mx.query_DAC_lsb_mV())
-#    stable_amplitude = int(stable_amplitude/dac_lsb_mV)
     stable_pulsewidth = floor(stable_pulsewidth/50)
     stable_inter_pulse_interval = floor(stable_inter_pulse_interval/50)
 
     assert PULSE_PER_TRAIN_LLIMIT <= num_pulses_per_train <= PULSE_PER_TRAIN_ULIMIT, (
     f"num_pulses_per_train must be between {PULSE_PER_TRAIN_LLIMIT} and {PULSE_PER_TRAIN_ULIMIT}"
     )
-    # assert STABLE_AMPLITUDE_LLIMIT <= stable_amplitude <= STABLE_AMPLITUDE_ULIMIT, (
-    #     f"stable_amplitude must be between {STABLE_AMPLITUDE_LLIMIT} and {STABLE_AMPLITUDE_ULIMIT}"
-    # )
     assert STABLE_PULSEWIDTH_LLIMIT <= stable_pulsewidth <= STABLE_PULSEWIDTH_ULIMIT, (
         f"stable_pulsewidth must be between {STABLE_PULSEWIDTH_LLIMIT} and {STABLE_PULSEWIDTH_ULIMIT}"
     )

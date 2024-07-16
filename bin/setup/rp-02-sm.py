@@ -96,7 +96,7 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        stim_electrodes = [22409, 5619, 12593]
+        stim_electrodes = [2623,3761,6579,6925,8729,15661,22243,22855]
         rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = True
@@ -128,15 +128,12 @@ if __name__ == '__main__':
                 stim = array.query_stimulation_at_electrode(stim_el)
                 if len(stim) == 0:
                     raise RuntimeError(
-                        f"No stimulation channel can connect to electrode: \
-                            {str(stim_el)}"
+                        f"No stimulation channel can connect to electrode: {str(stim_el)}"
                     )
                 stim_unit_int = int(stim)
                 if stim_unit_int in stimulation_units:
                     raise RuntimeError(
-                        f"Two electrodes connected to the same stim unit.\
-                                    This is not allowed. Please Select a \
-                                        neighboring electrode of {stim_el}!"
+                        f"Two electrodes connected to the same stim unit. This is not allowed. Please Select a neighboring electrode of {stim_el}!"
                     )
                 else:
                     stimulation_units.append(stim_unit_int)
@@ -217,7 +214,7 @@ if __name__ == '__main__':
         program_args.append("--threshold")
         program_args.append("0.1")
         program_args.append("--minutes")
-        program_args.append("30")
+        program_args.append("60")
         program_args.append("--well")
 
         program_args.append(str(well))
