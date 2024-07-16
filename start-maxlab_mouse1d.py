@@ -28,9 +28,18 @@ import csv
 
 WORLD = "1000"
 LOCATION = 3
-LEFT_STIM_ELECTRODES = [2459,2601]
-RIGHT_STIM_ELECTRODES = [21079,21379]
-CENTER_STIM_ELECTRODES = [10899]
+LEFT_STIM_ELECTRODES = {
+    1: [4217, 3925],
+    4: [5521,6577]
+}
+RIGHT_STIM_ELECTRODES = {
+    1: [23133,23719],
+    4: [23129,23741]
+}
+CENTER_STIM_ELECTRODES = {
+    1: [13953],
+    4: [13509]
+}
 MINUTES = 60
 THRESH = 0.1
 
@@ -105,7 +114,7 @@ if __name__ == '__main__':
 
 
         #stim_electrodes = exp_args["CONFIGS"][str(well)]["STIM_ELECS"]
-        stim_electrodes = LEFT_STIM_ELECTRODES + RIGHT_STIM_ELECTRODES + CENTER_STIM_ELECTRODES
+        stim_electrodes = LEFT_STIM_ELECTRODES[well] + RIGHT_STIM_ELECTRODES[well] + CENTER_STIM_ELECTRODES[well]
         
         # does_stimulations = True
         # if exp_args["STIMULATIONS"] == {}:
@@ -132,7 +141,7 @@ if __name__ == '__main__':
         right_stimulation_units = []
         center_stimulation_units = []
         stimulation_units = []
-        for stim_el in LEFT_STIM_ELECTRODES:
+        for stim_el in LEFT_STIM_ELECTRODES[well]:
             array.connect_electrode_to_stimulation(stim_el)
             stim = array.query_stimulation_at_electrode(stim_el)
             if len(stim) == 0:
@@ -151,7 +160,7 @@ if __name__ == '__main__':
                 left_stimulation_units.append(stim_unit_int)
                 stimulation_units.append(stim_unit_int)
 
-        for stim_el in RIGHT_STIM_ELECTRODES:
+        for stim_el in RIGHT_STIM_ELECTRODES[well]:
             array.connect_electrode_to_stimulation(stim_el)
             stim = array.query_stimulation_at_electrode(stim_el)
             if len(stim) == 0:
@@ -170,7 +179,7 @@ if __name__ == '__main__':
                 right_stimulation_units.append(stim_unit_int)
                 stimulation_units.append(stim_unit_int)
 
-        for stim_el in CENTER_STIM_ELECTRODES:
+        for stim_el in CENTER_STIM_ELECTRODES[well]:
             array.connect_electrode_to_stimulation(stim_el)
             stim = array.query_stimulation_at_electrode(stim_el)
             if len(stim) == 0:
