@@ -171,7 +171,7 @@ class Stimulation(ArbitraryStimulation):
             
             seq.append(mx.DelaySamples(self.pulse_train_interval))
 
-        seq.append(mx.Event(self.well, 1, event_number, "end_stimulation "  + self.token))
+        seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {self.phase} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {self.pulse_interval} pulse_train_interval_s {self.pulse_train_interval}"))
         event_number += 1
 
         if self.stim_units:
