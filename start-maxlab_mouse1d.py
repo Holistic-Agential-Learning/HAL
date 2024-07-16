@@ -32,7 +32,7 @@ LEFT_STIM_ELECTRODES = [2459,2601]
 RIGHT_STIM_ELECTRODES = [21079,21379]
 CENTER_STIM_ELECTRODES = [10899]
 MINUTES = 60
-THRESH = 0.2
+THRESH = 0.1
 
 ############################################################################
 # INSTRUCTIONS FOR WES
