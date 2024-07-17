@@ -14,6 +14,9 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../../HALnalysis
 import analysis_package as mla
 
 #Should I save the raw spike data too? From that time window?
+#yes
+#save the entire mapping also
+
 class Burst:
     def __init__(self, time: float, num_x_bins: int, window_size: int,  num_channels: int, bin_duration: float, avg_x_positions: np.array, fraction_channels_firing: np.array, xtplot: np.array, filtered_channels_firing: np.array = None):
         self.time = time
@@ -24,7 +27,7 @@ class Burst:
         self.bin_duration = bin_duration #in seconds
         self.fraction_channels_firing = fraction_channels_firing
         self.filtered_channels_firing = filtered_channels_firing
-        self.xtplot = xtplot
+        self.xtplot = xtplot #move this to be a part of plot?
 
     def plot(self, plot_avg_x_positions = True):
         fig = plt.figure()
@@ -78,22 +81,12 @@ class Burst:
 
 
 def find_bursts(filepath, filename, well_no = 0, recording_no = 0, bin_duration = 0.01, num_x_bins = 43, window_size = 50, plot = True, burst_thresh = 1, stim_thresh = 0.8, datapath = "data/wes_analysis/"):
-    with h5py.File(filepath + filename + ".raw.h5", "r") as h5_file:
+    with h5py.File(filepath + filename + ".raw.h5", "r") as h5_file: #GET SAMP RATE AND MAPPING
         h5_object = h5_file['wells']['well{0:0>3}'.format(well_no)]['rec{0:0>4}'.format(recording_no)]
         print(list(h5_object))
         #data = pd.DataFrame(np.array(h5_object["spikes"]))
         samp_rate = np.array(h5_object["settings"]["sampling"])[0]
         mapping = pd.DataFrame(np.array(h5_object["settings"]["mapping"]))
-
-    data = mla.load_spikes_from_file(filepath+ filename + ".raw.h5", well_no, recording_no)
-
-    print(data)
-
-    #data["frameno"] = data["frameno"] - data.loc[0, "frameno"]
-    #FILTER OUT UNMAPPED CHANNELS
-    #may not actually be necessary: Evan's bin spike data code does this for me.
-    data = data.loc[data["channel"].isin(mapping["channel"]), :].reset_index(drop = True)
-
 
     raster_data_filename = datapath + filename + "_spike_raster.pkl" 
     spike_data_filename = datapath + filename + "_spike_data.pkl"
@@ -105,6 +98,15 @@ def find_bursts(filepath, filename, well_no = 0, recording_no = 0, bin_duration 
     except FileNotFoundError:
         print ("files not found")
         print("Binning data...")
+        data = mla.load_spikes_from_file(filepath+ filename + ".raw.h5", well_no, recording_no)
+
+        print(data)
+
+        #data["frameno"] = data["frameno"] - data.loc[0, "frameno"]
+        #FILTER OUT UNMAPPED CHANNELS
+        #may not actually be necessary: Evan's bin spike data code does this for me.
+        data = data.loc[data["channel"].isin(mapping["channel"]), :].reset_index(drop = True)
+
         raster_data, spike_data, times = mla.bin_spike_data(data, mapping, bin_size = bin_duration)
         raster_data.to_pickle(raster_data_filename)
         spike_data.to_pickle(spike_data_filename)
@@ -462,18 +464,20 @@ if __name__ == '__main__':
 
     homedir=os.path.expanduser("~")
 
+   
     filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/7-9 mouse_1d_test/7/well4/"
     filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/2h_7-12/M07484/240712/4/well4/"
+    filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/DIV13/M07475/240716/0/well1/"
 
-    filename = "2h_7-12_well_4"
+    filename = "DIV13_well_1"
     #filename = "2h_well_4"
     filetag = ".raw.h5"
     datapath = homedir + "/Documents/HAL/data/wes_analysis/"
-    well_no = 4
+    well_no = 1
     recording_no = 0
 
 
-    burst_dict = find_bursts(filepath, filename, well_no, recording_no, burst_thresh = 5, stim_thresh = 1)
+    burst_dict = find_bursts(filepath, filename, well_no, recording_no, burst_thresh = 8, stim_thresh = 0.95)
 
     print(burst_dict)
 
