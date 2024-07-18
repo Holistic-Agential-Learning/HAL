@@ -67,6 +67,7 @@ struct args {
     int loc;
     bool local;
     string durations_path;
+    string path;
 };
 
 
@@ -87,7 +88,7 @@ void printUsage() {
 
 struct args getArgs(int argc, char *argv[]) {
     struct args ret;
-    if ((!checkOption("--durations", argc, argv) || !checkOption("--config", argc, argv)) && !checkOption("--local", argc, argv)) {
+    if ((!checkOption("--durations", argc, argv) || !checkOption("--config", argc, argv) || !checkOption("--path", argc, argv)) && !checkOption("--local", argc, argv)) {
         printUsage();
         exit(2);
     }
@@ -95,6 +96,7 @@ struct args getArgs(int argc, char *argv[]) {
     ret.durations_path = getStringArg("--durations", argc, argv);
     ret.maxtwo = checkOption("--maxtwo", argc, argv);
     ret.local = checkOption("--local", argc, argv);
+    ret.path = getStringArg("--folder", argc, argv);
 
     if (checkOption("--threshold", argc, argv)) {
         ret.threshold = getFloatArg("--threshold", argc, argv);
@@ -523,11 +525,8 @@ int main(int argc, char * argv[]) {
         int frames = params.minutes*60*FRAMES_PER_SEC;
         
         float threshold = params.threshold;
-        if (!checkOption("--folder", argc, argv)) {
-            printUsage();
-            exit(1);
-        }
-        string path = getStringArg("--folder", argc, argv);
+
+        string path = params.path;
 
         cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
         cout << "Min frames: " << MIN_FRAMES << endl;

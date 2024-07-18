@@ -212,7 +212,7 @@ if __name__ == '__main__':
         
         ##############################################################################
 
-        program_args = [f"./bin/build/reward-punish", "2>", "ERR_LOG", "--config", config_file_name]
+        program_args = [f"./bin/build/reward-punish", "2>", "ERR_LOG", "--config", config_file_name, "--folder", directory_name]
         if exp_params['-MAXTWO-']:
             program_args.append("--maxtwo")
         
