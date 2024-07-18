@@ -98,7 +98,9 @@ if __name__ == '__main__':
         mx.set_primary_well(well)
 
         #stim_electrodes = [2623,3761,6579,6925,8729,15661,22243,22855]
-        stim_electrodes = [4347,4647,6923,9653,13473,15795,19165,22823]
+        #stim_electrodes = [4347,4647,6923,9653,13473,15795,19165,22823]
+        #stim_electrodes = [2521,5101,6577,8729,12203,13881,20657,22729]
+        stim_electrodes = [685,3887,7011,11787,12563,16697,18329,22389]
         rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = True
@@ -184,6 +186,7 @@ if __name__ == '__main__':
         # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
 
         reward_seq = sine_reward("reward")
+        #reward_seq = macro_reward("reward")
         for i in range(0,1000):
             var_name = f"punish{i}"
             globals()[var_name] = macro_punish("INTER_PHASE", f"punish{i}")
