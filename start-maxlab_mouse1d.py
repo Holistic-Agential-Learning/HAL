@@ -29,14 +29,17 @@ import csv
 WORLD = "1000"
 LOCATION = 3
 LEFT_STIM_ELECTRODES = {
+    0: [3757, 2613],
     1: [4217, 3925],
     4: [5521,6577]
 }
 RIGHT_STIM_ELECTRODES = {
+    0: [23745, 23127],
     1: [23133,23719],
     4: [23129,23741]
 }
 CENTER_STIM_ELECTRODES = {
+    0: [13091],
     1: [13953],
     4: [13509]
 }
