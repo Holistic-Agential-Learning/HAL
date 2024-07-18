@@ -18,16 +18,22 @@ import analysis_package as mla
 #save the entire mapping also
 
 class Burst:
-    def __init__(self, time: float, num_x_bins: int, window_size: int,  num_channels: int, bin_duration: float, avg_x_positions: np.array, fraction_channels_firing: np.array, xtplot: np.array, filtered_channels_firing: np.array = None):
+    def __init__(self, time: float, raster_data: pd.DataFrame, mapping: pd.DataFrame, window_size: int, bin_duration: float, fraction_channels_firing: np.array, filtered_channels_firing: np.array):
         self.time = time
-        self.num_x_bins = num_x_bins
+        self.raster_data = raster_data
+        
         self.window_size = window_size #NOTE: THE FULL SIZE OF THE WINDOW IS 2 * window_size + 1 (one window before and one window after)
-        self.avg_x_positions = avg_x_positions
-        self.num_channels = num_channels
+        
+
+        self.mapping = mapping
+
+        self.num_channels = len(raster_data.columns)
         self.bin_duration = bin_duration #in seconds
-        self.fraction_channels_firing = fraction_channels_firing
-        self.filtered_channels_firing = filtered_channels_firing
-        self.xtplot = xtplot #move this to be a part of plot?
+        self.fraction_channels_firing = fraction_channels_firing #this can be automatically calculated
+        self.filtered_channels_firing = filtered_channels_firing #this can be automatically calculated?
+        
+        self.avg_x_positions = None
+        self.xtplot = None #move this to be a part of plot?
 
     def plot(self, plot_avg_x_positions = True):
         fig = plt.figure()
@@ -40,6 +46,10 @@ class Burst:
         plt.title(f"time = {self.time:.2f}")
         plt.xlabel("space (μm)")
         plt.ylabel("time (s)")
+
+        if self.xtplot is None:
+            print("building xt plot")
+            self.build_xt_plot()
 
         plt.imshow(self.xtplot, extent = [0, 3850, self.time + (self.window_size) * self.bin_duration, self.time - (self.window_size) * self.bin_duration], aspect = 'auto')
         
@@ -57,24 +67,83 @@ class Burst:
         plt.tight_layout()
         plt.show() 
 
-    def burst_direction(self, thresh = 0.2) -> int:
+    def duration(self, thresh = 0.1) -> float:
         if not (self.filtered_channels_firing is None):
             firing = self.filtered_channels_firing
         else:
             firing = self.fraction_channels_firing
 
         start = None
-        for i, fraction_firing in enumerate(firing[0:self.window_size]):
+        end = None
+        for i, fraction_firing in enumerate(firing[0:self.window_size + 1]):
             if fraction_firing >= thresh and (start is None):
-                start = i
+                start = i #Closest start time before the thresh
             elif fraction_firing < thresh and not (start is None):
                 start = None
             
+        for i, fraction_firing in enumerate(firing[self.window_size:]):
+            if fraction_firing < thresh:
+                end = i + self.window_size
+                break
         
-        #peak occurs at index window_size
+        assert start
+        duration = (end - start) * self.bin_duration
+        return duration, start, end
+
+    def calculate_onset_offset(self, step = 1, thresh = 0.1) -> tuple:
+        _, start, end = self.duration(thresh)
+        offset = np.inf
+        onset = -np.inf
+
+
+        for i in range(start, self.window_size):
+            
+            change = self.fraction_channels_firing[i] - self.fraction_channels_firing[i-step]
+            if onset < change:
+                onset = change
+
+        for i in range(self.window_size + step, end + step):
+            change = self.fraction_channels_firing[i] - self.fraction_channels_firing[i-step]
+            if offset > change:
+                offset = change
+
+        return (offset, onset)
+
+    def max_height(self, thresh = 0.1):
+        _, start, end = self.duration()
+        return max(self.fraction_channels_firing[start: end])
+
+
+    def direction(self, thresh = 0.1) -> float:
+        _, start, _ = self.duration()
+
         assert not (start is None)
 
+        if self.avg_x_positions is None:
+            self.build_xt_plot()
         return self.avg_x_positions[self.window_size] - self.avg_x_positions[start]
+    
+    def build_xt_plot(self, num_x_bins = 43) -> np.array:
+        xt_plot = np.zeros((2 * self.window_size + 1, num_x_bins))
+        avg_x_positions = np.empty(2*self.window_size + 1)
+        for frame in range(-self.window_size, self.window_size + 1):
+            x_positions = list()
+
+            channels_with_spikes = list()
+            for channel in self.raster_data.columns:
+                
+                if self.raster_data.loc[self.window_size + frame, channel]:
+                    channels_with_spikes.append(channel)
+            
+            x_vals = self.mapping.loc[self.mapping["channel"].isin(channels_with_spikes), "x"]
+
+            space_bin_counts, _ = np.histogram(x_vals, num_x_bins, (0, 3850))
+            avg_x_positions[self.window_size + frame] = np.mean(x_vals) #this gets average x positions
+            xt_plot[self.window_size + frame, :] = space_bin_counts
+
+
+        self.xtplot = xt_plot
+        self.avg_x_positions = avg_x_positions
         
         
 
@@ -140,27 +209,13 @@ def find_bursts(filepath, filename, well_no = 0, recording_no = 0, bin_duration 
 
 
     burst_list = list()
+    #We need: loc, windowsize, raster data,
+
     for i, loc in enumerate(peak_locs):
+        if loc < window_size or loc > len(raster_data) - window_size - 1:
+            continue
         print(f"burst found in bin {loc} (time {times[loc]:.2f} s)")
-        xt_plot = np.zeros((2 * window_size + 1, num_x_bins))
-        avg_x_positions = np.empty(2*window_size + 1)
-        for frame in range(-window_size, window_size + 1):
-            x_positions = list()
-            if loc + frame < 0 or loc + frame >= len(filtered_fraction_channels_active):
-                continue
-
-            channels_with_spikes = list()
-            for channel in raster_data.columns:
-                if raster_data.loc[loc + frame, channel]:
-                    channels_with_spikes.append(channel)
-            
-            x_vals = mapping.loc[mapping["channel"].isin(channels_with_spikes), "x"]
-
-            space_bin_counts, _ = np.histogram(x_vals, num_x_bins, (0, 3850))
-            avg_x_positions[window_size + frame] = np.mean(x_vals)
-            xt_plot[window_size + frame, :] = space_bin_counts
-        
-        burst_list.append(Burst(times[loc], num_x_bins, window_size, np.shape(raster_data)[1], bin_duration, avg_x_positions, fraction_channels_active[loc - window_size:loc + window_size + 1], xt_plot, filtered_fraction_channels_active[loc - window_size:loc + window_size + 1]))
+        burst_list.append(Burst(times[loc], raster_data.loc[loc-window_size:loc + window_size+1, :].reset_index(drop = True), mapping, window_size, bin_duration, fraction_channels_active[loc - window_size:loc + window_size + 1], filtered_fraction_channels_active[loc - window_size:loc + window_size + 1]))
     
     print("DONE")
 
@@ -205,7 +260,7 @@ def make_probability_bars(train_transition_df, world):
     ax.bar(train_transition_df.index, train_transition_df["proportion left"], label = "leftwards")
     ax.bar(train_transition_df.index, 1-train_transition_df["proportion left"], bottom = train_transition_df["proportion left"], label = "rightwards")
     ax.bar_label(ax.containers[0], labels = [f"n={i:.0f}" for i in train_transition_df["total"]], label_type='edge')  # Annotating bars
-    plt.ylim(0, 1)
+    plt.ylim(0, 1.1)
     plt.ylabel("Proportion leftwards bursting")
     plt.xlabel("Position in world")
     plt.xticks(range(0, len(world)), [f"{i}\n{x}" if x != "0" else f"{i}" for i, x in enumerate(train_transition_df["object"])])
@@ -214,7 +269,6 @@ def make_probability_bars(train_transition_df, world):
 
 def make_count_bars(train_transition_df, world):
     ax = plt.gca()
-    plt.title("With stimulation")
     ax.bar(train_transition_df.index, train_transition_df["leftward"], label = "leftwards")
     ax.bar(train_transition_df.index, train_transition_df["rightward"], bottom = train_transition_df["leftward"], label = "rightwards")
     plt.ylabel("num bursts")

@@ -70,11 +70,12 @@ struct args {
     float threshold;
     int minutes;
     int well;
+    string path;
 };
 
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
-void runExperiment(ElectrodeMap emap, int frames, float threshold, int well);
+void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, int well);
 int get_max_element(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
@@ -85,12 +86,13 @@ void printUsage() {
 
 struct args getArgs(int argc, char *argv[]) {
     struct args ret;
-    if (!checkOption("--config", argc, argv)) {
+    if (!checkOption("--config", argc, argv) || !checkOption("--path", argc, argv)) {
         printUsage();
         exit(2);
     }
     ret.config_path = getStringArg("--config", argc, argv);
     ret.maxtwo = checkOption("--maxtwo", argc, argv);
+    ret.path = getStringArg("--path", argc, argv);
 
     if (checkOption("--threshold", argc, argv)) {
         ret.threshold = getFloatArg("--threshold", argc, argv);
@@ -148,11 +150,13 @@ int main(int argc, char * argv[]) {
     
     float threshold = params.threshold;
 
+    string path = params.path;
+
     cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
     cout << "Min frames: " << MIN_FRAMES << endl;
 
     try {
-        runExperiment(emap, frames, threshold, well);
+        runExperiment(path, emap, frames, threshold, well);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -163,15 +167,15 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(ElectrodeMap emap, int frames, float threshold, int well) {
+void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, int well) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     std::fstream file;
     std::fstream alldata_file;
     std::fstream rawdata_file;
-    file.open("data/side_test_" + to_string(well) + ".csv", std::fstream::out);
-    alldata_file.open("data/side_test_alldata" + to_string(well) + ".csv", std::fstream::out);
+    file.open(path + "/burst_direction_" + to_string(well) + ".csv", std::fstream::out);
+    alldata_file.open(path + "/alldata_" + to_string(well) + ".csv", std::fstream::out);
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
