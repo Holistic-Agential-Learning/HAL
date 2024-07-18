@@ -88,7 +88,7 @@ void printUsage() {
 
 struct args getArgs(int argc, char *argv[]) {
     struct args ret;
-    if ((!checkOption("--durations", argc, argv) || !checkOption("--config", argc, argv) || !checkOption("--path", argc, argv)) && !checkOption("--local", argc, argv)) {
+    if ((!checkOption("--durations", argc, argv) || !checkOption("--config", argc, argv) || !checkOption("--folder", argc, argv)) && !checkOption("--local", argc, argv)) {
         printUsage();
         exit(2);
     }

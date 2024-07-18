@@ -86,13 +86,13 @@ void printUsage() {
 
 struct args getArgs(int argc, char *argv[]) {
     struct args ret;
-    if (!checkOption("--config", argc, argv) || !checkOption("--path", argc, argv)) {
+    if (!checkOption("--config", argc, argv) || !checkOption("--folder", argc, argv)) {
         printUsage();
         exit(2);
     }
     ret.config_path = getStringArg("--config", argc, argv);
     ret.maxtwo = checkOption("--maxtwo", argc, argv);
-    ret.path = getStringArg("--path", argc, argv);
+    ret.path = getStringArg("--folder", argc, argv);
 
     if (checkOption("--threshold", argc, argv)) {
         ret.threshold = getFloatArg("--threshold", argc, argv);
