@@ -200,7 +200,7 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
     vector <int> burstSpikeCounts(5);
 
     // number of locs that can be stored
-    int capacity = 5;
+    int capacity = 10; //1 second
 
     // number of locs that are currently being stored
     int locCounter = 0;
