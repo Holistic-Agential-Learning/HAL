@@ -17,6 +17,8 @@ from bin.lib.py_src.stimulation import Stimulation
 from punish_reward.macro_punish import macro_punish
 from punish_reward.macro_reward import macro_reward
 from punish_reward.sine_reward import sine_reward
+import bin.lib.py_src.hal as hal
+
 
 ############################################################################
 # INSTRUCTIONS FOR WES
@@ -79,17 +81,18 @@ if __name__ == '__main__':
     print("running start-maxlab...")
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
-        exp_params = json.load(f)
+        exp_args = json.load(f)
         f.close()
     else:
         f = open(GUI.start_gui(), "r")
-        exp_params = json.load(f)
+        exp_args = json.load(f)
         f.close()
 
+    trial_path = hal.make_trial_folders(exp_args)
     program_file = open("./bin/gui/programs.json", "r")
         
-    if exp_params['-MAXTWO-']:
-        wells = exp_params['WELLS']
+    if exp_args['-MAXTWO-']:
+        wells = exp_args['WELLS']
     else:
         wells = [0]
     
@@ -101,7 +104,7 @@ if __name__ == '__main__':
         #stim_electrodes = [4347,4647,6923,9653,13473,15795,19165,22823]
         #stim_electrodes = [2521,5101,6577,8729,12203,13881,20657,22729] #normal rp DIV14 AS
         stim_electrodes = [685,3887,7011,11787,12563,16697,18329,22389] #sine r normal p DIV14 AS
-        rec_electrodes = exp_params["CONFIGS"][str(well)]["E_NUMS"]
+        rec_electrodes = exp_args["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = True
 
@@ -151,8 +154,8 @@ if __name__ == '__main__':
         # The date also needs to be updated in the param file to make sure it's the 
         # day the experiment was done. 
 
-        directory_name = exp_params["FOLDER"]
-        file_name = exp_params["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
+        directory_name = f"{trial_path}/well{well}"
+        file_name = exp_args["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
 
         config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
 
@@ -213,7 +216,7 @@ if __name__ == '__main__':
         ##############################################################################
 
         program_args = [f"./bin/build/reward-punish", "2>", "ERR_LOG", "--config", config_file_name, "--folder", directory_name]
-        if exp_params['-MAXTWO-']:
+        if exp_args['-MAXTWO-']:
             program_args.append("--maxtwo")
         
         program_args.append("--threshold")
