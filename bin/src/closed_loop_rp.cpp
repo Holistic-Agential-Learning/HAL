@@ -212,14 +212,19 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
     // amount of blanking time
     int blanking = 0;
 
+    // number of locs that can be stored
+    int capacity = 10; //1 second
+
     // stores calculated average side at certain frames
-    vector<float> locs(5);
+    vector<float> locs(capacity);
 
     // spike count for each calculated location, mirroring locs
-    vector <int> burstSpikeCounts(5);
+    vector <int> burstSpikeCounts(capacity);
 
-    // number of locs that can be stored
-    int capacity = 5;
+    bool firstBurstDone = false;
+    int maxSpikesFrame = 0;
+    int maxSpikes = 0;
+    float maxSpikesLoc = 0;
 
     // number of locs that are currently being stored
     int locCounter = 0;
@@ -284,12 +289,12 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
         }
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
-            monitoringLoc = get_avg_side(window);
+            monitoringLoc = window.getAvgX();
             alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
         }
    
         if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            locs[locCounter] = get_avg_side(window);
+            locs[locCounter] = window.getAvgX();
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
         }
@@ -297,9 +302,15 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
         // if the current spike count is over the threshold
         if  (spikeCount > threshold * TOTAL_ELECTRODES) {
 
+            if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
+                maxSpikes = spikeCount;
+                maxSpikesFrame = i;
+                maxSpikesLoc = window.getAvgX();
+            }
+
             // start of the burst
             if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
-                locs[0] = get_avg_side(window); // starting location
+                locs[0] = window.getAvgX(); // starting location
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
                 burstStart = i;
@@ -308,28 +319,37 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
             spikeFrameCount++; // spike at this frame
             noSpikeFrameCount = 0;
         } else {
+            if (!firstBurstDone && noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
+                firstBurstDone = true; 
+            }
 
             // burst is over
             if (noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
 
                 // burst is long enough to be significant
                 if (spikeFrameCount >= MIN_FRAMES) {
-                    burstEnd = i-200;
                     
                     // // edge case: startingLocDiff = 0 (right for now)
-                    int left = locs[0] < locs[capacity - 1];
-                    string loc_string = left ? "left to right" : "right to left";
+                    int left_to_right = locs[0] < maxSpikesLoc;
+                    string loc_string = left_to_right ? "left to right" : "right to left";
                     file <<"BURST" << endl;
-                    file << burstStart + SYS_START_BUFFER + WINDOW << ", " << burstEnd + SYS_START_BUFFER + WINDOW << ", ";
+                    for(int m = 0; m < capacity; m++) {
+                        file << burstStart + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
+                    }
+                    file << maxSpikesFrame + SYS_START_BUFFER + WINDOW;
+
+                    file << endl;
                     
                     for(int m = 0; m < capacity; m++) {
                         file << locs[m] << ", ";
                     }
+                    file << maxSpikesLoc << ", ";
 
-                    file << loc_string << endl << ", ,";
+                    file << loc_string << endl;
                     for(int m = 0; m < capacity; m++) {
                         file << burstSpikeCounts[m] << ", ";
                     }
+                    file << maxSpikes;
                     
                     file << endl;
 
@@ -337,7 +357,7 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
                     //If in training phase
                     if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
                         //if (i < (int)((float)(2*frames)/3)) {
-                        if (!left) {
+                        if (!left_to_right) {
                             std::random_device rd;
                             std::mt19937 gen(rd());
                             std::uniform_int_distribution<> dis(0, 999);
@@ -360,6 +380,8 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
                     }
                     
                 }      
+                firstBurstDone = false;
+                maxSpikes = 0;  
                 spikeFrameCount = 0;
             }
             noSpikeFrameCount++;
@@ -370,51 +392,6 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     file.close();
     alldata_file.close();
-}
-
-
-/* get_avg_side
- * 
- * Returns the average starting column of the spike events in a given window
- * 
- * Parameters:
- *      frameWindow: vector of FilteredFrameData structs, representing a 
- *                   200-frame window of frame data
- *  
- */
-float get_avg_side(ChannelWindow window) {
-    ElectrodeMap emap = window.electrodeMap();
-
-    // used to make sure that each channel is only counted once
-    int channels[1024];
-    float sum = 0;
-    float count = 0;
-    for (int i = 0; i < window.length(); i++) {
-        FilteredFrameData fd = window.get(i);
-        const SpikeEvent *event = fd.spikeEvents;
-        int spikeCount = fd.spikeCount;
-        for (int j = 0; j < spikeCount; j++) {
-            // compute column coordinate and add to sum
-            int channel = event[j].channel;
-            // if the channel has already been counted
-            if (channel < 1024 && channels[channel] == 0) {
-                if(channel > 1024) {
-                    cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
-                }
-                float x_coord = emap.get_x(channel);
-                if(x_coord < 0){ //channel number not found in the emap
-                    // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
-                }
-                else {
-                    sum += x_coord;
-                    channels[channel] = 1;
-                    count++;
-                }
-            }
-            
-        }
-    }
-    return sum / count;
 }
 
 float framesToSeconds(int frames) {
