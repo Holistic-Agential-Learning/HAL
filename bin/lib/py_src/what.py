@@ -9,7 +9,12 @@ cows = ["apt", "bud-frogs", "bunny", "calvin", "cheese", "cock", "cower", "daemo
         "mech-and-cow", "milk", "moofasa", "moose", "pony", "pony-smaller", "ren", "sheep", "skeleton",
         "snowman", "stegosaurus", "stimpy", "suse", "three-eyes", "turkey", "turtle", "tux", "unipony",
         "unipony-smaller", "vader", "vader-koala", "www"]
-
+# emails = ["tmsully2020@gmail.com"]
+emails = [
+    "nathan.wu.nhw5@yale.edu",
+    "virajcz@ucla.edu",
+    "wesley.clawson@tufts.edu"
+    ]
 
 def getMessage():
     names = ["Wes", "Trevor", "Nathan", "Viraj"]
@@ -27,6 +32,13 @@ def getMessage():
     ]
 
     return random.choice(messages)
+
+def experiment_over_msg():
+    fortune = subprocess.Popen(("fortune"), stdout=subprocess.PIPE)
+    for email in emails:
+        subprocess.run([
+            "mailx", "-s", '"Experiment complete!"', f'"{email}"'
+            ], stdin=fortune.stdout)
 
 def fortune():
     subprocess.call("fortune")

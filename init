@@ -10,30 +10,31 @@ from shutil import which
 
 
 if __name__ == "__main__":
-    what.shenanigans()
+    # what.shenanigans()
     
-    # if which("fortune"):
-        # subprocess.call("fortune")
-        # print("--------------")
+    # # if which("fortune"):
+    #     # subprocess.call("fortune")
+    #     # print("--------------")
 
-    # json_name = GUI.start_gui()
-    if len(sys.argv) > 1:
-        json_name = sys.argv[1]
-    else:
-        json_name = GUI.start_gui()
+    # # json_name = GUI.start_gui()
+    # if len(sys.argv) > 1:
+    #     json_name = sys.argv[1]
+    # else:
+    #     json_name = GUI.start_gui()
 
-        # if the GUI was closed without running an experiment
-        if not json_name:
-            print(":P")
-            exit(1)
+    #     # if the GUI was closed without running an experiment
+    #     if not json_name:
+    #         print(":P")
+    #         exit(1)
     
-    experiment_file = open(json_name, "r")
-    params = json.load(experiment_file)
+    # experiment_file = open(json_name, "r")
+    # params = json.load(experiment_file)
 
-    script = params['-SCRIPT-']
+    # script = params['-SCRIPT-']
 
-    print(f"Executing {script} with {json_name}")
-    subprocess.run([script, json_name])
+    # print(f"Executing {script} with {json_name}")
+    # subprocess.run([script, json_name])
 
     print("great success")
+    what.experiment_over_msg()
 
