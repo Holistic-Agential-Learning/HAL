@@ -412,7 +412,7 @@ float get_avg_side(ChannelWindow window) {
                 if(channel > 1024) {
                     cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
                 }
-                float x_coord = emap.get_x(channel);
+                float x_coord = emap.getX(channel);
                 if(x_coord < 0){ //channel number not found in the emap
                     // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
                 }

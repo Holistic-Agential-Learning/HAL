@@ -32,6 +32,18 @@ class ChannelWindow {
          *      - emap: ElectrodeMap holding the current electrode config file
          */
         ChannelWindow(int length, ElectrodeMap emap);
+        
+        /* Constructor
+         * 
+         * Creates a new ChannelWindow
+         * 
+         * Parameters:
+         *      - length: integer representing the length of the window 
+         *                (measured in frames)
+         *      - configPath: c string representing the full path of the config
+         *                    to use for the underlying ElectrodeMap
+         */
+        ChannelWindow(int length, const char* configPath)
 
         /* add
          * 

@@ -49,7 +49,7 @@ electrodeCoords ElectrodeMap::get(int channelNo) {
     }
 }
 
-int ElectrodeMap::get_position(int channelNo) {
+int ElectrodeMap::getPosition(int channelNo) {
     if(emap.count(channelNo) > 0){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords.position;
@@ -60,7 +60,7 @@ int ElectrodeMap::get_position(int channelNo) {
     
 }
 
-float ElectrodeMap::get_x(int channelNo) {
+float ElectrodeMap::getX(int channelNo) {
     if(emap.count(channelNo) > 0){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords.x;
@@ -70,7 +70,7 @@ float ElectrodeMap::get_x(int channelNo) {
     }
 }
 
-float ElectrodeMap::get_y(int channelNo) {
+float ElectrodeMap::getY(int channelNo) {
     if(emap.count(channelNo) == 1){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords.y;

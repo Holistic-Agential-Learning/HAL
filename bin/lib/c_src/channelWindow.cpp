@@ -9,6 +9,12 @@ ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
     sum = 0;
 }
 
+ChannelWindow::ChannelWindow(int length, char *configPath) {
+    emap = ElectrodeMap(configPath);
+    size = length;
+    sum = 0;
+}
+
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
     const maxlab::SpikeEvent *spikeEvents = frame.spikeEvents;
     int spikeCount = frame.spikeCount;
