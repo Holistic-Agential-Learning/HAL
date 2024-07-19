@@ -10,6 +10,7 @@ import math
 
 
 event_number = 100
+FPS = 20000
 
 class ArbitraryStimulation:
     """
@@ -30,7 +31,6 @@ class ArbitraryStimulation:
             assert isinstance(command, ApiObject)
         
         self.sequence_list = sequence_list
-        self.fps = 20000
         self.duration = self.get_duration()
 
     def build_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
@@ -47,7 +47,7 @@ class ArbitraryStimulation:
         """
         seq = mx.Sequence(self.token, persistent = False)
         del seq
-        seq = mx.Sequence(self.token, int(initial_delay * self.fps/(10**3)), persistent)
+        seq = mx.Sequence(self.token, int(initial_delay * FPS/(10**3)), persistent)
 
         for command in self.sequence_list:
             if isinstance(command, ApiObject):
@@ -76,7 +76,7 @@ class ArbitraryStimulation:
 #Big picture:
 #Different classes inherit from Stimulation (Regular stimulation). Stimulation has a way to create more abstract stimulation sequences (eg. turning stim_units on and off in the middle).
 class Stimulation(ArbitraryStimulation):
-    def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, maxtwo: bool = False, well: int = 0):
+    def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, well: int = 0):
         """Create a Stimulation object.
 
         Args:
@@ -90,18 +90,16 @@ class Stimulation(ArbitraryStimulation):
             pulse_train_interval (float, optional): Time between pulse trains, in s. Suggested values between 0.01 and 10. Defaults to 1.
             stim_units (list, optional): List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
                 IF THIS IS USED, ENSURE THAT ALL STIM_UNITS ARE POWERED OFF TO BEGIN WITH.
-            maxtwo (bool, optional): whether or not the maxtwo is being used. If True, self.fps is equal to 10000.
         """
         #Everything is converted to frames.
-        self.fps = 20000
         self.dac_source = dac_source
         self.stim_units = stim_units
         self.amplitude = amplitude
-        self.phase = int(phase * self.fps /(10**6))
+        self.phase = int(phase * FPS /(10**6))
         self.pulses_per_train = pulses_per_train
         self.num_trains = num_trains
-        self.pulse_interval = int(pulse_interval * self.fps/(10**3))
-        self.pulse_train_interval = int(pulse_train_interval * self.fps)
+        self.pulse_interval = int(pulse_interval * FPS/(10**3))
+        self.pulse_train_interval = int(pulse_train_interval * FPS)
         self.well = well
 
         self.token = token
@@ -124,8 +122,6 @@ class Stimulation(ArbitraryStimulation):
             pulse_train_interval (float, optional): Time between pulse trains, in s. Defaults to 1.
             stim_units (list, optional): List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
                 IF THIS IS USED, ENSURE THAT ALL STIM_UNITS ARE POWERED OFF TO BEGIN WITH.
-            maxtwo (bool, optional): whether or not the maxtwo is being used. If True, self.fps is equal to 10000.
-
 
         Returns:
             Self: A Stimulation object.
@@ -174,7 +170,7 @@ class Stimulation(ArbitraryStimulation):
 
 
 
-        seq.append(mx.Event(self.well, 1, event_number, f"start_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {self.phase} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {self.pulse_interval} pulse_train_interval_s {self.pulse_train_interval}"))
+        seq.append(mx.Event(self.well, 1, event_number, f"start_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {int(self.phase/ FPS *(10**6))} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {int(self.pulse_interval/FPS * 1000)} pulse_train_interval_s {int(self.pulse_train_interval/FPS)}"))
         event_number += 1
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
@@ -183,7 +179,7 @@ class Stimulation(ArbitraryStimulation):
             
             seq.append(mx.DelaySamples(self.pulse_train_interval))
 
-        seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {self.phase} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {self.pulse_interval} pulse_train_interval_s {self.pulse_train_interval}"))
+        seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {int(self.phase/ FPS *(10**6))} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {int(self.pulse_interval/FPS * 1000)} pulse_train_interval_s {int(self.pulse_train_interval/FPS)}"))
         event_number += 1
 
         if self.stim_units:
