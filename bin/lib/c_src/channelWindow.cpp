@@ -9,7 +9,7 @@ ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
     sum = 0;
 }
 
-ChannelWindow::ChannelWindow(int length, char *configPath) {
+ChannelWindow::ChannelWindow(int length, const char *configPath) {
     emap = ElectrodeMap(configPath);
     size = length;
     sum = 0;
@@ -108,7 +108,7 @@ float ChannelWindow::getAvgX() {
             int channel = event[j].channel;
             // if the channel has already been counted
             if (channels[channel] == 0) {
-                float x_coord = emap.get_x(channel);
+                float x_coord = emap.getX(channel);
                 avgSum += x_coord;
                 channels[channel] = 1;
                 count++;

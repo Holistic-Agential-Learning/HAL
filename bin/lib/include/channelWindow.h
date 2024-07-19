@@ -43,7 +43,7 @@ class ChannelWindow {
          *      - configPath: c string representing the full path of the config
          *                    to use for the underlying ElectrodeMap
          */
-        ChannelWindow(int length, const char* configPath)
+        ChannelWindow(int length, const char* configPath);
 
         /* add
          * 

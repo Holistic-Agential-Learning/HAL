@@ -9,7 +9,7 @@ using namespace std;
 
 struct Button {
     ChannelWindow win;
-}
+};
 
 class Controller {
     public:
@@ -22,7 +22,7 @@ class Controller {
 
         void add(maxlab::FilteredFrameData frame);
 
-        void shift(maxlab::FilteredFrameData frame)
+        void shift(maxlab::FilteredFrameData frame);
 
 
     private:

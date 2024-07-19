@@ -5,28 +5,29 @@ Controller::Controller() {
 }
 
 void Controller::addButton(const char *configPath, string id, int windowLength) {
-    ChannelWindow win = ChannelWindow(windowLength, configPath);
-
     struct Button b;
-    b.win = win;
+    b.win = ChannelWindow(windowLength, configPath);
 
-    map.at(id) = b;
+    buttons[id] = b;
 }
 
 ChannelWindow Controller::getButtonWindow(string id) {
-    Button b = map[id];
+    struct Button b = buttons[id];
 
     return b.win;
 }
 
 void Controller::add(maxlab::FilteredFrameData frame) {
-    for (auto& b: map) {
+    for (map<string, struct Button>::iterator it = buttons.begin(); 
+            it != buttons.end(); it++) {
+        string key = it->first;
+        struct Button b = buttons[key];
         b.win.add(frame);
     }
 }
 
-void Controller::shift(maxlab::FilteredFrameData frame) {
-    for (auto& b: map) {
-        b.win.shift(frame);
-    }
-}
+// void Controller::shift(maxlab::FilteredFrameData frame) {
+//     for (auto& b: buttons) {
+//         b.second.win.shift(frame);
+//     }
+// }
