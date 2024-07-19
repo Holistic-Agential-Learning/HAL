@@ -193,14 +193,16 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
     // amount of blanking time
     int blanking = 0;
 
-    // stores calculated average side at certain frames
-    vector<float> locs(5);
-
-    // spike count for each calculated location, mirroring locs
-    vector <int> burstSpikeCounts(5);
+    
 
     // number of locs that can be stored
     int capacity = 10; //1 second
+
+    // stores calculated average side at certain frames
+    vector<float> locs(capacity);
+
+    // spike count for each calculated location, mirroring locs
+    vector <int> burstSpikeCounts(capacity);
 
     bool firstBurstDone = false;
     int maxSpikesFrame = 0;
@@ -303,7 +305,7 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
             alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
         }
    
-        if (!firstBurstDone && (i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
+        if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
             locs[locCounter] = window.getAvgX();
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
@@ -312,7 +314,7 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
         // if the current spike count is over the threshold
         if  (spikeCount > threshold * TOTAL_ELECTRODES) {
 
-            if (spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.01) == 0){
+            if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
                 maxSpikes = spikeCount;
                 maxSpikesFrame = i;
                 maxSpikesLoc = window.getAvgX();
@@ -343,11 +345,12 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
                     int left_to_right = locs[0] < maxSpikesLoc;
                     string loc_string = left_to_right ? "left to right" : "right to left";
                     file <<"BURST" << endl;
-                    file << burstStart + SYS_START_BUFFER + WINDOW << ", ";
                     for(int m = 0; m < capacity; m++) {
                         file << burstStart + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
                     }
-                    file << maxSpikesFrame + SYS_START_BUFFER + WINDOW << ", ";
+                    file << maxSpikesFrame + SYS_START_BUFFER + WINDOW;
+
+                    file << endl;
                     
                     for(int m = 0; m < capacity; m++) {
                         file << locs[m] << ", ";
@@ -387,9 +390,9 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
                         blanking += (duration + FRAMES_PER_SEC/100);
 
                     }
-                    firstBurstDone = false;
-                    maxSpikes = 0;
-                }      
+                }    
+                firstBurstDone = false;
+                maxSpikes = 0;  
                 spikeFrameCount = 0;
             }
             noSpikeFrameCount++;
