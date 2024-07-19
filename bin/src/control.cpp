@@ -17,33 +17,6 @@
 using namespace std;
 using namespace maxlab;
 
-/*
-Arguments:
-    - frames
-    - well
-    - config path
-    - threshold
-    - maxtwo (int)
-
-*/
-
-/*
-
-Usage: ./train-wave-direction --config <config_path> 
-
-Options:
-    [--maxtwo]             Indicates running on the MaxTwo          
-    [--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)
-    [--frames <value>]     Number of frames to run for
-    [--well <value>]       Well number
-
-*/
-
-// 220 x 120
-
-// amount of time to wait for system startup
-//#define FRAMES_PER_SEC 10000
-
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define TOTAL_ELECTRODES emap.size()
 #define MIN_FRAMES 0.1 * FRAMES_PER_SEC
@@ -128,6 +101,13 @@ void signal_interrupt_handler(int sig) {
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     exit(sig);
 }
+
+/*
+
+    args:
+        --config"no" config"no"_path
+        --
+*/
 
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {

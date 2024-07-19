@@ -27,8 +27,11 @@ void Controller::add(maxlab::FilteredFrameData frame) {
     }
 }
 
-// void Controller::shift(maxlab::FilteredFrameData frame) {
-//     for (auto& b: buttons) {
-//         b.second.win.shift(frame);
-//     }
-// }
+void Controller::shift(maxlab::FilteredFrameData frame) {
+    for (map<string, struct Button>::iterator it = buttons.begin(); 
+                                                    it != buttons.end(); it++) {
+        string key = it->first;
+        struct Button b = buttons[key];
+        b.win.shift(frame);
+    }
+}
