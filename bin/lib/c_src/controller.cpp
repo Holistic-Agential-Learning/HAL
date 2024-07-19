@@ -1,4 +1,5 @@
 #include "controller.h"
+#include <utility>
 
 Controller::Controller() {
 
@@ -8,7 +9,7 @@ void Controller::addButton(const char *configPath, string id, int windowLength) 
     struct Button b;
     b.win = ChannelWindow(windowLength, configPath);
 
-    buttons[id] = b;
+    buttons.insert(make_pair(id, b));
 }
 
 ChannelWindow Controller::getButtonWindow(string id) {
