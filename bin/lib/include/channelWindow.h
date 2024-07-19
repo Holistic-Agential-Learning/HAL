@@ -22,6 +22,8 @@ typedef struct LocalFFD LocalFFD;
 class ChannelWindow {
     public:
 
+        ChannelWindow();
+
         /* Constructor
          * 
          * Creates a new ChannelWindow

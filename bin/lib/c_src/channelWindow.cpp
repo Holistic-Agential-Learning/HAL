@@ -3,6 +3,12 @@
 
 using namespace maxlab;
 
+ChannelWindow::ChannelWindow() {
+    size = 0;
+    sum = 0;
+    window = vector<maxlab::FilteredFrameData>();
+}
+
 ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
     emap = electrodeMap;
     size = length;
