@@ -521,16 +521,16 @@ if __name__ == '__main__':
    
     #filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/7-9 mouse_1d_test/7/well4/"
     #filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/2h_7-12/M07484/240712/4/well4/"
-    filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/DIV13/M07475/240716/0/well1/"
-    #filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/DIV13_no_media_change/M07472/240716/1/well0/"
+    #filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/DIV13/M07475/240716/0/well1/"
+    filepath = "/run/user/1001/gvfs/smb-share:server=rstore.it.tufts.edu,share=as_rsch_levinlab_wclawson01$/Experimental Data/Summer 2024/mouse_1d/DIV13_no_media_change/M07472/240716/1/well0/"
 
 
-    filename = "DIV13_well_1"
-    #filename = "DIV13_no_media_change_well_0"
+    #filename = "DIV13_well_1"
+    filename = "DIV13_no_media_change_well_0"
     #filename = "2h_well_4"
     filetag = ".raw.h5"
     datapath = homedir + "/Documents/HAL/data/wes_analysis/"
-    well_no = 1
+    well_no = 0
     recording_no = 0
 
 
