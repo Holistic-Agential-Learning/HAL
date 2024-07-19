@@ -198,9 +198,7 @@ if __name__ == '__main__':
         s.start_recording([well])
         
         ############################################################################
-        # WES LOOK HERE
-        # change timing pattern here
-        # time.sleep(600)
+        
         print("calling c++ script... well" + str(well))
         # This is the command to run (will last as long as the cpp files lasts)
         mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
@@ -213,9 +211,7 @@ if __name__ == '__main__':
 
         mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
 
-        # print("Ten minutes left")
         print("c++ script over...")
-        # time.sleep(600)
         ############################################################################
 
         s.stop_recording()

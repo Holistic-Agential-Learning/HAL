@@ -48,7 +48,7 @@ struct args {
 
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
-void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, int well);
+void runExperiment(string path, string config0, string config1, int frames, int well);
 int get_max_element(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
@@ -56,40 +56,6 @@ struct args getArgs(int argc, char *argv[]);
 void printUsage() {
     cout << USAGE << endl;
 }
-
-struct args getArgs(int argc, char *argv[]) {
-    struct args ret;
-    if (!checkOption("--config", argc, argv) || !checkOption("--folder", argc, argv)) {
-        printUsage();
-        exit(2);
-    }
-    ret.config_path = getStringArg("--config", argc, argv);
-    ret.maxtwo = checkOption("--maxtwo", argc, argv);
-    ret.path = getStringArg("--folder", argc, argv);
-
-    if (checkOption("--threshold", argc, argv)) {
-        ret.threshold = getFloatArg("--threshold", argc, argv);
-    } else {
-        ret.threshold = THRESHOLD_DEFAULT;
-    }
-
-    if (checkOption("--well", argc, argv)) {
-        ret.well = getIntArg("--well", argc, argv);
-    } else {
-        ret.well = 0;
-    }
-
-    if (checkOption("--minutes", argc, argv)) {
-        ret.minutes = getIntArg("--minutes", argc, argv);
-    } else {
-        ret.minutes = MINUTES_DEFAULT;
-    }
-
-    return ret; 
-}
-
-
-
 
 /* signal_interrupt_handler
  * 
@@ -103,40 +69,33 @@ void signal_interrupt_handler(int sig) {
 }
 
 /*
-
     args:
-        --config"no" config"no"_path
-        --
+        --config0 <path> --config1 <path> --folder <path>
 */
 
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
-    struct args params = getArgs(argc, argv);
-    cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.minutes << " minutes..." << endl;
-    cout << "Config: " << params.config_path << endl;
-    cout << "Threshold: " << params.threshold << endl;
-    cout << "Well: " << params.well << endl;
-    // exit(1);
-    ElectrodeMap emap = ElectrodeMap(params.config_path.c_str());
-    int well = params.well;
-    
-    if (params.maxtwo) {
+    // struct args params = getArgs(argc, argv);
+    bool maxtwo = checkOption("--maxtwo", argc, argv);
+    string path = getStringArg("--folder", argc, argv);
+    string config0 = getStringArg("--config0", argc, argv);
+    string config1 = getStringArg("--config0", argc, argv);
+
+    float minutes = getFloatArgSecure("--minutes", argc, argv, 3);
+    int well = getIntArgSecure("--well", argc, argv, 0);
+    cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << " for " << minutes << " minutes..." << endl;
+    cout << "Well: " << well << endl;
+        
+    if (maxtwo) {
         FRAMES_PER_SEC = 10000;
     }
     
-    int frames = params.minutes*60*FRAMES_PER_SEC;
-    
-    float threshold = params.threshold;
-
-    string path = params.path;
-
-    cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
-    cout << "Min frames: " << MIN_FRAMES << endl;
+    int frames = minutes*60*FRAMES_PER_SEC;
 
     try {
-        runExperiment(path, emap, frames, threshold, well);
+        runExperiment(path, config0, config1, frames, well);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -147,9 +106,11 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, int well) {
+void runExperiment(string path, string config0, string config1, int frames, int well) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
+
+    int windowLength = 10000;
 
     std::fstream file;
     std::fstream alldata_file;
@@ -170,49 +131,18 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
             continue;
         }
     }
+
+    Controller controller = Controller();
+
+    controller.addButton(config0, "A", windowLength);
+    controller.addButton(config1, "B", windowLength);
+
     cout << "Finished buffer, looking for spikes..." << endl;
-    // cout << threshold * TOTAL_ELECTRODES << endl;
-
-    // the number of frames where the spike count goes over the threshold
-    int spikeFrameCount = 0;
-
-    ChannelWindow window = ChannelWindow(WINDOW, emap);
     
-
-    // frame number representing the start of a burst
-    int burstStart = 0;
-
-    // frame number representing the end of a burst 
-    int burstEnd = 0;
-
-    /* the number of frames since the last frame where the spike count went over
-       the threshold */ 
-    int noSpikeFrameCount = 0;
-
-    // amount of blanking time
-    int blanking = 0;
-
-    // stores calculated average side at certain frames
-    vector<float> locs(5);
-
-    // spike count for each calculated location, mirroring locs
-    vector <int> burstSpikeCounts(5);
-
-    // number of locs that can be stored
-    int capacity = 5;
-
-    // number of locs that are currently being stored
-    int locCounter = 0;
-    
-    float monitoringLoc = 0;
-
-    // stores data for each frame in a 200-frame window
-    vector<FilteredFrameData> frameWindow;
     cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
 
-
     // initialize the vector with 200 frames
-    for (int i = 0; i < window.length(); i++) {
+    for (int i = 0; i < windowLength; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
@@ -221,8 +151,10 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
             continue;
         }
 
-        window.add(frameData);
+        controller.add(frameData);
     }
+
+    cout << "Finished controller initialization" << endl;
 
 
     // start processing frames
@@ -252,9 +184,7 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
         }
 
         // const SpikeEvent *spike = frameData.spikeEvents;
-        window.shift(frameData);
-        int spikeCount = window.totalSpikeCount();
-
+        controller.shift(frameData);
 
         if (blanking > 0) {
             blanking--;
@@ -262,6 +192,10 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
                 continue;
             }
         }
+
+        
+
+        ////////////////////////////////////////////////////////////////////////
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
             monitoringLoc = get_avg_side(window);
