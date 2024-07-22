@@ -36,4 +36,5 @@ if __name__ == "__main__":
     subprocess.run([script, json_name])
 
     print("great success")
+    # what.experiment_over_msg()
 
