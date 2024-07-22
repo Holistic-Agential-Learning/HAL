@@ -46,22 +46,23 @@ def create_stim_pulse(seq: mx.Sequence, amplitude: int, phase: int) -> mx.Sequen
     return seq
 
 def merge_configs(configs):
-    set = {}
+    s = set()
     for config in configs:
         ret = GUI.read_config(config, False)
         elec_nums = ret[1]
         for n in elec_nums:
-            set.add(n)
+            s.add(n)
 
-    return list(set)
+    return list(s)
 
 if __name__ == '__main__':
-    configs = [sys.argv[i] for i in range(1, sys.argc)]
+    configs = [sys.argv[i] for i in range(1, len(sys.argv))]
 
     exp_args = {}
-    exp_args['FOLDER'] = ""
+    exp_args['FOLDER'] = "/home/mxwbio/Desktop/HAL/data/controller-test"
     exp_args['NAME'] = "controller-tests"
-    exp_args['WELLS'] = []
+    exp_args['WELLS'] = [0]
+    exp_args['-MAXTWO-'] = False
 
 
     trial_path = hal.make_trial_folders(exp_args)
@@ -179,7 +180,11 @@ if __name__ == '__main__':
 
         ##############################################################################
 
-        program_args = ["./bin/build/control", "--config", config_file_name, "--folder", directory_name]
+        program_args = ["./bin/build/control", "--folder", directory_name]
+
+        for i in range(len(configs)):
+            program_args.append(f"--config{i}")
+            program_args.append(configs[i])
 
         program_args.append("--well")
 
@@ -206,8 +211,8 @@ if __name__ == '__main__':
             subprocess.run(program_args)
         except KeyboardInterrupt:
             print("start-maxlab.py: ^C signalled")
-        except Exception as err:
-            print(err)
+        # except Exception as err:
+        #     print(err)
 
         mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
 

@@ -81,9 +81,10 @@ int main(int argc, char * argv[]) {
     bool maxtwo = checkOption("--maxtwo", argc, argv);
     string path = getStringArg("--folder", argc, argv);
     string config0 = getStringArg("--config0", argc, argv);
-    string config1 = getStringArg("--config1", argc, argv);
+    cout << "Got config: " << config0 << endl;
+    // string config1 = getStringArg("--config1", argc, argv);
 
-    float minutes = getFloatArgSecure("--minutes", 3, argc, argv);
+    float minutes = getFloatArgSecure("--minutes", 0.5, argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << " for " << minutes << " minutes..." << endl;
     cout << "Well: " << well << endl;
@@ -95,7 +96,7 @@ int main(int argc, char * argv[]) {
     int frames = minutes*60*FRAMES_PER_SEC;
 
     try {
-        runExperiment(path, config0, config1, frames, well);
+        runExperiment(path, config0, config0, frames, well);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -110,7 +111,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
-    int windowLength = 10000;
+    int windowLength = 200;
 
     std::fstream data;
     data.open(path + "/std_dev_test_" + to_string(well) + ".csv", std::fstream::out);
@@ -198,7 +199,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         ////////////////////////////////////////////////////////////////////////
 
         if (window.pastWindowsReady()) {
-            data << window.totalSpikeCount() << "," << window.avgPastWindows() << endl;
+            data << window.totalSpikeCount() << "," << window.stdDev() << "," << window.avgPastWindows() << endl;
         }
 
 

@@ -11,10 +11,9 @@ ElectrodeMap::ElectrodeMap() {
 
 
 ElectrodeMap::ElectrodeMap(const char *config_path) {
-    cout << "about to read config" << endl;
     FILE *file = fopen(config_path, "r");
-    cout << "about to read config" << endl;
     if (file == NULL) {
+        cout << "Config path is not valid: " << config_path << endl;
         exit(1);
     }
     // assert(file != NULL);
@@ -92,6 +91,9 @@ void ElectrodeMap::print() {
 }
 
 void ElectrodeMap::readConfig(FILE *file){
+    if (file == NULL) {
+        cout << "NULL FILE" << endl;
+    }
     string currWord;
     electrodeCoords currCoords;
     int currChannelNo;

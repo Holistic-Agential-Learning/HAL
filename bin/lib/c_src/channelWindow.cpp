@@ -175,7 +175,8 @@ float ChannelWindow::getAvgX() {
 }
 
 float ChannelWindow::stdDev() {
-    return sum / spikeWindow.size();
+    // cout << "sum: " << sum << endl << spikeWindow.size() << endl;
+    return (float) sum / (float) spikeWindow.size();
 }
 
 void ChannelWindow::debug(string message) {
