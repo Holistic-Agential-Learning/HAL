@@ -116,6 +116,8 @@ class ChannelWindow {
         float getAvgX();
         float stdDev();
 
+        bool pastWindowsReady();
+
         void print();
         void debug(string message);
     

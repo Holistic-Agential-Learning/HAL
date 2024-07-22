@@ -20,7 +20,6 @@ ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap, int toSave) 
     newWindowCount = 0;
     savesWindows = toSave;
     numPastWindows = toSave;
-    
 }
 
 ChannelWindow::ChannelWindow(int length, const char *configPath, int toSave) {
@@ -72,7 +71,16 @@ void ChannelWindow::addFrame(maxlab::FilteredFrameData frame) {
     frame.spikeCount = numValid;
     
     spikeWindow.push_back(frame);
-    newWindowCount++;
+
+    if (savesWindows) {
+        newWindowCount++;
+        
+        // a completely new, unique window has been created
+        if (newWindowCout == size) {
+            pastData.push(stdDev());
+            newWindowCount = 0;
+        }
+    }
 }
 
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
@@ -93,10 +101,8 @@ void ChannelWindow::shiftFrame(maxlab::FilteredFrameData frame) {
     addFrame(frame);
 
     // a completely new, unique window has been created
-    if (newWindowCount == size) {
+    if (savesWindows && newWindowCount == 0) {
         pastData.erase(pastData.begin());
-        newWindowCount = 0;
-        pastData.push(stdDev());
     }
 }
 
@@ -122,6 +128,10 @@ ElectrodeMap ChannelWindow::electrodeMap() {
 
 vector<float> ChannelWindow::pastWindows() {
     return pastData;
+}
+
+bool ChannelWindow::pastWindowsReady() {
+    return (savesWindows && newWindowCount == 0); 
 }
 
 float ChannelWindow::avgPastWindows() {
@@ -165,7 +175,7 @@ float ChannelWindow::getAvgX() {
 }
 
 float ChannelWindow::stdDev() {
-    return 0.0
+    return 0.0;
 }
 
 void ChannelWindow::debug(string message) {
