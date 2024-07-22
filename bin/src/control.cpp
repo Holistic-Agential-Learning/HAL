@@ -130,13 +130,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
     }
 
-    // Controller controller = Controller();
-    ChannelWindow window = ChannelWindow(200, config0.c_str(), 9);
+    Controller controller = Controller();
+    // ChannelWindow window = ChannelWindow(200, config0.c_str(), 9);
 
     int blanking = 0;
 
-    // controller.addButton(config0, "A", windowLength);
-    // controller.addButton(config1, "B", windowLength);
+    controller.addButton("A", windowLength, config0, 9);
+    controller.addButton("B", windowLength, config1, 9);
 
     cout << "Finished buffer, looking for spikes..." << endl;
     
@@ -152,8 +152,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             continue;
         }
 
-        // controller.add(frameData);
-        window.add(frameData);
+        controller.add(frameData);
     }
 
     cout << "Finished controller initialization" << endl;
@@ -186,8 +185,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         // const SpikeEvent *spike = frameData.spikeEvents;
-        // controller.shift(frameData);
-        window.shift(frameData);
+        controller.shift(frameData);
+        // window.shift(frameData);
 
         if (blanking > 0) {
             blanking--;

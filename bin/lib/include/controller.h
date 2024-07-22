@@ -15,7 +15,7 @@ class Controller {
 
         ~Controller();
 
-        void addButton(const char *configPath, string id, int windowLength);
+        void addButton(string id, int windowLength, const char *configPath, int saveWindows=0);
 
         ChannelWindow *getButtonWindow(string id);
 
