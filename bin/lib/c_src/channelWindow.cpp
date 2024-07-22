@@ -7,18 +7,29 @@ ChannelWindow::ChannelWindow() {
     size = 0;
     sum = 0;
     spikeWindow = vector<maxlab::FilteredFrameData>();
+    newWindowCount = 0;
+    savesWindows = false;
+    pastData = vector<float>();
+    numPastWindows = 0;
 }
 
-ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
+ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap, int toSave) {
     emap = electrodeMap;
     size = length;
     sum = 0;
+    newWindowCount = 0;
+    savesWindows = toSave;
+    numPastWindows = toSave;
+    
 }
 
-ChannelWindow::ChannelWindow(int length, const char *configPath) {
+ChannelWindow::ChannelWindow(int length, const char *configPath, int toSave) {
     emap = ElectrodeMap(configPath);
     size = length;
     sum = 0;
+    newWindowCount = 0;
+    savesWindows = toSave;
+    numPastWindows = toSave;
 }
 
 void ChannelWindow::shiftOrAdd(maxlab::FilteredFrameData frame) {
@@ -30,7 +41,7 @@ void ChannelWindow::shiftOrAdd(maxlab::FilteredFrameData frame) {
 }
 
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
-    shiftOrAdd(frame);
+    addFrame(frame);
 }
 
 void ChannelWindow::addFrame(maxlab::FilteredFrameData frame) {
@@ -61,38 +72,32 @@ void ChannelWindow::addFrame(maxlab::FilteredFrameData frame) {
     frame.spikeCount = numValid;
     
     spikeWindow.push_back(frame);
+    newWindowCount++;
 }
 
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
-    shiftOrAdd(frame);
+    shiftFrame(frame);
 }
 
 void ChannelWindow::shiftFrame(maxlab::FilteredFrameData frame) {
     maxlab::FilteredFrameData firstFrame = spikeWindow[0];
     const maxlab::SpikeEvent *spikeEvents = firstFrame.spikeEvents;
     int spikeCount = firstFrame.spikeCount;
-    // int beforeSum = sum;
-    // for (int i = 0; i < spikeCount; i++) {
-    //     if (emap.exists(spikeEvents[i].channel)) {
-    //         sum--;
-    //     }
-    // }
+    
     sum -= spikeCount;
     if (spikeCount > 0) {
         free((void *)firstFrame.spikeEvents);
     }
     spikeWindow.erase(spikeWindow.begin());
-    // if (beforeSum != sum) {
-    //     debug("Removing frame with a positive spikeCount:");
-    // }
-    // beforeSum = sum;
+    if (newWindowCount == size) {
+        pastData.erase(pastData.begin());
+        newWindowCount = 0;
+        pastData.push(stdDev());
+    }
+    
     addFrame(frame);
-
-    // if (beforeSum != sum) {
-    //     debug("Adding VALIDATED with positive spikeCount:");
-    // } else if (frame.spikeCount > 0) {
-    //     debug("Adding INVALID frame with positive spikeCount");
-    // }
+    
+    
 }
 
 FilteredFrameData ChannelWindow::get(int idx) {
@@ -143,6 +148,10 @@ float ChannelWindow::getAvgX() {
         debug("average is nan");
     }
     return average;
+}
+
+float ChannelWindow::stdDev() {
+    return 0.0
 }
 
 void ChannelWindow::debug(string message) {

@@ -27,7 +27,7 @@ class ChannelWindow {
          *                (measured in frames)
          *      - emap: ElectrodeMap holding the current electrode config file
          */
-        ChannelWindow(int length, ElectrodeMap emap);
+        ChannelWindow(int length, ElectrodeMap emap, int toSave=0);
         
         /* Constructor
          * 
@@ -39,7 +39,7 @@ class ChannelWindow {
          *      - configPath: c string representing the full path of the config
          *                    to use for the underlying ElectrodeMap
          */
-        ChannelWindow(int length, const char* configPath);
+        ChannelWindow(int length, const char* configPath, int toSave=0);
 
         /* add
          * 
@@ -110,6 +110,7 @@ class ChannelWindow {
         ElectrodeMap electrodeMap();
 
         float getAvgX();
+        float stdDev();
 
         void print();
         void debug(string message);
@@ -120,9 +121,12 @@ class ChannelWindow {
         int size;
         int sum;
 
-        bool doesFiringRates;
-        vector<int> firingRates;
-        int numFiringRates;
+        bool savesWindows;
+        int numPastWindows;
+        vector<float> pastData;
+
+        int newWindowCount;
+        
 
         /* addEvent
          * 
