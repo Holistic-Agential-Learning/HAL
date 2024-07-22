@@ -89,15 +89,15 @@ void ChannelWindow::shiftFrame(maxlab::FilteredFrameData frame) {
         free((void *)firstFrame.spikeEvents);
     }
     spikeWindow.erase(spikeWindow.begin());
+    
+    addFrame(frame);
+
+    // a completely new, unique window has been created
     if (newWindowCount == size) {
         pastData.erase(pastData.begin());
         newWindowCount = 0;
         pastData.push(stdDev());
     }
-    
-    addFrame(frame);
-    
-    
 }
 
 FilteredFrameData ChannelWindow::get(int idx) {
@@ -118,6 +118,20 @@ int ChannelWindow::totalSpikeCount() {
 
 ElectrodeMap ChannelWindow::electrodeMap() {
     return emap;
+}
+
+vector<float> ChannelWindow::pastWindows() {
+    return pastData;
+}
+
+float ChannelWindow::avgPastWindows() {
+    float sum = 0;
+
+    for (int i = 0; i < pastData.size(); i++) {
+        sum += pastData[i];
+    }
+
+    return sum / pastData.size();
 }
 
 float ChannelWindow::getAvgX() {

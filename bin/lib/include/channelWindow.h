@@ -109,6 +109,10 @@ class ChannelWindow {
          */
         ElectrodeMap electrodeMap();
 
+        vector<float> pastWindows();
+
+        float avgPastWindows();
+
         float getAvgX();
         float stdDev();
 
