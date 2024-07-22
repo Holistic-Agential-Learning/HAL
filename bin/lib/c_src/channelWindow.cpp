@@ -76,8 +76,8 @@ void ChannelWindow::addFrame(maxlab::FilteredFrameData frame) {
         newWindowCount++;
         
         // a completely new, unique window has been created
-        if (newWindowCout == size) {
-            pastData.push(stdDev());
+        if (newWindowCount == size) {
+            pastData.push_back(stdDev());
             newWindowCount = 0;
         }
     }
@@ -101,7 +101,7 @@ void ChannelWindow::shiftFrame(maxlab::FilteredFrameData frame) {
     addFrame(frame);
 
     // a completely new, unique window has been created
-    if (savesWindows && newWindowCount == 0) {
+    if (savesWindows && pastData.size() == numPastWindows + 1 && newWindowCount == 0) {
         pastData.erase(pastData.begin());
     }
 }
@@ -175,7 +175,7 @@ float ChannelWindow::getAvgX() {
 }
 
 float ChannelWindow::stdDev() {
-    return 0.0;
+    return sum / spikeWindow.size();
 }
 
 void ChannelWindow::debug(string message) {

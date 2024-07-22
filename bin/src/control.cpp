@@ -83,8 +83,8 @@ int main(int argc, char * argv[]) {
     string config0 = getStringArg("--config0", argc, argv);
     string config1 = getStringArg("--config1", argc, argv);
 
-    float minutes = getFloatArgSecure("--minutes", argc, argv, 3);
-    int well = getIntArgSecure("--well", argc, argv, 0);
+    float minutes = getFloatArgSecure("--minutes", 3, argc, argv);
+    int well = getIntArgSecure("--well", 0, argc, argv);
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << " for " << minutes << " minutes..." << endl;
     cout << "Well: " << well << endl;
         
@@ -112,11 +112,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int windowLength = 10000;
 
-    std::fstream file;
-    std::fstream alldata_file;
-    std::fstream rawdata_file;
-    file.open(path + "/burst_direction_" + to_string(well) + ".csv", std::fstream::out);
-    alldata_file.open(path + "/alldata_" + to_string(well) + ".csv", std::fstream::out);
+    std::fstream data;
+    data.open(path + "/std_dev_test_" + to_string(well) + ".csv", std::fstream::out);
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -132,14 +129,17 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
     }
 
-    Controller controller = Controller();
+    // Controller controller = Controller();
+    ChannelWindow window = ChannelWindow(200, config0.c_str(), 9);
 
-    controller.addButton(config0, "A", windowLength);
-    controller.addButton(config1, "B", windowLength);
+    int blanking = 0;
+
+    // controller.addButton(config0, "A", windowLength);
+    // controller.addButton(config1, "B", windowLength);
 
     cout << "Finished buffer, looking for spikes..." << endl;
     
-    cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
+    cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with" << endl;
 
     // initialize the vector with 200 frames
     for (int i = 0; i < windowLength; i++) {
@@ -151,7 +151,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             continue;
         }
 
-        controller.add(frameData);
+        // controller.add(frameData);
+        window.add(frameData);
     }
 
     cout << "Finished controller initialization" << endl;
@@ -184,7 +185,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         // const SpikeEvent *spike = frameData.spikeEvents;
-        controller.shift(frameData);
+        // controller.shift(frameData);
+        window.shift(frameData);
 
         if (blanking > 0) {
             blanking--;
@@ -193,99 +195,18 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
 
-        
-
         ////////////////////////////////////////////////////////////////////////
 
-        
-
-        if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
-            monitoringLoc = get_avg_side(window);
-            alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
+        if (window.pastWindowsReady()) {
+            data << window.totalSpikeCount() << "," << window.avgPastWindows() << endl;
         }
-   
-        if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            locs[locCounter] = get_avg_side(window);
-            burstSpikeCounts[locCounter] = spikeCount;
-            locCounter++;
-        }
-        
-        // if the current spike count is over the threshold
-        if  (spikeCount > threshold * TOTAL_ELECTRODES) {
 
-            // start of the burst
-            if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
-                locs[0] = get_avg_side(window); // starting location
-                burstSpikeCounts[0] = spikeCount;
-                locCounter = 1;
-                burstStart = i;
-            }
-            
-            spikeFrameCount++; // spike at this frame
-            noSpikeFrameCount = 0;
-        } else {
 
-            // burst is over
-            if (noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
-
-                // burst is long enough to be significant
-                if (spikeFrameCount >= MIN_FRAMES) {
-                    burstEnd = i-200;
-                    
-                    // // edge case: startingLocDiff = 0 (right for now)
-                    int left = locs[0] < locs[capacity - 1];
-                    string loc_string = left ? "left to right" : "right to left";
-                    file <<"BURST" << endl;
-                    file << burstStart + SYS_START_BUFFER + WINDOW << ", " << burstEnd + SYS_START_BUFFER + WINDOW << ", ";
-                    
-                    for(int m = 0; m < capacity; m++) {
-                        file << locs[m] << ", ";
-                    }
-
-                    file << loc_string << endl << ", ,";
-                    for(int m = 0; m < capacity; m++) {
-                        file << burstSpikeCounts[m] << ", ";
-                    }
-                    
-                    file << endl;
-
-                    //left to right stimulation
-                    //If in training phase
-                    if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
-                        //if (i < (int)((float)(2*frames)/3)) {
-                        if (!left) {
-                            std::random_device rd;
-                            std::mt19937 gen(rd());
-                            std::uniform_int_distribution<> dis(0, 999);
-                            int randomInt = dis(gen);
-                            std::string punish_no = std::to_string(randomInt);
-                            std::string final_punish = "punish" + punish_no;
-                            cout << final_punish << endl;
-                            maxlab::verifyStatus(maxlab::sendSequence(final_punish.c_str()));
-                            //maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
-                            cout << i << ": punish stimulation" << endl;
-                        } 
-                        else {
-                            //maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
-                            maxlab::verifyStatus(maxlab::sendSequence("reward"));
-                            cout << i << ": sent reward stimulation" << endl;
-
-                        }
-
-                        blanking = 3*FRAMES_PER_SEC;
-                    }
-                    
-                }      
-                spikeFrameCount = 0;
-            }
-            noSpikeFrameCount++;
-        }
     } 
 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
-    file.close();
-    alldata_file.close();
+    data.close();
 }
 
 float framesToSeconds(int frames) {

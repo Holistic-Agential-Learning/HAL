@@ -15,7 +15,7 @@ HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 # all .o files in hal lib
 HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(basename $(cpp)).o)
 
-PROGRAMS = train-wave-direction mouse_1d raw-data-test reward-punish
+PROGRAMS = train-wave-direction mouse_1d raw-data-test reward-punish control
 
 all : dir $(PROGRAMS)
 
@@ -40,6 +40,9 @@ mouse_1d: $(SRC)/mouse_1d.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 reward-punish: $(SRC)/closed_loop_rp.o $(HAL_O)
+	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+
+control: $(SRC)/control.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 clean :
