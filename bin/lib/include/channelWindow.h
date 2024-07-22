@@ -12,12 +12,6 @@
 
 using namespace std;
 
-struct LocalFFD {
-    uint64_t spikeCount;
-    maxlab::SpikeEvent spikeEvents[1024];
-};
-
-typedef struct LocalFFD LocalFFD;
 
 class ChannelWindow {
     public:

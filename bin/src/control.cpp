@@ -81,7 +81,7 @@ int main(int argc, char * argv[]) {
     bool maxtwo = checkOption("--maxtwo", argc, argv);
     string path = getStringArg("--folder", argc, argv);
     string config0 = getStringArg("--config0", argc, argv);
-    string config1 = getStringArg("--config0", argc, argv);
+    string config1 = getStringArg("--config1", argc, argv);
 
     float minutes = getFloatArgSecure("--minutes", argc, argv, 3);
     int well = getIntArgSecure("--well", argc, argv, 0);
@@ -196,6 +196,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         
 
         ////////////////////////////////////////////////////////////////////////
+
+        
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
             monitoringLoc = get_avg_side(window);

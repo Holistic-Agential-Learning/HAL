@@ -7,26 +7,28 @@
 
 using namespace std;
 
-struct Button {
-    ChannelWindow win;
-};
 
 class Controller {
     public:
 
-        Controller();   
+        Controller();
+
+        ~Controller();
 
         void addButton(const char *configPath, string id, int windowLength);
 
-        ChannelWindow getButtonWindow(string id);
+        ChannelWindow *getButtonWindow(string id);
 
         void add(maxlab::FilteredFrameData frame);
 
         void shift(maxlab::FilteredFrameData frame);
 
+        int numChannels(string id);
+
+        int numSpikes(string id);
 
     private:
-        map<string, struct Button> buttons;
+        map<string, ChannelWindow *> buttons;
 };
 
 #endif

@@ -2,36 +2,55 @@
 #include <utility>
 
 Controller::Controller() {
+}
 
+Controller::~Controller() {
+    for (const auto& pair: buttons) {
+        string key = pair.first;
+        ChannelWindow *win = buttons[key];
+        delete win;
+    }
 }
 
 void Controller::addButton(const char *configPath, string id, int windowLength) {
-    struct Button b;
-    b.win = ChannelWindow(windowLength, configPath);
+    ChannelWindow *win = new ChannelWindow(windowLength, configPath);
 
-    buttons.insert(make_pair(id, b));
+    buttons.insert(make_pair(id, win));
 }
 
-ChannelWindow Controller::getButtonWindow(string id) {
-    struct Button b = buttons[id];
+ChannelWindow *Controller::getButtonWindow(string id) {
+    ChannelWindow *win = buttons[id];
 
-    return b.win;
+    return win;
 }
 
 void Controller::add(maxlab::FilteredFrameData frame) {
-    for (map<string, struct Button>::iterator it = buttons.begin(); 
-            it != buttons.end(); it++) {
-        string key = it->first;
-        struct Button b = buttons[key];
-        b.win.add(frame);
+
+    for (const auto& pair: buttons) {
+        string key = pair.first;
+        ChannelWindow *win = buttons[key];
+        win->add(frame);
     }
 }
 
 void Controller::shift(maxlab::FilteredFrameData frame) {
-    for (map<string, struct Button>::iterator it = buttons.begin(); 
-                                                    it != buttons.end(); it++) {
-        string key = it->first;
-        struct Button b = buttons[key];
-        b.win.shift(frame);
+    for (const auto& pair: buttons) {
+        string key = pair.first;
+        ChannelWindow *win = buttons[key];
+        win->shift(frame);
     }
+}
+
+int Controller::numChannels(string id) {
+    ChannelWindow *cw = buttons[id];
+
+    ElectrodeMap emap = cw->electrodeMap();
+
+    return emap.size();
+}
+
+int Controller::numSpikes(string id) {
+    ChannelWindow *cw = buttons[id];
+
+    return cw->totalSpikeCount();
 }
