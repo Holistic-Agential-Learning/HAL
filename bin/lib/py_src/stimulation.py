@@ -175,9 +175,13 @@ class Stimulation(ArbitraryStimulation):
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
                 seq = Stimulation.__create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
-                seq.append(mx.DelaySamples(self.pulse_interval))
+                #Don't append the last delay in a pulse train.
+                if j < self.pulses_per_train - 1:
+                    seq.append(mx.DelaySamples(self.pulse_interval))
             
-            seq.append(mx.DelaySamples(self.pulse_train_interval))
+            #Don't append the last delay.
+            if i < self.num_trains - 1:
+                seq.append(mx.DelaySamples(self.pulse_train_interval))
 
         seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {int(self.phase/ FPS *(10**6))} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {int(self.pulse_interval/FPS * 1000)} pulse_train_interval_s {int(self.pulse_train_interval/FPS)}"))
         event_number += 1

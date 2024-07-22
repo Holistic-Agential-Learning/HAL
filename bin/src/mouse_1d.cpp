@@ -205,6 +205,7 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
     vector <int> burstSpikeCounts(capacity);
 
     bool firstBurstDone = false;
+    bool bursting = false;
     int maxSpikesFrame = 0;
     int maxSpikes = 0;
     float maxSpikesLoc = 0;
@@ -273,29 +274,23 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
         // }
 
         if (stimulus_cooldown > 0){
-            if(stimulus_cooldown == 1){
-                cout << "stimulus_cooldown done" << endl;
-            }
             stimulus_cooldown--;
         }
 
         if (blanking > 0){
-            if (blanking == 1){
-                cout << "blanking done" << endl;
-            }
             blanking--;
             continue;
-            cout << "hi" << endl;
         }
         
         //check the world state, determine stimuli appropriately.
-        if (stimulus_cooldown <= 0 && training){
+        if (stimulus_cooldown <= 0 && training && !bursting){
             string stimulus_name = "loc" + to_string(world->location) + "_distance";
             int duration = stimulusDurations[stimulus_name];
             
             maxlab::verifyStatus(maxlab::sendSequence(stimulus_name.c_str()));
 
-            stimulus_cooldown += (duration + FRAMES_PER_SEC/100);
+            blanking += (duration + FRAMES_PER_SEC/100);
+            stimulus_cooldown += (duration + FRAMES_PER_SEC);//ALWAYS HAS 1 S BETWEEN STIMULI
         }
 
 
@@ -313,7 +308,7 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
         
         // if the current spike count is over the threshold
         if  (spikeCount > threshold * TOTAL_ELECTRODES) {
-
+            bursting = true;
             if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
                 maxSpikes = spikeCount;
                 maxSpikesFrame = i;
@@ -338,6 +333,7 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
             }
             // burst is over
             if (noSpikeFrameCount > 2 * FRAMES_PER_SEC) {
+                bursting = false;
                 // burst is long enough to be significant
                 if (spikeFrameCount >= MIN_FRAMES) {
                     
@@ -386,9 +382,11 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
                         
                         maxlab::verifyStatus(maxlab::sendSequence(position.c_str()));
                         
-                        stimulus_cooldown += (duration + FRAMES_PER_SEC/100);
-                        blanking += (duration + FRAMES_PER_SEC/100);
+                        blanking += (duration + FRAMES_PER_SEC);
 
+                    }
+                    else{
+                        blanking += FRAMES_PER_SEC * 2;//Let any burst subside
                     }
                 }    
                 firstBurstDone = false;
