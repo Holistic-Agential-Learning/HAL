@@ -115,10 +115,14 @@ class ChannelWindow {
         void debug(string message);
     
     private:
-        vector<maxlab::FilteredFrameData> window;
+        vector<maxlab::FilteredFrameData> spikeWindow;
         ElectrodeMap emap;
         int size;
         int sum;
+
+        bool doesFiringRates;
+        vector<int> firingRates;
+        int numFiringRates;
 
         /* addEvent
          * 
@@ -131,6 +135,10 @@ class ChannelWindow {
          *          true, false otherwise)
          */
         int addEvent(maxlab::SpikeEvent se);
+
+        void shiftOrAdd(maxlab::FilteredFrameData frame);
+        void addFrame(maxlab::FilteredFrameData frame);
+        void shiftFrame(maxlab::FilteredFrameData frame);
 
 
 
