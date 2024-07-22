@@ -198,7 +198,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         ////////////////////////////////////////////////////////////////////////
 
         if (window.pastWindowsReady()) {
-            data << window.totalSpikeCount() << "," << window.stdDev() << "," << window.avgPastWindows() << endl;
+            //maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
+            ChannelWindow winA = controller.getButtonWindow("A");
+            ChannelWindow winB = controller.getBUttonWindow("B");
+
+            float devA = winA.avgPastWindows();
+            float devB = winB.avgPastWindows();
+            data << devA << "," << devB << endl;
         }
 
 
