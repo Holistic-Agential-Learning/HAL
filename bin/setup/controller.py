@@ -76,11 +76,14 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
+        a_stim_electrodes = [5311]
+        b_stim_electrodes = [6105]
+
         # stim_electrodes = exp_args["E_SELECTED"]
         stim_electrodes = []
         rec_electrodes = merge_configs(configs)
         
-        does_stimulations = False
+        does_stimulations = True
 
         mx.initialize()
         mx.send(mx.Core().enable_stimulation_power(True))
@@ -102,25 +105,45 @@ if __name__ == '__main__':
         # array = config_electrodes("configs/test_config.cfg", stim_electrodes)
 
         # stimulation setup here 
-        # if does_stimulations:
-        #     stimulation_units = []
-        #     for stim_el in stim_electrodes:
-        #         array.connect_electrode_to_stimulation(stim_el)
-        #         stim = array.query_stimulation_at_electrode(stim_el)
-        #         if len(stim) == 0:
-        #             raise RuntimeError(
-        #                 f"No stimulation channel can connect to electrode: \
-        #                     {str(stim_el)}"
-        #             )
-        #         stim_unit_int = int(stim)
-        #         if stim_unit_int in stimulation_units:
-        #             raise RuntimeError(
-        #                 f"Two electrodes connected to the same stim unit.\
-        #                             This is not allowed. Please Select a \
-        #                                 neighboring electrode of {stim_el}!"
-        #             )
-        #         else:
-        #             stimulation_units.append(stim_unit_int)
+        if does_stimulations:
+            a_stimulation_units = []
+            for stim_el in a_stim_electrodes:
+                array.connect_electrode_to_stimulation(stim_el)
+                stim = array.query_stimulation_at_electrode(stim_el)
+                if len(stim) == 0:
+                    raise RuntimeError(
+                        f"No stimulation channel can connect to electrode: \
+                            {str(stim_el)}"
+                    )
+                stim_unit_int = int(stim)
+                if stim_unit_int in a_stimulation_units:
+                    raise RuntimeError(
+                        f"Two electrodes connected to the same stim unit.\
+                                    This is not allowed. Please Select a \
+                                        neighboring electrode of {stim_el}!"
+                    )
+                else:
+                    a_stimulation_units.append(stim_unit_int)
+            
+            b_stimulation_units = []
+            for stim_el in b_stim_electrodes:
+                array.connect_electrode_to_stimulation(stim_el)
+                stim = array.query_stimulation_at_electrode(stim_el)
+                if len(stim) == 0:
+                    raise RuntimeError(
+                        f"No stimulation channel can connect to electrode: \
+                            {str(stim_el)}"
+                    )
+                stim_unit_int = int(stim)
+                if stim_unit_int in b_stimulation_units:
+                    raise RuntimeError(
+                        f"Two electrodes connected to the same stim unit.\
+                                    This is not allowed. Please Select a \
+                                        neighboring electrode of {stim_el}!"
+                    )
+                else:
+                    b_stimulation_units.append(stim_unit_int)
+
 
         directory_name = f"{trial_path}/well{well}"
         file_name = exp_args["NAME"]
@@ -139,28 +162,19 @@ if __name__ == '__main__':
 
         mx.clear_events() 
 
-        # if does_stimulations:
-        #     stimulation_unit_commands: List[mx.StimulationUnit] = []
-        #     for stimulation_unit in stimulation_units:
-        #         stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
-        #         stimulation_unit_commands.append(stimulation)
-        #         mx.send(stimulation)
+        if does_stimulations:
+            for stimulation_unit in a_stimulation_units:
+                stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
+                mx.send(stimulation)
+            
+            for stimulation_unit in b_stimulation_units:
+                stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(1)
+                mx.send(stimulation)
 
-        # if does_stimulations:
-        #     stimulations = exp_args['STIMULATIONS']
-        #     for stim_name in stimulations.keys():
-        #         stim = Stimulation(stim_name, 0, 
-        #             amplitude = float(stimulations[stim_name]["AMPLITUDE"]), 
-        #             phase = float(stimulations[stim_name]["PHASE"]), 
-        #             pulses_per_train = int(stimulations[stim_name]["NUM_PER_TRAIN"]),
-        #             num_trains = int(stimulations[stim_name]["NUM_TRAINS"]),
-        #             pulse_interval = float(stimulations[stim_name]["INTERVAL"]),
-        #             pulse_train_interval = float(stimulations[stim_name]["TRAIN_INTERVAL"]),
-        #             maxtwo = exp_args['-MAXTWO-'],
-        #             well = well, 
-        #         )
-
-                # seq = stim.create_sequence(persistent = True)
+        stimA = Stimulation("A", 0, 10, 500, 10, 1, 1, 1, maxtwo = exp_args['-MAXTWO-'], well = well) 
+        stimA.build_sequence()
+        stimB = Stimulation("B", 1, 10, 500, 10, 1, 1, 1, maxtwo = exp_args['-MAXTWO-'], well = well)
+        stimB.build_sequence()
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)

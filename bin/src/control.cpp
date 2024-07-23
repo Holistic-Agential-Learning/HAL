@@ -82,7 +82,7 @@ int main(int argc, char * argv[]) {
     string path = getStringArg("--folder", argc, argv);
     string config0 = getStringArg("--config0", argc, argv);
     cout << "Got config: " << config0 << endl;
-    // string config1 = getStringArg("--config1", argc, argv);
+    string config1 = getStringArg("--config1", argc, argv);
 
     float minutes = getFloatArgSecure("--minutes", 0.5, argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
@@ -96,7 +96,7 @@ int main(int argc, char * argv[]) {
     int frames = minutes*60*FRAMES_PER_SEC;
 
     try {
-        runExperiment(path, config0, config0, frames, well);
+        runExperiment(path, config0, config1, frames, well);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -135,8 +135,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int blanking = 0;
 
-    controller.addButton("A", windowLength, config0, 9);
-    controller.addButton("B", windowLength, config1, 9);
+    controller.addButton("A", windowLength, config0.c_str(), 9);
+    controller.addButton("B", windowLength, config1.c_str(), 9);
 
     cout << "Finished buffer, looking for spikes..." << endl;
     
@@ -196,15 +196,17 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         ////////////////////////////////////////////////////////////////////////
+        ChannelWindow *winA = controller.getButtonWindow("A");
 
-        if (window.pastWindowsReady()) {
+        if (winA->pastWindowsReady()) {
             //
-            ChannelWindow *winA = controller.getButtonWindow("A");
-            ChannelWindow *winB = controller.getBUttonWindow("B");
+            
+            ChannelWindow *winB = controller.getButtonWindow("B");
 
             float devA = winA->avgPastWindows();
             float devB = winB->avgPastWindows();
             float ratio = devA / devB;
+            data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             if (ratio > 1.1) {
                 data << i << ": A, " << ratio << endl;
             } else if (ratio < 0.9) {
@@ -215,12 +217,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         float numSeconds = (float) i / FRAMES_PER_SEC;
 
         // stimulate config A every second that's a multiple of 10
-        if (numSeconds % 10 == 0) {
+        if (i % (FRAMES_PER_SEC * 10) == 0) {
             data << i << ": Stimulating A..." << endl;
             maxlab::verifyStatus(maxlab::sendSequence("A"));
 
         // stimulation config B every second that's a multiple of 5 (but not 10)
-        } else if (numSeconds % 5 == 0) {
+        } else if (i % (FRAMES_PER_SEC * 5) == 0) {
             data << i << ": Stimulating B..." << endl;
             maxlab::verifyStatus(maxlab::sendSequence("B"));
         }
