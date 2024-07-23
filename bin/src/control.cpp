@@ -198,16 +198,32 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         ////////////////////////////////////////////////////////////////////////
 
         if (window.pastWindowsReady()) {
-            //maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
-            ChannelWindow winA = controller.getButtonWindow("A");
-            ChannelWindow winB = controller.getBUttonWindow("B");
+            //
+            ChannelWindow *winA = controller.getButtonWindow("A");
+            ChannelWindow *winB = controller.getBUttonWindow("B");
 
-            float devA = winA.avgPastWindows();
-            float devB = winB.avgPastWindows();
-            data << devA << "," << devB << endl;
+            float devA = winA->avgPastWindows();
+            float devB = winB->avgPastWindows();
+            float ratio = devA / devB;
+            if (ratio > 1.1) {
+                data << i << ": A, " << ratio << endl;
+            } else if (ratio < 0.9) {
+                data << i << ": B, " << ratio << endl;
+            } 
         }
 
+        float numSeconds = (float) i / FRAMES_PER_SEC;
 
+        // stimulate config A every second that's a multiple of 10
+        if (numSeconds % 10 == 0) {
+            data << i << ": Stimulating A..." << endl;
+            maxlab::verifyStatus(maxlab::sendSequence("A"));
+
+        // stimulation config B every second that's a multiple of 5 (but not 10)
+        } else if (numSeconds % 5 == 0) {
+            data << i << ": Stimulating B..." << endl;
+            maxlab::verifyStatus(maxlab::sendSequence("B"));
+        }
     } 
 
     cout << "program over  " << endl;
