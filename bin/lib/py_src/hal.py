@@ -45,7 +45,7 @@ def make_trial_folders(experiment_parameters):
         json_copy = f"{well_path}/arguments.json"
         print(f"Creating {json_copy}")
 
-        shutil.copyfile(json_path, json_copy)
+        #shutil.copyfile(json_path, json_copy)
 
 
     return trial_path
