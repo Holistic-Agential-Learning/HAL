@@ -4,6 +4,15 @@ import shutil
 
 
 def make_trial_folders(experiment_parameters):
+    """ Creates folders for saving data based on a dict, generated from an 
+    experiment ``json`` file (see: :ref:`getting-started:Folder Structure`)
+
+    :param experiment_parameters: Holds the experiment paremeters; the following elements are **required**:
+            ``'FOLDER'``, ``'NAME'``, ``'WELLS'``
+    :type experiment_parameters: ``HAL.json.dict{}``
+    :return: Returns the full path of the *trial folder*
+    :rtype: ``string``
+    """
     today = datetime.datetime.now()
 
     today_str = today.strftime("%y%m%d")
@@ -51,7 +60,7 @@ def make_trial_folders(experiment_parameters):
 
 def make_trial_folders_raw(parent_path, experiment_name, chip_id, wells):
     """ Creates folders for saving data without using a dict, in the HAL 
-    specified folder format (see: ~link~).
+    specified folder format (see :ref:`getting-started:Folder Structure`).
 
     :param parent_path: full path of the parent folder
     :type parent_path: ``string``
