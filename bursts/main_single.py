@@ -1,22 +1,26 @@
+#!/usr/bin/env python
+
 import maxlab as mx
 from typing import List
 from time import sleep
 from h5py import File
+import os
+import sys
+sys.path.append("..")
 import bin.lib.py_src.hal as hal
 from bin.lib.py_src.stimulation import Stimulation
 
-#TODO: replace the {CHIP_ID}
-main_dict = {"FOLDER": "/home/mxwbio/Desktop/HAL/data/burst_control/{CHIP_ID}",
- "NAME": "burst_control", #TODO: p sure this is wrong
- "WELLS": [0]}
+main_dict = {"FOLDER": "/home/mxwbio/Desktop/HAL/data/burst_control/M07472",
+ "NAME": "burst_control",
+ "WELLS": [5]}
 
 file_name = main_dict["NAME"]
 trial_path = hal.make_trial_folders(main_dict)
 wells = main_dict["WELLS"]
-recording_dir = f"{trial_path}/well{wells[0]}" #TODO: check this
+recording_dir = f"{trial_path}/well{wells[0]}"
 
-configs = ["/home/mxwbio/Desktop/HAL/test_config_2.cfg"]
-stim_electrode_single = []
+configs = ["/home/mxwbio/configs/240723/15h44m01s.cfg"]
+stim_electrode_single = [13463, 15353, 6093, 23703]
 
 # function for connecting stimulation units to stimulation electrodes
 def connect_stim_units_to_stim_electrodes(
@@ -84,7 +88,7 @@ if __name__ == "__main__":
         print(f"Setting up well {well}...")
         mx.activate([well])
         mx.set_primary_well(well)
-        config_file = configs[well]
+        config_file = configs[0]
         recording_electrodes = get_config_electrodes(config_file)
         stim_elecs_a = stim_electrode_single
         array = mx.chip.Array("stimulation")
@@ -114,12 +118,12 @@ if __name__ == "__main__":
 
     #single high
     #10 stims/sec
-    stim_single_high = Stimulation(token="stim_single_high", dac_source=0, amplitude=600, phase=400, pulses_per_train=3_000, num_trains=1, pulse_interval=99_200,  pulse_train_interval=99_200, well=wells[0])
-    stim_single_high.build_sequence()
+    stim_single_high = Stimulation(token="stim_single_high", dac_source=0, amplitude=600, phase=400, pulses_per_train=1, num_trains=3_000, pulse_interval=0,  pulse_train_interval=0.0992, well=wells[0])
+    stim_single_high_seq = stim_single_high.build_sequence()
     #single low
     #1 stim/10 sec
-    stim_single_low = Stimulation(token="stim_single_low", dac_source=0, amplitude=600, phase=400, pulses_per_train=30, num_trains=1, pulse_interval=9_999_200,  pulse_train_interval=9_999_200, well=wells[0])
-    stim_single_low.build_sequence()
+    stim_single_low = Stimulation(token="stim_single_low", dac_source=0, amplitude=600, phase=400, pulses_per_train=1, num_trains=30, pulse_interval=0,  pulse_train_interval=3.5, well=wells[0]) #9.9992
+    stim_single_low_seq = stim_single_low.build_sequence()
 
 
 
@@ -136,15 +140,12 @@ if __name__ == "__main__":
     sleep(5)
 
     # this will stimulate all wells, since they are all activated
-    mx.set_primary_well(0)
-    mx.activate([0])
-
     print("Sending first stimulation...")
-    stim_single_high.send() # send stimulation 
+    stim_single_low_seq.send() # send stimulation 
     sleep(300) # wait for 300 seconds
 
     print("Sending second stimulation...")
-    stim_single_low.send()
+    stim_single_high_seq.send()
     sleep(300)
 
     #now for none
