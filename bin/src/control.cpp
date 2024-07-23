@@ -206,11 +206,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float devA = winA->avgPastWindows();
             float devB = winB->avgPastWindows();
             float ratio = devA / devB;
-            data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
+            // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             if (ratio > 1.1) {
-                data << i << ": A, " << ratio << endl;
+                data << i << ": A, " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             } else if (ratio < 0.9) {
-                data << i << ": B, " << ratio << endl;
+                data << i << ": B, " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             } 
         }
 
