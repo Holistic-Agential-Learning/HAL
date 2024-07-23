@@ -29,17 +29,17 @@ import csv
 WORLD = "1000"
 LOCATION = 3
 LEFT_STIM_ELECTRODES = {
-    0: [3757, 2613],
+    0: [4207,5703],
     1: [4217, 3925],
     4: [2449,3059]
 }
 RIGHT_STIM_ELECTRODES = {
-    0: [23745, 23127],
+    0: [23557,23743],
     1: [23133,23719],
     4: [19617,18443]
 }
 CENTER_STIM_ELECTRODES = {
-    0: [13091],
+    0: [13033,13587],
     1: [13953],
     4: [12639]
 }
@@ -257,7 +257,7 @@ if __name__ == '__main__':
 
         #CREATE STIMULI THAT ENCODE LOCATIONS
         object_stimuli = {
-            "1": Stimulation("1", 2, 200, 500, 10, 5, 10, 1, maxtwo = exp_args['-MAXTWO-'], well = well),
+            "1": Stimulation("1", 2, 200, 500, 10, 5, 10, 1, well = well),
             #"2": Stimulation("2", 2, 200, 500, 5, 3, 10, 1, maxtwo = exp_args['-MAXTWO-'], well = well)
         }
         for stimulation in object_stimuli.values():

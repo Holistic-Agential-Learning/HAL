@@ -308,19 +308,19 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
         
         // if the current spike count is over the threshold
         if  (spikeCount > threshold * TOTAL_ELECTRODES) {
-            bursting = true;
-            if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
-                maxSpikes = spikeCount;
-                maxSpikesFrame = i;
-                maxSpikesLoc = window.getAvgX();
-            }
+            if (!bursting){
+                bursting = true;
+                cout << "burst started" << endl;
 
-            // start of the burst
-            if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
                 locs[0] = window.getAvgX(); // starting location
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
                 burstStart = i;
+            }
+            if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
+                maxSpikes = spikeCount;
+                maxSpikesFrame = i;
+                maxSpikesLoc = window.getAvgX();
             }
             
             spikeFrameCount++; // spike at this frame
