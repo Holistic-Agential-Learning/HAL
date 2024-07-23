@@ -69,9 +69,9 @@ class ElectrodeMap {
          * Notes: If the channelNo was not set before the program starts (i.e. 
          *        it wasn't in the config file), then -1 will be returned.
          */
-        int get_position(int channelNo);
+        int getPosition(int channelNo);
 
-        /* get_x
+        /* getX
          * 
          * Gets the x coordinate (in µm) of an electrode given its channel 
          * number
@@ -85,9 +85,9 @@ class ElectrodeMap {
          * Notes: If the channelNo was not set before the program starts (i.e. 
          *        it wasn't in the config file), then -1 will be returned.
          */
-        float get_x(int channelNo);
+        float getX(int channelNo);
 
-        /* get_y
+        /* getY
          * 
          * Gets the y coordinate (in µm) of an electrode given its channel 
          * number
@@ -101,13 +101,14 @@ class ElectrodeMap {
          * Notes: If the channelNo was not set before the program starts (i.e. 
          *        it wasn't in the config file), then -1 will be returned.
          */
-        float get_y(int channelNo);
+        float getY(int channelNo);
 
         /* size
          *
          *  Gets the number of channels in the configuration
          * 
-         * Returns: integer representing the number of channels mapped in the configuration
+         * Returns: integer representing the number of channels mapped in the 
+         *          configuration
          */
         int size();
 

@@ -16,7 +16,7 @@ def make_trial_folders(experiment_parameters):
     print(f"full_folder_path: {full_folder_path}")
 
     if not os.path.exists(full_folder_path):
-        os.mkdir(full_folder_path)
+        os.makedirs(full_folder_path)
     
     # create the trial folder
     trial = 0
@@ -25,7 +25,7 @@ def make_trial_folders(experiment_parameters):
         trial_path = f"{full_folder_path}/{trial}"
 
         if not os.path.exists(trial_path):
-            os.mkdir(trial_path)
+            os.makedirs(trial_path)
             break
             
         trial += 1
@@ -40,12 +40,12 @@ def make_trial_folders(experiment_parameters):
 
         print(f"Making well folder: {well_path}")
 
-        os.mkdir(well_path)
+        os.makedirs(well_path)
 
         json_copy = f"{well_path}/arguments.json"
         print(f"Creating {json_copy}")
 
-        shutil.copyfile(json_path, json_copy)
+        # shutil.copyfile(json_path, json_copy)
 
 
     return trial_path
