@@ -47,5 +47,57 @@ def make_trial_folders(experiment_parameters):
 
         # shutil.copyfile(json_path, json_copy)
 
+    return trial_path
+
+def make_trial_folders_raw(parent_path, experiment_name, chip_id, wells):
+    """ Creates folders for saving data without using a dict, in the HAL 
+    specified folder format (see: ~link~).
+
+    :param parent_path: full path of the parent folder
+    :type parent_path: ``string``
+
+    :param experiment_name: name of experiment
+    :type experiment_name: ``string``
+
+    :param chip_id: chip id
+    :type chip_id: ``int``
+
+    :param wells: list of wells that the experiment will run on 
+    :type wells: ``List[int]``
+
+    :return: Returns the full path of the *trial folder*
+    :rtype: ``string``
+    """
+    today = datetime.datetime.now()
+
+    today_str = today.strftime("%y%m%d")
+
+    full_folder_path = f"{parent_path}/{experiment_name}/{chip_id}/{today_str}"
+    # print(f"full_folder_path: {full_folder_path}")
+
+    if not os.path.exists(full_folder_path):
+        os.makedirs(full_folder_path)
+    
+    # create the trial folder
+    trial = 0
+    trial_path = ""
+    while True:
+        trial_path = f"{full_folder_path}/{trial}"
+
+        if not os.path.exists(trial_path):
+            os.makedirs(trial_path)
+            break
+            
+        trial += 1
+    
+    # print(f"Trial path: {trial_path}")
+    
+    # create well folders
+    for well in wells:
+        well_path = f"{trial_path}/well{well}"
+
+        # print(f"Making well folder: {well_path}")
+
+        os.makedirs(well_path)
 
     return trial_path
