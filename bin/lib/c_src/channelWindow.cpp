@@ -188,7 +188,7 @@ float ChannelWindow::stdDev() {
 
     float devSum = 0;
     for (int rate: pastData) {
-        devSum += (rate - mean)(rate - mean);
+        devSum += (rate - mean) * (rate - mean);
     }
 
     return sqrt(devSum / numPastWindows);

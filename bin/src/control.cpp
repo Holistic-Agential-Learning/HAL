@@ -210,9 +210,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float ratio = firingRateA / firingRateB;
             // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             if (ratio > 1.1) {
-                data << i << ": A, " << ratio << "," << firingRateA << "," << devA << firingRateA << "," << devA << endl;
+                data << i << ": A, " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
             } else if (ratio < 0.9) {
-                data << i << ": B, " << ratio << "," << firingRateA << "," << devA << firingRateA << "," << devA << endl;
+                data << i << ": B, " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
             } 
         }
 
