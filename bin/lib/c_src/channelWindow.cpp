@@ -1,5 +1,6 @@
 #include "channelWindow.h"
 #include <fstream>
+#include <cmath>
 
 using namespace maxlab;
 
@@ -77,7 +78,7 @@ void ChannelWindow::addFrame(maxlab::FilteredFrameData frame) {
         
         // a completely new, unique window has been created
         if (newWindowCount == size) {
-            pastData.push_back(stdDev());
+            pastData.push_back(firingRate());
             newWindowCount = 0;
         }
     }
@@ -174,9 +175,23 @@ float ChannelWindow::getAvgX() {
     return average;
 }
 
-float ChannelWindow::stdDev() {
-    // cout << "sum: " << sum << endl << spikeWindow.size() << endl;
+float ChannelWindow::firingRate(){
     return (float) sum / (float) spikeWindow.size();
+}
+
+float ChannelWindow::stdDev() {
+    float sumPastWindows = 0;
+    for (int rate: pastData) {
+        sumPastWindows += rate;
+    }
+    float mean = sumPastWindows / numPastWindows;
+
+    float devSum = 0;
+    for (int rate: pastData) {
+        devSum += (rate - mean)(rate - mean);
+    }
+
+    return sqrt(devSum / numPastWindows);
 }
 
 void ChannelWindow::debug(string message) {

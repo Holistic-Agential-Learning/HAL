@@ -203,14 +203,16 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             
             ChannelWindow *winB = controller.getButtonWindow("B");
 
-            float devA = winA->avgPastWindows();
-            float devB = winB->avgPastWindows();
-            float ratio = devA / devB;
+            float firingRateA = winA->avgPastWindows();
+            float firingRateB = winB->avgPastWindows();
+            float devA = winA->stdDev();
+            float devB = winB->stdDev();
+            float ratio = firingRateA / firingRateB;
             // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             if (ratio > 1.1) {
-                data << i << ": A, " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
+                data << i << ": A, " << ratio << "," << firingRateA << "," << devA << firingRateA << "," << devA << endl;
             } else if (ratio < 0.9) {
-                data << i << ": B, " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
+                data << i << ": B, " << ratio << "," << firingRateA << "," << devA << firingRateA << "," << devA << endl;
             } 
         }
 
