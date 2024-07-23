@@ -107,7 +107,8 @@ class ElectrodeMap {
          *
          *  Gets the number of channels in the configuration
          * 
-         * Returns: integer representing the number of channels mapped in the configuration
+         * Returns: integer representing the number of channels mapped in the 
+         *          configuration
          */
         int size();
 

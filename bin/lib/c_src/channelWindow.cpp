@@ -175,8 +175,15 @@ float ChannelWindow::getAvgX() {
     return average;
 }
 
-float ChannelWindow::firingRate(){
-    return (float) sum / (float) spikeWindow.size();
+float ChannelWindow::firingRate() {
+    // Takes number of channels into account, but seems to make the output 
+    // way too small:
+    
+    // int numChannels = emap.size();
+    // double firingRate = (double) sum / (double) spikeWindow.size();
+    // return firingRate / numChannels;
+
+    return (double) sum / (double) spikeWindow.size();
 }
 
 float ChannelWindow::stdDev() {

@@ -19,6 +19,10 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
 rec_electrodes = []
+a_and_b = [
+    "/home/mxwbio/configs/240723/configA.cfg",
+    "/home/mxwbio/configs/240723/config.cfg"
+]
 
 
 # load recording electrodes and stimulation electrodes
@@ -171,9 +175,9 @@ if __name__ == '__main__':
                 stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(1)
                 mx.send(stimulation)
 
-        stimA = Stimulation("A", 0, 10, 500, 10, 1, 1, 1, maxtwo = exp_args['-MAXTWO-'], well = well) 
+        stimA = Stimulation("A", 0, 10, 500, 10, 1, 1, 1, well = well) 
         stimA.build_sequence()
-        stimB = Stimulation("B", 1, 10, 500, 10, 1, 1, 1, maxtwo = exp_args['-MAXTWO-'], well = well)
+        stimB = Stimulation("B", 1, 10, 500, 10, 1, 1, 1, well = well)
         stimB.build_sequence()
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
