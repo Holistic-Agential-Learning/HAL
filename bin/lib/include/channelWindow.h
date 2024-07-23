@@ -12,15 +12,11 @@
 
 using namespace std;
 
-struct LocalFFD {
-    uint64_t spikeCount;
-    maxlab::SpikeEvent spikeEvents[1024];
-};
-
-typedef struct LocalFFD LocalFFD;
 
 class ChannelWindow {
     public:
+
+        ChannelWindow();
 
         /* Constructor
          * 
@@ -31,7 +27,19 @@ class ChannelWindow {
          *                (measured in frames)
          *      - emap: ElectrodeMap holding the current electrode config file
          */
-        ChannelWindow(int length, ElectrodeMap emap);
+        ChannelWindow(int length, ElectrodeMap emap, int toSave=0);
+        
+        /* Constructor
+         * 
+         * Creates a new ChannelWindow
+         * 
+         * Parameters:
+         *      - length: integer representing the length of the window 
+         *                (measured in frames)
+         *      - configPath: c string representing the full path of the config
+         *                    to use for the underlying ElectrodeMap
+         */
+        ChannelWindow(int length, const char* configPath, int toSave=0);
 
         /* add
          * 
@@ -101,16 +109,31 @@ class ChannelWindow {
          */
         ElectrodeMap electrodeMap();
 
+        vector<float> pastWindows();
+
+        float avgPastWindows();
+
         float getAvgX();
+        float stdDev();
+        float firingRate();
+
+        bool pastWindowsReady();
 
         void print();
         void debug(string message);
     
     private:
-        vector<maxlab::FilteredFrameData> window;
+        vector<maxlab::FilteredFrameData> spikeWindow;
         ElectrodeMap emap;
         int size;
         int sum;
+
+        bool savesWindows;
+        int numPastWindows;
+        vector<float> pastData;
+
+        int newWindowCount;
+        
 
         /* addEvent
          * 
@@ -123,6 +146,10 @@ class ChannelWindow {
          *          true, false otherwise)
          */
         int addEvent(maxlab::SpikeEvent se);
+
+        void shiftOrAdd(maxlab::FilteredFrameData frame);
+        void addFrame(maxlab::FilteredFrameData frame);
+        void shiftFrame(maxlab::FilteredFrameData frame);
 
 
 

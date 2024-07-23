@@ -11,10 +11,9 @@ ElectrodeMap::ElectrodeMap() {
 
 
 ElectrodeMap::ElectrodeMap(const char *config_path) {
-    cout << "about to read config" << endl;
     FILE *file = fopen(config_path, "r");
-    cout << "about to read config" << endl;
     if (file == NULL) {
+        cout << "Config path is not valid: " << config_path << endl;
         exit(1);
     }
     // assert(file != NULL);
@@ -49,7 +48,7 @@ electrodeCoords ElectrodeMap::get(int channelNo) {
     }
 }
 
-int ElectrodeMap::get_position(int channelNo) {
+int ElectrodeMap::getPosition(int channelNo) {
     if(emap.count(channelNo) > 0){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords.position;
@@ -60,7 +59,7 @@ int ElectrodeMap::get_position(int channelNo) {
     
 }
 
-float ElectrodeMap::get_x(int channelNo) {
+float ElectrodeMap::getX(int channelNo) {
     if(emap.count(channelNo) > 0){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords.x;
@@ -70,7 +69,7 @@ float ElectrodeMap::get_x(int channelNo) {
     }
 }
 
-float ElectrodeMap::get_y(int channelNo) {
+float ElectrodeMap::getY(int channelNo) {
     if(emap.count(channelNo) == 1){
         electrodeCoords ecoords = emap[channelNo];
         return ecoords.y;
@@ -92,6 +91,9 @@ void ElectrodeMap::print() {
 }
 
 void ElectrodeMap::readConfig(FILE *file){
+    if (file == NULL) {
+        cout << "NULL FILE" << endl;
+    }
     string currWord;
     electrodeCoords currCoords;
     int currChannelNo;
