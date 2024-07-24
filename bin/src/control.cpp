@@ -40,7 +40,7 @@ float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
 void runExperiment(string path, string config0, string config1, int frames, int well);
 int get_max_element(vector<int> v);
-void printAndStimulate(fstream data, string ab, float ratio, float firingRateA, float devA, float firingRateB, float devB);
+void printAndStimulate(fstream *data, string ab, int frameNo, float ratio, float firingRateA, float devA, float firingRateB, float devB);
 /* signal_interrupt_handler
  * 
  * Closes the DataStreamer when ^C is signalled.
@@ -192,10 +192,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float ratio = firingRateA / firingRateB;
             // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             if (ratio > 1.1) {
-                printAndStimulate(data, "A", ratio, firingRateA, devA, firingRateB, devB);
+                printAndStimulate(&data, "A", i, ratio, firingRateA, devA, firingRateB, devB);
                 blanking = 10 + 10000;
             } else if (ratio < 0.9) {
-                printAndStimulate(data, "B", ratio, firingRateA, devA, firingRateB, devB);
+                printAndStimulate(&data, "B", i, ratio, firingRateA, devA, firingRateB, devB);
                 blanking = 10 + 10000;
             } 
         }
@@ -208,8 +208,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     data.close();
 }
 
-void printAndStimulate(fstream data, string ab, float ratio, float firingRateA, float devA, float firingRateB, float devB) {
-    data << i << ": " << ab << ", " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
+void printAndStimulate(fstream *data, string ab, int frameNo, float ratio, float firingRateA, float devA, float firingRateB, float devB) {
+    *data << frameNo << ": " << ab << ", " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
     if (ab == "B") {
         std::random_device rd;
         std::mt19937 gen(rd());
