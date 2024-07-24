@@ -34,7 +34,8 @@ if __name__ == "__main__":
 
     print(f"Executing {script} with {json_name}")
     subprocess.run([script, json_name])
-
+    subprocess.run(["./mail.sh"])
     print("great success")
+
     # what.experiment_over_msg()
 

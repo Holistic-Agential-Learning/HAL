@@ -76,6 +76,9 @@ class ArbitraryStimulation:
                 duration_frames += command.samples
         
         return duration_frames/20000 #because DelaySamples always seems to be in units of frames at 20000 fps
+    
+    def __append_delay(cls, seq: mx.Sequence, frames):
+        
 
 
 #TODO: Make code to convert a sequence list into something that is human readable.
@@ -319,9 +322,6 @@ class Stimulation(ArbitraryStimulation):
 
         return ArbitraryStimulation(token, seq)
     
-
-
-
 
 
 
