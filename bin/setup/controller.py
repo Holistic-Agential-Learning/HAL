@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     exp_args = {}
     exp_args['FOLDER'] = "/home/mxwbio/Desktop/HAL/data/controller-test"
-    exp_args['NAME'] = "controller-tests"
+    exp_args['NAME'] = "controller-test"
     exp_args['WELLS'] = [0]
     exp_args['-MAXTWO-'] = False
 
