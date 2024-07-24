@@ -65,8 +65,10 @@ int main(int argc, char * argv[]) {
     string path = getStringArg("--folder", argc, argv, USAGE);
     string config0 = getStringArg("--config0", argc, argv, USAGE);
     string config1 = getStringArg("--config1", argc, argv, USAGE);
+    cout << "Config A: " << config0 << endl;
+    cout << "Config B: " << config1 << endl;
 
-    float minutes = getFloatArgSecure("--minutes", 0.5, argc, argv);
+    float minutes = getFloatArgSecure("--minutes", 3, argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << " for " << minutes << " minutes..." << endl;
     cout << "Well: " << well << endl;
@@ -192,11 +194,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float ratio = firingRateA / firingRateB;
             // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             if (ratio > 1.1) {
+                cout << "rewarding..." << endl;
                 printAndStimulate(&data, "A", i, ratio, firingRateA, devA, firingRateB, devB);
-                blanking = 10 + 10000;
+                blanking = 30000;
             } else if (ratio < 0.9) {
+                cout << "punishing..." << endl;
                 printAndStimulate(&data, "B", i, ratio, firingRateA, devA, firingRateB, devB);
-                blanking = 10 + 10000;
+                blanking = 30000;
             } 
         }
 

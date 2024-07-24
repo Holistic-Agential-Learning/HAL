@@ -27,6 +27,11 @@ a_and_b = [
     "/home/mxwbio/configs/240723/configA.cfg",
     "/home/mxwbio/configs/240723/config.cfg"
 ]
+configs = [
+    "/home/mxwbio/configs/240724/configA.cfg",
+    "/home/mxwbio/configs/240724/configB.cfg",
+    "/home/mxwbio/configs/240724/full.cfg"
+]
 
 
 # load recording electrodes and stimulation electrodes
@@ -64,7 +69,7 @@ def merge_configs(configs):
     return list(s)
 
 if __name__ == '__main__':
-    configs = [sys.argv[i] for i in range(1, len(sys.argv))]
+    # configs = [sys.argv[i] for i in range(1, len(sys.argv))]
 
     exp_args = {}
     exp_args['FOLDER'] = "/home/mxwbio/Desktop/HAL/data/controller-test"
@@ -85,7 +90,7 @@ if __name__ == '__main__':
         mx.set_primary_well(well)
 
         # stim_electrodes = exp_args["E_SELECTED"]
-        stim_electrodes = []
+        stim_electrodes = [13117,17437]
         rec_electrodes = merge_configs(configs)
         
         does_stimulations = True
