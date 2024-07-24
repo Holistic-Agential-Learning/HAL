@@ -14,6 +14,10 @@ sys.path.append(top_level_dir)
 
 import maxlab as mx
 
+from punish_reward.macro_punish import macro_punish
+from punish_reward.macro_reward import macro_reward
+from punish_reward.sine_reward import sine_reward
+
 import bin.gui.GUI as GUI
 from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
@@ -80,9 +84,6 @@ if __name__ == '__main__':
         mx.activate([well])
         mx.set_primary_well(well)
 
-        a_stim_electrodes = [5311]
-        b_stim_electrodes = [6105]
-
         # stim_electrodes = exp_args["E_SELECTED"]
         stim_electrodes = []
         rec_electrodes = merge_configs(configs)
@@ -110,8 +111,8 @@ if __name__ == '__main__':
 
         # stimulation setup here 
         if does_stimulations:
-            a_stimulation_units = []
-            for stim_el in a_stim_electrodes:
+            stimulation_units = []
+            for stim_el in stim_electrodes:
                 array.connect_electrode_to_stimulation(stim_el)
                 stim = array.query_stimulation_at_electrode(stim_el)
                 if len(stim) == 0:
@@ -120,33 +121,14 @@ if __name__ == '__main__':
                             {str(stim_el)}"
                     )
                 stim_unit_int = int(stim)
-                if stim_unit_int in a_stimulation_units:
+                if stim_unit_int in stimulation_units:
                     raise RuntimeError(
                         f"Two electrodes connected to the same stim unit.\
                                     This is not allowed. Please Select a \
                                         neighboring electrode of {stim_el}!"
                     )
                 else:
-                    a_stimulation_units.append(stim_unit_int)
-            
-            b_stimulation_units = []
-            for stim_el in b_stim_electrodes:
-                array.connect_electrode_to_stimulation(stim_el)
-                stim = array.query_stimulation_at_electrode(stim_el)
-                if len(stim) == 0:
-                    raise RuntimeError(
-                        f"No stimulation channel can connect to electrode: \
-                            {str(stim_el)}"
-                    )
-                stim_unit_int = int(stim)
-                if stim_unit_int in b_stimulation_units:
-                    raise RuntimeError(
-                        f"Two electrodes connected to the same stim unit.\
-                                    This is not allowed. Please Select a \
-                                        neighboring electrode of {stim_el}!"
-                    )
-                else:
-                    b_stimulation_units.append(stim_unit_int)
+                    stimulation_units.append(stim_unit_int)
 
 
         directory_name = f"{trial_path}/well{well}"
@@ -160,25 +142,30 @@ if __name__ == '__main__':
         
 
 
-        array.download([well])
+        array.download([well]) 
 
-        mx.offset()
+        mx.offset() 
 
         mx.clear_events() 
 
         if does_stimulations:
-            for stimulation_unit in a_stimulation_units:
+            for stimulation_unit in stimulation_units:
                 stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
                 mx.send(stimulation)
-            
-            for stimulation_unit in b_stimulation_units:
-                stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(1)
-                mx.send(stimulation)
 
-        stimA = Stimulation("A", 0, 10, 500, 10, 1, 1, 1, well = well) 
-        stimA.build_sequence()
-        stimB = Stimulation("B", 1, 10, 500, 10, 1, 1, 1, well = well)
-        stimB.build_sequence()
+        reward_seq = sine_reward("reward")
+        #reward_seq = macro_reward("reward")
+        for i in range(0,1000):
+            var_name = f"punish{i}"
+            globals()[var_name] = macro_punish("INTER_PHASE", f"punish{i}")
+
+        # These stimulations were used for tests to confirm that the controller
+        # /new channel window features worked
+        #
+        # stimA = Stimulation("A", 0, 10, 500, 10, 1, 1, 1, well = well) 
+        # stimA.build_sequence()
+        # stimB = Stimulation("B", 1, 10, 500, 10, 1, 1, 1, well = well)
+        # stimB.build_sequence()
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         start_seq = mx.Sequence("before-training", persistent = False)

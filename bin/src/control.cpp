@@ -210,7 +210,20 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
 void printAndStimulate(fstream data, string ab, float ratio, float firingRateA, float devA, float firingRateB, float devB) {
     data << i << ": " << ab << ", " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
-    maxlab::verifyStatus(maxlab::sendSequence(ab));
+    if (ab == "B") {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, 999);
+        int randomInt = dis(gen);
+        std::string punish_no = std::to_string(randomInt);
+        std::string final_punish = "punish" + punish_no;
+        maxlab::verifyStatus(maxlab::sendSequence(final_punish.c_str()));
+        //maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
+    } else if (ab == "A") {
+        maxlab::verifyStatus(maxlab::sendSequence("reward"));
+    }
+    
+    
 }
 
 float framesToSeconds(int frames) {
