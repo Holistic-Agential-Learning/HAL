@@ -28,11 +28,12 @@ bool checkOption(string name, int argc, char *argv[]);
  *      - name: string to match option with
  *      - argc: number of arguments
  *      - argv: array of C-style arguments
+ *      - usage: optional usage message to print on failure
  * 
  * Returns: std::string representing the matching value. If no such value is found,
  *          then the null character is returned.
  */
-string getStringArg(string name, int argc, char *argv[]);
+string getStringArg(string name, int argc, char *argv[], string usage="");
 
 /* getIntArg
  * 
@@ -46,11 +47,12 @@ string getStringArg(string name, int argc, char *argv[]);
  *      - name: string to match option with
  *      - argc: number of arguments
  *      - argv: array of C-style arguments
+ *      - usage: optional usage message to print on failure
  * 
  * Returns: Integer representing the matching value. If no such value is found,
  *          it exits with status 2.
  */
-int getIntArg(string name, int argc, char *argv[]);
+int getIntArg(string name, int argc, char *argv[], string usage="");
 
 /* getFloatArg
  * 
@@ -64,11 +66,12 @@ int getIntArg(string name, int argc, char *argv[]);
  *      - name: string to match option with
  *      - argc: number of arguments
  *      - argv: array of C-style arguments
+ *      - usage: optional usage message to print on failure
  * 
  * Returns: Integer representing the matching value. If no such value is found,
  *          it exits with status 2.
  */
-float getFloatArg(string name, int argc, char *argv[]);
+float getFloatArg(string name, int argc, char *argv[], string usage="");
 
 
 /* getStringArgSecure

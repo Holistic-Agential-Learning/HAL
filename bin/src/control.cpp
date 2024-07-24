@@ -24,12 +24,11 @@ using namespace maxlab;
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
 
-#define USAGE "Usage: ./train-wave-direction --config <config_path> \n\n\
+#define USAGE "Usage: ./control --config0 <config_path>  --config1 <config_path> --folder <folder_path>\n\n\
 Options:\n\
 \t[--maxtwo]             Indicates running on the MaxTwo\n\
-\t[--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)\n\
-\t[--minutes <value>]     Number of minutes to run\n\
-\t[--well <value>]       Well number\n"
+\t[--minutes <value>]    Number of minutes to run, float (default 0.5)\n\
+\t[--well <value>]       Well number, int (default 0)\n"
 
 #define THRESHOLD_DEFAULT WINDOW/1000
 #define FRAMES_DEFAULT 15*60*20000
@@ -37,29 +36,14 @@ Options:\n\
 
 int FRAMES_PER_SEC = 20000;
 
-struct args {
-    bool maxtwo;
-    string config_path;
-    float threshold;
-    int minutes;
-    int well;
-    string path;
-};
-
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
 void runExperiment(string path, string config0, string config1, int frames, int well);
 int get_max_element(vector<int> v);
-void printUsage();
-struct args getArgs(int argc, char *argv[]);
-
-void printUsage() {
-    cout << USAGE << endl;
-}
-
+void printAndStimulate(fstream data, string ab, float ratio, float firingRateA, float devA, float firingRateB, float devB);
 /* signal_interrupt_handler
  * 
- * Closes the DataStreamer when ^c is signalled.
+ * Closes the DataStreamer when ^C is signalled.
  * 
  */
 void signal_interrupt_handler(int sig) {
@@ -77,12 +61,10 @@ void signal_interrupt_handler(int sig) {
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
-    // struct args params = getArgs(argc, argv);
     bool maxtwo = checkOption("--maxtwo", argc, argv);
-    string path = getStringArg("--folder", argc, argv);
-    string config0 = getStringArg("--config0", argc, argv);
-    cout << "Got config: " << config0 << endl;
-    string config1 = getStringArg("--config1", argc, argv);
+    string path = getStringArg("--folder", argc, argv, USAGE);
+    string config0 = getStringArg("--config0", argc, argv, USAGE);
+    string config1 = getStringArg("--config1", argc, argv, USAGE);
 
     float minutes = getFloatArgSecure("--minutes", 0.5, argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
@@ -210,29 +192,25 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float ratio = firingRateA / firingRateB;
             // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
             if (ratio > 1.1) {
-                data << i << ": A, " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
+                printAndStimulate(data, "A", ratio, firingRateA, devA, firingRateB, devB);
+                blanking = 10 + 10000;
             } else if (ratio < 0.9) {
-                data << i << ": B, " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
+                printAndStimulate(data, "B", ratio, firingRateA, devA, firingRateB, devB);
+                blanking = 10 + 10000;
             } 
         }
 
         float numSeconds = (float) i / FRAMES_PER_SEC;
-
-        // stimulate config A every second that's a multiple of 10
-        if (i % (FRAMES_PER_SEC * 10) == 0) {
-            data << i << ": Stimulating A..." << endl;
-            maxlab::verifyStatus(maxlab::sendSequence("A"));
-
-        // stimulation config B every second that's a multiple of 5 (but not 10)
-        } else if (i % (FRAMES_PER_SEC * 5) == 0) {
-            data << i << ": Stimulating B..." << endl;
-            maxlab::verifyStatus(maxlab::sendSequence("B"));
-        }
     } 
 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     data.close();
+}
+
+void printAndStimulate(fstream data, string ab, float ratio, float firingRateA, float devA, float firingRateB, float devB) {
+    data << i << ": " << ab << ", " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
+    maxlab::verifyStatus(maxlab::sendSequence(ab));
 }
 
 float framesToSeconds(int frames) {

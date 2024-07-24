@@ -30,12 +30,6 @@ dir:
 train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-raw-data-test: $(SRC)/raw-data-test.o $(HAL_O)
-	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
-
-# raw-vs-filtered: $(SRC)/$@.o $(HAL_O)
-# 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
-
 mouse_1d: $(SRC)/mouse_1d.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
