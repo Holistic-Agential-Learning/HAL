@@ -186,7 +186,7 @@ float ChannelWindow::firingRate() {
     return (double) sum / (double) spikeWindow.size();
 }
 
-float ChannelWindow::stdDev() {
+float ChannelWindow::firingRateSD() {
     float sumPastWindows = 0;
     for (int rate: pastData) {
         sumPastWindows += rate;

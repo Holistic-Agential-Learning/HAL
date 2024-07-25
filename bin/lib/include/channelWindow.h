@@ -114,7 +114,7 @@ class ChannelWindow {
         float avgPastWindows();
 
         float getAvgX();
-        float stdDev();
+        float firingRateSD();
         float firingRate();
 
         bool pastWindowsReady();
