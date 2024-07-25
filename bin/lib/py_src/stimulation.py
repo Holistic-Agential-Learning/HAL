@@ -226,15 +226,16 @@ class Stimulation(ArbitraryStimulation):
     
     @classmethod
     def connect_stim_units_to_stim_electrodes(stim_electrodes: List[int], array: mx.Array) -> List[int]:
-        """_summary_
+        """Connects stimulation units to stimulatoin electrodes. This function 
+        was taken from example code from MaxWell.
 
-        :param stim_electrodes: _description_
+        :param stim_electrodes: list of stimulation electrodes to connect
         :type stim_electrodes: ``List[int]``
-        :param array: _description_
+        :param array: MaxWell array generated from a list of recording/stimulation electrodes
         :type array: ``mx.Array``
-        :raises RuntimeError: _description_
-        :raises RuntimeError: _description_
-        :return: _description_
+        :raises RuntimeError: when a stimulation channel cannot connect to a stimulation electrode
+        :raises RuntimeError: when two electrodes are connected to the same unit
+        :return: a list of stimulation units
         :rtype: ``List[int]``
         """
         stim_units: List[int] = []
@@ -243,14 +244,12 @@ class Stimulation(ArbitraryStimulation):
             stim = array.query_stimulation_at_electrode(stim_el)
             if len(stim) == 0:
                 raise RuntimeError(
-                    f"No stimulation channel can connect to electrode: \
-                        {str(stim_el)}"
+                    f"No stimulation channel can connect to electrode: {str(stim_el)}"
                 )
             stim_unit_int = int(stim)
             if stim_unit_int in stim_units:
                 raise RuntimeError(
-                    f"Two electrodes connected to the same stim unit. This is not \
-                    allowed. Please Select a neighboring electrode of {stim_el}!"
+                    f"Two electrodes connected to the same stim unit. This is not allowed. Please Select a neighboring electrode of {stim_el}!"
                 )
             else:
                 stim_units.append(stim_unit_int)
