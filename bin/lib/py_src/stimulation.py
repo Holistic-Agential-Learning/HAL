@@ -166,7 +166,21 @@ class Stimulation(ArbitraryStimulation):
     
 
 
-    def __create_stim_pulse(seq: mx.Sequence, amplitude: float, phase: int, dac_source: int) -> mx.Sequence:   
+    def __create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.mx.Sequence | List[ApiObject]:   
+        """
+        _summary_
+
+        :param seq: _description_
+        :type seq: mx.Sequence | List[ApiObject]
+        :param amplitude: _description_
+        :type amplitude: float
+        :param phase: _description_
+        :type phase: int
+        :param dac_source: _description_
+        :type dac_source: int
+        :return: _description_
+        :rtype: mx.mx.Sequence | List[ApiObject]
+        """
         try:
             dac_lsb_mV = float(mx.query_DAC_lsb_mV())
         except TypeError:
