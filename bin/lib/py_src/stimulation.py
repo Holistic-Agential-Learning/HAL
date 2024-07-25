@@ -223,37 +223,6 @@ class Stimulation(ArbitraryStimulation):
                 stim = mx.StimulationUnit(stim_unit)
                 seq.append(stim.power_up(False).connect(False))
         return seq
-    
-    @classmethod
-    def connect_stim_units_to_stim_electrodes(stim_electrodes: List[int], array: mx.Array) -> List[int]:
-        """Connects stimulation units to stimulatoin electrodes. This function 
-        was taken from example code from MaxWell.
-
-        :param stim_electrodes: list of stimulation electrodes to connect
-        :type stim_electrodes: ``List[int]``
-        :param array: MaxWell array generated from a list of recording/stimulation electrodes
-        :type array: ``mx.Array``
-        :raises RuntimeError: when a stimulation channel cannot connect to a stimulation electrode
-        :raises RuntimeError: when two electrodes are connected to the same unit
-        :return: a list of stimulation units
-        :rtype: ``List[int]``
-        """
-        stim_units: List[int] = []
-        for stim_el in stim_electrodes:
-            array.connect_electrode_to_stimulation(stim_el)
-            stim = array.query_stimulation_at_electrode(stim_el)
-            if len(stim) == 0:
-                raise RuntimeError(
-                    f"No stimulation channel can connect to electrode: {str(stim_el)}"
-                )
-            stim_unit_int = int(stim)
-            if stim_unit_int in stim_units:
-                raise RuntimeError(
-                    f"Two electrodes connected to the same stim unit. This is not allowed. Please Select a neighboring electrode of {stim_el}!"
-                )
-            else:
-                stim_units.append(stim_unit_int)
-        return stim_units
 
 
     @classmethod
