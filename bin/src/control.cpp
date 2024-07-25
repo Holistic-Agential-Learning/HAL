@@ -200,12 +200,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateB = winB->firingRate();
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
             // data << i << ": " << fano << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
-            if (fano > 0.5 && !withinSD(1, firingRateAvgA, sdA, firingRateA)) {
+            if (fano > 0.5 && !withinSD(2, firingRateAvgA, sdA, firingRateA)) {
                 // A is firing more than B
                 cout << "rewarding..." << endl;
                 printAndStimulate(&data, "A", i, fano, firingRateAvgA, sdA, firingRateAvgB, sdB);
                 blanking = 30000;
-            } else if (fano < -0.5 && !withinSD(1, firingRateAvgB, sdB, firingRateB)) {
+            } else if (fano < -0.5 && !withinSD(2, firingRateAvgB, sdB, firingRateB)) {
                 // B is firing more than A
                 cout << "punishing..." << endl;
                 printAndStimulate(&data, "B", i, fano, firingRateAvgA, sdA, firingRateAvgB, sdB);
