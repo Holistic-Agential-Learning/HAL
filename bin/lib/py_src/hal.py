@@ -2,6 +2,9 @@ import os
 import datetime
 import shutil
 
+import maxlab as mx
+from typing import List
+
 
 def make_trial_folders(experiment_parameters):
     """ Creates folders for saving data based on a dict, generated from an 
