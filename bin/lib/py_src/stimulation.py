@@ -166,7 +166,7 @@ class Stimulation(ArbitraryStimulation):
     
 
 
-    def __create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.mx.Sequence | List[ApiObject]:   
+    def __create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.Sequence | List[ApiObject]:   
         """
         _summary_
 
@@ -195,7 +195,7 @@ class Stimulation(ArbitraryStimulation):
         return seq
     
     
-    def __create_sequence_list(self):
+    def __create_sequence_list(self) -> List[ApiObject]:
         """Create a stim sequence for the given Stimulation pattern.
 
         Args:
@@ -240,7 +240,7 @@ class Stimulation(ArbitraryStimulation):
 
 
     @classmethod
-    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str, maxtwo = False)->ArbitraryStimulation:
+    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str)->ArbitraryStimulation:
         """Combine two Stimulation objects into a sequence that runs them simultaneously.
 
         Args:
@@ -284,8 +284,6 @@ class Stimulation(ArbitraryStimulation):
         # assert stim1.dac_source != 0, "stim1 must have a dac source of 0."
         # assert stim2.dac_source == 1, "stim2 must have a dac source of 1."
         fps = 20000
-        if maxtwo:
-            fps = 10000
 
         seq = list()
         
