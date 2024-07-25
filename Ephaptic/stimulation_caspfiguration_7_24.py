@@ -25,6 +25,9 @@ import json
 import sys
 import csv
 import numpy as np
+import os
+import matplotlib.pyplot as plt
+
 
 ################################################################################
 # GLOBAL VARIABLES
@@ -33,6 +36,13 @@ import numpy as np
 #
 # file name of the h5 file where the recording data is stored
 file_name = "ephaptic_stimulation_caspfiguration" 
+
+def get_electrode_coords(config):
+    y_coords = [(y / 120 + y % 120) * 17.5 for y in config]
+    x_coords = [(x / 220 + x % 220) * 17.5 for x in config]
+
+    return list(zip(x_coords, y_coords))
+
 
 
 # @edit
@@ -48,11 +58,23 @@ wells = range(6)
 # @edit
 #
 # Modify this to contain the FULL PATH of configs for each well. 
-with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_left_M07458.txt", 'r') as f:
+with open("/home/ephys/Documents/HAL/Ephaptic/configs/caspfiguration_left_M07458.txt", 'r') as f:
     left_config = [int(row[0]) for row in csv.reader(f, delimiter='\t')]
+
+
+left_coords = get_electrode_coords(left_config)
+# plt.plot(left_coords[0:], left_coords[1:])
+# plt.show()
+GUI.display_config(left_coords)
 
 with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_right_M07458.txt", 'r') as f:
     right_config = [int(row[0]) for row in csv.reader(f, delimiter='\t')]  
+
+right_coords = get_electrode_coords(right_config)
+# plt.plot(right_coords)
+GUI.display_config(right_coords)
+
+left_config
 
 configs = [
     left_config, # well 0 config
@@ -349,6 +371,7 @@ if __name__ == "__main__":
     sleep(pre_stimulation_time)
     print(f"Sending 50 Hz stimulation to well {wells}...")
     fifty_Hz_sequence.send()
+    sleep(600)
     sleep(post_stimulation_time)
     print("Done second recording! switching to next wells...")
 
@@ -376,6 +399,7 @@ if __name__ == "__main__":
     sleep(pre_stimulation_time)
     print(f"Sending 100 Hz stimulation to well {wells}...")
     hundred_Hz_sequence.send()
+    sleep(600)
     sleep(post_stimulation_time)
     print("Done third recording!")
 
