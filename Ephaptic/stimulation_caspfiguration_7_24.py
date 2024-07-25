@@ -38,10 +38,10 @@ import matplotlib.pyplot as plt
 file_name = "ephaptic_stimulation_caspfiguration" 
 
 def get_electrode_coords(config):
-    y_coords = [(y / 120 + y % 120) * 17.5 for y in config]
-    x_coords = [(x / 220 + x % 220) * 17.5 for x in config]
+    y_coords = [(y / 120) * 17.5 for y in config]
+    x_coords = [(x % 220) * 17.5 for x in config]
 
-    return list(zip(x_coords, y_coords))
+    return x_coords, y_coords
 
 
 
@@ -62,19 +62,18 @@ with open("/home/ephys/Documents/HAL/Ephaptic/configs/caspfiguration_left_M07458
     left_config = [int(row[0]) for row in csv.reader(f, delimiter='\t')]
 
 
-left_coords = get_electrode_coords(left_config)
-# plt.plot(left_coords[0:], left_coords[1:])
-# plt.show()
-GUI.display_config(left_coords)
+left_x_coords, left_y_coords = get_electrode_coords(left_config)
+plt.plot(left_x_coords, left_y_coords, ".")
+plt.show()
+#GUI.display_config(left_coords)
 
-with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_right_M07458.txt", 'r') as f:
+with open("/home/ephys/Documents/HAL/Ephaptic/configs/caspfiguration_right_M07458.txt", 'r') as f:
     right_config = [int(row[0]) for row in csv.reader(f, delimiter='\t')]  
 
-right_coords = get_electrode_coords(right_config)
-# plt.plot(right_coords)
-GUI.display_config(right_coords)
+right_x_coords, right_y_coords = get_electrode_coords(right_config)
+plt.plot(right_x_coords, right_y_coords, ".")
+plt.show()
 
-left_config
 
 configs = [
     left_config, # well 0 config
@@ -180,6 +179,11 @@ if __name__ == "__main__":
         array.select_stimulation_electrodes(stim_elecs)
         array.route()
 
+
+        # download data to the well
+        array.download([well])
+        
+        
         # connect stimulation units
         stimulation_units = connect_stim_units_to_stim_electrodes(
             stim_elecs, array
@@ -194,9 +198,6 @@ if __name__ == "__main__":
                 .set_voltage_mode()
                 .dac_source(0)
             )
-
-        # download data to the well
-        array.download([well])
 
     mx.activate(wells)
 
