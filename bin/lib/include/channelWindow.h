@@ -64,6 +64,7 @@ class ChannelWindow {
          */
         void add(maxlab::FilteredFrameData frame);
 
+        
 
         /**
          * @brief Shifts window, appending new data frame to the end
