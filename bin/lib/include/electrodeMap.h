@@ -34,10 +34,10 @@ class ElectrodeMap {
         /**
          * @brief Checks if a channel number exists in the config
          * 
-         * @param channelNo <code>int<code> representing the channel number of
+         * @param channelNo <code>int</code> representing the channel number of
          *                   the target electrode
-         * @return <code>true</code> if the channel number exists
-         * @return <code>false</code> otherwise
+         * @return <code>true</code> if the channel number exists, 
+         *         <code>false</code> otherwise
          */
         bool exists(int channelNo);
 
@@ -45,7 +45,7 @@ class ElectrodeMap {
          * @brief Gets the positional data of an electrode given its channel 
          *          number
          * 
-         * @param channelNo <code>int<code> representing the channel number of
+         * @param channelNo <code>int</code> representing the channel number of
          *                   the target electrode
          * @return <code>struct electrodeCoords</code>; if the channelNo was 
          *          not set (i.e. it wasn't in the config file), each element of
@@ -57,7 +57,7 @@ class ElectrodeMap {
          * @brief Gets the electrode number of an electrode given its channel 
          *        number
          * 
-         * @param channelNo <code>int<code> representing the channel number of
+         * @param channelNo <code>int</code> representing the channel number of
          *                   the target electrode
          * @return <code>int</code>; if the channelNo was not set (i.e. it 
          *          wasn't in the config file), then -1 will be returned.
