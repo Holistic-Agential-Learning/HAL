@@ -18,28 +18,35 @@ class ChannelWindow {
 
         ChannelWindow();
 
-        /* Constructor
+        /**
+         * @brief Constructor
          * 
-         * Creates a new ChannelWindow
+         * Creates a new ChannelWindow object
          * 
-         * Parameters:
-         *      - length: integer representing the length of the window 
+         * @param length integer representing the length of the window 
          *                (measured in frames)
-         *      - emap: ElectrodeMap holding the current electrode config file
+         * @param configPath c string representing the full path of the config
+         *                    to use for the underlying ElectrodeMap
+         * @param toSave indicates how many past window firing rates are to be 
+         *               saved, default=0
+         */
+        ChannelWindow(int length, const char* configPath, int toSave=0);
+
+
+        /**
+         * @brief Constructor 
+         * 
+         * Creates a new ChannelWindow object
+         * 
+         * @param length integer representing the length of the window 
+         *                (measured in frames)
+         * @param emap ElectrodeMap holding the current electrode config file
+         * 
+         * 
          */
         ChannelWindow(int length, ElectrodeMap emap, int toSave=0);
         
-        /* Constructor
-         * 
-         * Creates a new ChannelWindow
-         * 
-         * Parameters:
-         *      - length: integer representing the length of the window 
-         *                (measured in frames)
-         *      - configPath: c string representing the full path of the config
-         *                    to use for the underlying ElectrodeMap
-         */
-        ChannelWindow(int length, const char* configPath, int toSave=0);
+
 
         /**
          * @brief Adds a data frame to the window.
