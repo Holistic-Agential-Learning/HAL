@@ -17,6 +17,10 @@ typedef struct electrodeCoords  {
 class ElectrodeMap {
     public:
 
+        /**
+         * @brief Construct a new Electrode Map object
+         * 
+         */
         ElectrodeMap();
 
         /* Constructor

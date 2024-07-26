@@ -11,6 +11,10 @@ using namespace std;
 class Controller {
     public:
 
+        /**
+         * @brief Construct a new Controller object
+         * 
+         */
         Controller();
 
         ~Controller();

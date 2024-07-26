@@ -83,7 +83,7 @@ class ChannelWindow {
          * @brief Gets a <code>maxlab::FilteredFrameData</code> struct at the 
          *          specified index
          * 
-         * @param idx integer representing the index of the target frame
+         * @param idx <code>int</code> representing the index of the target frame
          * 
          * @return <code>maxlab::FilteredFrameData</code> struct at the 
          *          specified index within the window

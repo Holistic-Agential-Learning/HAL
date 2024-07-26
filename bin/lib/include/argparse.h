@@ -3,16 +3,14 @@
 using namespace std;
 
 
-/* checkOption
+/**
+ * @brief Parses through arguments and checks if an option/flag exists
  * 
- * Parses through arguments and checks if an option/flag exists.
+ * @param name <code>string</code> to match option with
+ * @param argc <code>int</code> representing the number of arguments
+ * @param argv array of <code>char</code> arrays, representing string arguments
  * 
- * Parameters:
- *      - name: string to match option with
- *      - argc: number of arguments
- *      - argv: array of C-style arguments
- * 
- * Returns: bool representing whether the flag exists.
+ * @return <code>bool</code> representing whether the flag exists.
  */
 bool checkOption(string name, int argc, char *argv[]);
 
