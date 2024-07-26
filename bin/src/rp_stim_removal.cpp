@@ -419,6 +419,7 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
                     // // edge case: startingLocDiff = 0 (right for now)
                     int left_to_right = locs[0] < maxSpikesLoc;
                     string loc_string = left_to_right ? "left to right" : "right to left";
+                    cout << string << endl;
                     file <<"BURST" << endl;
                     for(int m = 0; m < capacity; m++) {
                         file << burstStart + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
@@ -454,7 +455,7 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
             maxlab::verifyStatus(maxlab::sendSequence("pulse"));
             cout << i << ": PULSE SENT" << endl;
             //blanking += int(FRAMES_PER_SEC) / 2 + polling_window_size;
-            blanking += int(FRAMES_PER_SEC)/25 +  polling_window_size;
+            blanking += int(FRAMES_PER_SEC)/10 +  polling_window_size;
         }
     } 
 

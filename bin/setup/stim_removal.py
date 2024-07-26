@@ -22,9 +22,9 @@ import bin.lib.py_src.hal as hal
 
 
 STIM_ELECTRODES = {
-    0: [7547,7647,20749,20848]
+    2: [4639,6127,22241,22413]
 }
-MINUTES = 1
+MINUTES = 15
 THRESH = 0.2
 STIM_RATE = 5 #stims per second?
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         # conda activate jkts
         # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
 
-        single_pulse = Stimulation("pulse", 0, 10, 200, 1, 1, 10, 1, well = well)
+        single_pulse = Stimulation("pulse", 0, 50, 200, 1, 1, 10, 1, well = well)
         duration = single_pulse.get_duration()
         single_pulse.build_sequence()
 
