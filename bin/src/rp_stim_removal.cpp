@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <unistd.h>
+#include <algorithm>
 // #include "maxlab.h"
 #include <signal.h>
 #include <vector>
@@ -16,6 +17,11 @@
 
 using namespace std;
 using namespace maxlab;
+
+//To generate a random sequence with a set firing rate, I shuffle 0s and 1s. 
+    //How long are my stim pulses?
+    //What is my smallest size of unit?
+    //What is the average firing rate per electrode?
 
 /*
 Arguments:
@@ -43,7 +49,7 @@ Options:
 
 // amount of time to wait for system startup
 //#define FRAMES_PER_SEC 10000
-
+#define RANDOM_SEED 10
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define TOTAL_ELECTRODES emap.size()
 #define MIN_FRAMES 0.1 * FRAMES_PER_SEC
@@ -54,6 +60,7 @@ Options:
 #define USAGE "Usage: ./train-wave-direction --config <config_path> \n\n\
 Options:\n\
 \t[--maxtwo]             Indicates running on the MaxTwo\n\
+\t[--pulse_duration <value>]     Duration of a single pulse\n\
 \t[--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)\n\
 \t[--minutes <value>]     Number of minutes to run\n\
 \t[--well <value>]       Well number\n"
@@ -62,11 +69,17 @@ Options:\n\
 #define FRAMES_DEFAULT 15*60*20000
 #define MINUTES_DEFAULT 15
 
+#define STIM_RATE_DEFAULT 5 // stims per second
+#define RANDOM_WINDOW_GEN_TIME 5 //5 seconds
+
+
 int FRAMES_PER_SEC = 20000;
 
 struct args {
     bool maxtwo;
     string config_path;
+    float pulse_duration;
+    float stim_rate;
     float threshold;
     int minutes;
     int well;
@@ -75,10 +88,13 @@ struct args {
 
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
-void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, int well);
+void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, int well, int polling_window_size, int num_polling_windows, int num_stims);
 int get_max_element(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
+
+
+vector<int> generateRandomStim(int length, int numStims);
 
 void printUsage() {
     cout << USAGE << endl;
@@ -98,6 +114,18 @@ struct args getArgs(int argc, char *argv[]) {
         ret.threshold = getFloatArg("--threshold", argc, argv);
     } else {
         ret.threshold = THRESHOLD_DEFAULT;
+    }
+
+    if (checkOption("--stim_rate", argc, argv)) {
+        ret.stim_rate = getFloatArg("--stim_rate", argc, argv);
+    } else {
+        ret.stim_rate = STIM_RATE_DEFAULT;
+    }
+
+    if (checkOption("--pulse_duration", argc, argv)) {
+        ret.pulse_duration = getFloatArg("--pulse_duration", argc, argv);
+    } else {
+        ret.pulse_duration = 0.0002;
     }
 
     if (checkOption("--well", argc, argv)) {
@@ -133,6 +161,19 @@ void signal_interrupt_handler(int sig) {
 int main(int argc, char * argv[]) {
     // default process 1200000 frames (1 minute)
     // sleep(600+15);
+    srand(1);    
+    // for (int i = 0; i < stimVector.size(); i++){
+    //     cout << stimVector[i];
+    // }
+    // cout << endl;
+
+    // stimVector = generateRandomStim(2500, 200);
+    
+    // for (int i = 0; i < stimVector.size(); i++){
+    //     cout << stimVector[i];
+    // }
+    // cout << endl;
+
     struct args params = getArgs(argc, argv);
     cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.minutes << " minutes..." << endl;
     cout << "Config: " << params.config_path << endl;
@@ -145,18 +186,36 @@ int main(int argc, char * argv[]) {
     if (params.maxtwo) {
         FRAMES_PER_SEC = 10000;
     }
-    
+
     int frames = params.minutes*60*FRAMES_PER_SEC;
     
     float threshold = params.threshold;
 
     string path = params.path;
 
+
+    int pulse_duration = (int) (params.pulse_duration * FRAMES_PER_SEC);
+    float stim_rate = params.stim_rate; //stims per sec
+    int polling_rate = 1000; //1000 per sec
+    int polling_window_size = int(FRAMES_PER_SEC / polling_rate); //1 ms
+    int num_polling_windows = polling_rate * RANDOM_WINDOW_GEN_TIME;
+    int num_stims = (int) (stim_rate * RANDOM_WINDOW_GEN_TIME);
+    //5000 discrete time bins in which stimuli can occur. These occur over 5 seconds
+
+    if (pulse_duration * 2 > polling_window_size){
+        cout << "pulse duration * 2 > polling window size" << endl;
+        exit(2);
+    }
+
+
+
+
+
     cout << "Frames per sec: " << FRAMES_PER_SEC << endl;
     cout << "Min frames: " << MIN_FRAMES << endl;
 
     try {
-        runExperiment(path, emap, frames, threshold, well);
+        runExperiment(path, emap, frames, threshold, well, polling_window_size, num_polling_windows, num_stims);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -167,8 +226,10 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, int well) {
+void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, int well, int polling_window_size, int num_polling_windows, int num_stims) {
     // Open data stream and check that no errors occurred
+    vector <int> stimVector;
+
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     std::fstream file;
@@ -220,6 +281,10 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
 
     // spike count for each calculated location, mirroring locs
     vector <int> burstSpikeCounts(capacity);
+    
+    bool training = false;
+    bool stimulate = false;
+    bool bursting = false;
 
     bool firstBurstDone = false;
     int maxSpikesFrame = 0;
@@ -230,6 +295,8 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
     int locCounter = 0;
     
     float monitoringLoc = 0;
+
+    int previousBurstInDesiredDirection = 0;
 
     // stores data for each frame in a 200-frame window
     vector<FilteredFrameData> frameWindow;
@@ -252,19 +319,6 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
-        if (i == 0){
-            maxlab::verifyStatus(maxlab::sendSequence("before-training"));
-            cout << i << ": before training" << endl;
-
-        }
-        else if (i == (int)((float)(frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("training"));
-            cout << i << ": training" << endl;
-        }
-        else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
-            cout << i << ": after training" << endl;
-        }
 
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
@@ -280,6 +334,35 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
         window.shift(frameData);
         int spikeCount = window.totalSpikeCount();
 
+        if (i == 0){
+            maxlab::verifyStatus(maxlab::sendSequence("before-training"));
+            cout << i << ": before training" << endl;
+            training = false;
+
+        }
+        else if (i == (int)((float)(frames)/3)) {
+            maxlab::verifyStatus(maxlab::sendSequence("training"));
+            cout << i << ": training" << endl;
+            training = true;
+            stimVector = generateRandomStim(num_polling_windows, num_stims);
+        }
+        else if (i == (int)((float)(2*frames)/3)) {
+            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
+            cout << i << ": after training" << endl;
+            training = false;
+        }
+
+        if (training){
+            if (i % (polling_window_size * num_polling_windows) == 0) {
+                stimVector = generateRandomStim(num_polling_windows, num_stims);
+            }
+            if((i % polling_window_size) == 0 && !previousBurstInDesiredDirection){
+                stimulate = stimVector[(int) ((i % (polling_window_size * num_polling_windows)) / polling_window_size)];
+            }
+            else{
+                stimulate = 0;
+            }
+        }
 
         if (blanking > 0) {
             blanking--;
@@ -287,6 +370,15 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
                 continue;
             }
         }
+
+
+        //STIMULATE IF APPROPRIATE
+        if (stimulate && !bursting){
+            maxlab::verifyStatus(maxlab::sendSequence("pulse"));
+            blanking += polling_window_size;
+        }
+
+        
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
             monitoringLoc = window.getAvgX();
@@ -301,19 +393,20 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
         
         // if the current spike count is over the threshold
         if  (spikeCount > threshold * TOTAL_ELECTRODES) {
+            if (!bursting){
+                bursting = true;
+                cout << "burst started" << endl;
+
+                locs[0] = window.getAvgX(); // starting location
+                burstSpikeCounts[0] = spikeCount;
+                locCounter = 1;
+                burstStart = i;
+            }
 
             if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
                 maxSpikes = spikeCount;
                 maxSpikesFrame = i;
                 maxSpikesLoc = window.getAvgX();
-            }
-
-            // start of the burst
-            if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
-                locs[0] = window.getAvgX(); // starting location
-                burstSpikeCounts[0] = spikeCount;
-                locCounter = 1;
-                burstStart = i;
             }
             
             spikeFrameCount++; // spike at this frame
@@ -325,7 +418,8 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
 
             // burst is over
             if (noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
-
+                
+                bursting = false;
                 // burst is long enough to be significant
                 if (spikeFrameCount >= MIN_FRAMES) {
                     
@@ -351,34 +445,9 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
                     }
                     file << maxSpikes;
                     
-                    file << endl;
+                    file << endl;       
 
-                    //left to right stimulation
-                    //If in training phase
-                    if (i >= (int)((float)(frames)/3) && i < (int)((float)(2*frames)/3)) {
-                        //if (i < (int)((float)(2*frames)/3)) {
-                        if (!left_to_right) {
-                            std::random_device rd;
-                            std::mt19937 gen(rd());
-                            std::uniform_int_distribution<> dis(0, 999);
-                            int randomInt = dis(gen);
-                            std::string punish_no = std::to_string(randomInt);
-                            std::string final_punish = "punish" + punish_no;
-                            cout << final_punish << endl;
-                            maxlab::verifyStatus(maxlab::sendSequence(final_punish.c_str()));
-                            //maxlab::verifyStatus(maxlab::sendSequence("Left-to-Right"));
-                            cout << i << ": punish stimulation" << endl;
-                        } 
-                        else {
-                            //maxlab::verifyStatus(maxlab::sendSequence("Right-to-Left"));
-                            maxlab::verifyStatus(maxlab::sendSequence("reward"));
-                            cout << i << ": sent reward stimulation" << endl;
-
-                        }
-
-                        blanking = 3*FRAMES_PER_SEC;
-                    }
-                    
+                    previousBurstInDesiredDirection = left_to_right;             
                 }      
                 firstBurstDone = false;
                 maxSpikes = 0;  
@@ -393,6 +462,28 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
     file.close();
     alldata_file.close();
 }
+
+vector<int> generateRandomStim(int length, int numStims){
+    //length >> numStims.
+    vector<int> zerosVector(length, 0);
+    vector<int> stimIndices;
+
+    while (stimIndices.size() != numStims){
+        int randInt = rand()%length;
+        if(find(stimIndices.begin(), stimIndices.end(), randInt) == stimIndices.end()) {
+            /* v does not contains x */
+            stimIndices.push_back(randInt);
+        }
+    }
+    cout << stimIndices.size() << endl;
+
+    for (int i = 0; i < stimIndices.size(); i++){
+        zerosVector[stimIndices[i]] = 1;
+    }
+    
+    return zerosVector;
+}
+
 
 float framesToSeconds(int frames) {
     float seconds = (float) frames / (float) FRAMES_PER_SEC;

@@ -1,6 +1,8 @@
 import os
 import datetime
 import shutil
+from typing import List
+import maxlab as mx
 
 
 def make_trial_folders(experiment_parameters):
@@ -111,8 +113,9 @@ def make_trial_folders_raw(parent_path, experiment_name, chip_id, wells):
 
     return trial_path
 
+#TODO: move this to an Array class.
 def connect_stim_units_to_stim_electrodes(stim_electrodes: List[int], array: mx.Array) -> List[int]:
-    """Connects stimulation units to stimulatoin electrodes. This function 
+    """Connects stimulation units to stimulation electrodes. This function 
     was taken from example code from MaxWell.
 
     :param stim_electrodes: list of stimulation electrodes to connect
