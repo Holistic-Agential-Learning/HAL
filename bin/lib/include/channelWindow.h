@@ -41,17 +41,17 @@ class ChannelWindow {
          */
         ChannelWindow(int length, const char* configPath, int toSave=0);
 
-        /* add
+        /**
+         * @brief Adds a data frame to the window.
          * 
-         * Adds a data frame to the window, and increment the total spike sum 
-         * accordingly. The sum will only be incremented for each channel in 
-         * frame that exists in the electrode map.
+         * Adds only the <code>maxlab::spikeEvents</code> that are found in the given 
+         * config or <code>ElectrodeMap</code>, and increments the total spike sum 
+         * accordingly. 
          * 
-         * Parameters:
-         *      - frame: FilteredFrameData struct to add to the window
+         * @param frame FilteredFrameData struct to add to the window
          * 
-         * Side effects: updates frame.spikeCount to count only the existing
-         *               channel numbers
+         * @return None
+         * 
          */
         void add(maxlab::FilteredFrameData frame);
 
