@@ -371,13 +371,6 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
             }
         }
 
-
-        //STIMULATE IF APPROPRIATE
-        if (stimulate && !bursting){
-            maxlab::verifyStatus(maxlab::sendSequence("pulse"));
-            blanking += polling_window_size;
-        }
-
         
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
@@ -455,6 +448,14 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
             }
             noSpikeFrameCount++;
         }
+
+        //STIMULATE IF APPROPRIATE
+        if (stimulate && !bursting){
+            maxlab::verifyStatus(maxlab::sendSequence("pulse"));
+            cout << i << ": PULSE SENT" << endl;
+            //blanking += int(FRAMES_PER_SEC) / 2 + polling_window_size;
+            blanking += int(FRAMES_PER_SEC)/25 +  polling_window_size;
+        }
     } 
 
     cout << "program over  " << endl;
@@ -475,7 +476,6 @@ vector<int> generateRandomStim(int length, int numStims){
             stimIndices.push_back(randInt);
         }
     }
-    cout << stimIndices.size() << endl;
 
     for (int i = 0; i < stimIndices.size(); i++){
         zerosVector[stimIndices[i]] = 1;

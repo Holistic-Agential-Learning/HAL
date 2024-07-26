@@ -22,9 +22,9 @@ import bin.lib.py_src.hal as hal
 
 
 STIM_ELECTRODES = {
-    0: []
+    0: [7547,7647,20749,20848]
 }
-MINUTES = 60
+MINUTES = 1
 THRESH = 0.2
 STIM_RATE = 5 #stims per second?
 
@@ -71,10 +71,11 @@ if __name__ == '__main__':
         array.select_stimulation_electrodes(STIM_ELECTRODES[well])
         
         array.route()
-        array.download([well])
+        
 
         stimulation_units = hal.connect_stim_units_to_stim_electrodes(STIM_ELECTRODES[well], array)
-
+        
+        array.download([well])
         ############################################################################
         # WES LOOK HERE
         # change directory and file name of the recording here
@@ -98,12 +99,12 @@ if __name__ == '__main__':
 
         mx.clear_events() 
 
-        if does_stimulations:
-            stimulation_unit_commands: List[mx.StimulationUnit] = []
-            for stimulation_unit in stimulation_units:
-                stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
-                stimulation_unit_commands.append(stimulation)
-                mx.send(stimulation)
+
+
+        for stimulation_unit in stimulation_units:
+            stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
+            print("Stimulation unit " + str(stimulation_unit) + " routed")
+            mx.send(stimulation)
 
         # WHAT IS THIS???
         # s = mx.Sequence('test_seq', persistent=False)
@@ -115,7 +116,7 @@ if __name__ == '__main__':
         # conda activate jkts
         # /home/mxwbio/MaxLab/python/lib/python3.10/site-packages/maxlab
 
-        single_pulse = Stimulation("pulse", 0, 50, 200, 1, 1, 10, 1, well = well)
+        single_pulse = Stimulation("pulse", 0, 10, 200, 1, 1, 10, 1, well = well)
         duration = single_pulse.get_duration()
         single_pulse.build_sequence()
 
@@ -142,7 +143,7 @@ if __name__ == '__main__':
         
         ##############################################################################
 
-        program_args = [f"./bin/build/reward-punish", "2>", "ERR_LOG", "--config", config_file_name, "--folder", directory_name, "--pulse_duration", str(duration)]
+        program_args = [f"./bin/build/stim_removal", "2>", "ERR_LOG", "--config", config_file_name, "--folder", directory_name, "--pulse_duration", str(duration)]
         if exp_args['-MAXTWO-']:
             program_args.append("--maxtwo")
         

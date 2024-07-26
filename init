@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     script = params['-SCRIPT-']
 
-    print(f"Executing {script} with {json_name}")
+    print(f"Executing:  \"{script} '{json_name}'\"")
     subprocess.run([script, json_name])
     subprocess.run(["./mail.sh"])
     print("great success")
