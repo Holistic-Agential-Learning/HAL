@@ -4,6 +4,9 @@ import shutil
 from typing import List
 import maxlab as mx
 
+import maxlab as mx
+from typing import List
+
 
 def make_trial_folders(experiment_parameters):
     """ Creates folders for saving data based on a dict, generated from an 
