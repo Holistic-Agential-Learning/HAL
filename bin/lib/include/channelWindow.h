@@ -23,12 +23,12 @@ class ChannelWindow {
          * 
          * Creates a new ChannelWindow object
          * 
-         * @param length integer representing the length of the window 
+         * @param length <code>int</code> representing the length of the window 
          *                (measured in frames)
-         * @param configPath c string representing the full path of the config
-         *                    to use for the underlying ElectrodeMap
-         * @param toSave indicates how many past window firing rates are to be 
-         *               saved, default=0
+         * @param configPath <code>char</code> array representing the full path 
+         *                  of the config to use for the underlying ElectrodeMap
+         * @param toSave <code>int</code> indicating how many past window 
+         *              firing rates are to be saved, default=0
          */
         ChannelWindow(int length, const char* configPath, int toSave=0);
 
@@ -38,11 +38,12 @@ class ChannelWindow {
          * 
          * Creates a new ChannelWindow object
          * 
-         * @param length integer representing the length of the window 
+         * @param length <code>int</code> representing the length of the window 
          *                (measured in frames)
-         * @param emap ElectrodeMap holding the current electrode config file
-         * 
-         * 
+         * @param emap <code>ElectrodeMap</code> holding the current electrode 
+         *              config file
+         * @param toSave <code>int</code> indicating how many past window 
+         *              firing rates are to be saved, default=0
          */
         ChannelWindow(int length, ElectrodeMap emap, int toSave=0);
         
