@@ -22,104 +22,78 @@ class ElectrodeMap {
          * 
          */
         ElectrodeMap();
-
-        /* Constructor
+        
+        /**
+         * @brief Construct a new Electrode Map object
          * 
-         * Takes in path of config file (created by MaxLab software) and parses 
-         * the config
-         * 
-         * Notes: Throws an error if file opening failed
+         * @param config_path <code>char</code> array (c string) representing 
+         *                      the full path of the config file 
          */
         ElectrodeMap(const char *config_path);
 
-        /* exists
-         *
-         * Checks if a channel number exists in the config
+        /**
+         * @brief Checks if a channel number exists in the config
          * 
-         * Parameters:
-         *      - channelNo: integer representing the channel to check
-         * 
-         * Returns: bool indicating whether a channel is in the config
+         * @param channelNo <code>int<code> representing the channel number of
+         *                   the target electrode
+         * @return <code>true</code> if the channel number exists
+         * @return <code>false</code> otherwise
          */
         bool exists(int channelNo);
 
-        /* get
+        /**
+         * @brief Gets the positional data of an electrode given its channel 
+         *          number
          * 
-         * Gets the positional data of an electrode given its channel number
-         * 
-         * Parameters:
-         *      - int channelNo: integer representing the channel number of the 
-         *                       target electrode
-         * 
-         * Returns: struct electrodeCoords representing the positional data of 
-         *          an electrode
-         * 
-         * Notes: If the channelNo was not set before the program starts (i.e. 
-         *        it wasn't in the config file), then each element of the 
-         *        returned struct will be set to -1.
+         * @param channelNo <code>int<code> representing the channel number of
+         *                   the target electrode
+         * @return <code>struct electrodeCoords</code>; if the channelNo was 
+         *          not set (i.e. it wasn't in the config file), each element of
+         *          the returned struct will be set to -1.
          */
         struct electrodeCoords get(int channelNo);
 
-        /* get_position
+        /**
+         * @brief Gets the electrode number of an electrode given its channel 
+         *        number
          * 
-         * Gets the electrode number of an electrode given its channel number
-         * 
-         * Parameters:
-         *      - int channelNo: integer representing the channel number of the 
-         *                       target electrode
-         * 
-         * Returns: integer representing the electrode number of an electrode
-         * 
-         * Notes: If the channelNo was not set before the program starts (i.e. 
-         *        it wasn't in the config file), then -1 will be returned.
+         * @param channelNo <code>int<code> representing the channel number of
+         *                   the target electrode
+         * @return <code>int</code>; if the channelNo was not set (i.e. it 
+         *          wasn't in the config file), then -1 will be returned.
          */
         int getPosition(int channelNo);
 
-        /* getX
+        /**
+         * @brief Gets the x coordinate (in µm) of an electrode given its 
+         * channel number
          * 
-         * Gets the x coordinate (in µm) of an electrode given its channel 
-         * number
-         * 
-         * Parameters:
-         *      - int channelNo: integer representing the channel number of the 
-         *                       target electrode
-         * 
-         * Returns: integer representing the x coordinate of an electrode
-         * 
-         * Notes: If the channelNo was not set before the program starts (i.e. 
-         *        it wasn't in the config file), then -1 will be returned.
+         * @param channelNo <code>int</code> channel to get the x coordinate of
+         * @return <code>float</code>; if the channelNo was not set (i.e. it 
+         *          wasn't in the config file), then -1 will be returned.
          */
         float getX(int channelNo);
 
-        /* getY
-         * 
-         * Gets the y coordinate (in µm) of an electrode given its channel 
+        /**
+         * @brief Gets the y coordinate (in µm) of an electrode given its channel 
          * number
          * 
-         * Parameters:
-         *      - int channelNo: integer representing the channel number of the 
-         *                       target electrode
-         * 
-         * Returns: integer representing the y coordinate of an electrode
-         * 
-         * Notes: If the channelNo was not set before the program starts (i.e. 
-         *        it wasn't in the config file), then -1 will be returned.
+         * @param channelNo <code>int</code> channel to get the y coordinate of
+         * @return <code>float</code>; if the channelNo was not set (i.e. it 
+         *          wasn't in the config file), then -1 will be returned.
          */
         float getY(int channelNo);
 
-        /* size
-         *
-         *  Gets the number of channels in the configuration
+        /**
+         * @brief Gets the number of mapped channels in the configuration
          * 
-         * Returns: integer representing the number of channels mapped in the 
-         *          configuration
+         * @return <code>int</code>
          */
         int size();
 
-
-        /* print
+        /**
+         * @brief prints the ElectrodeMap
          * 
-         * prints electrode map
          */
         void print();
     
