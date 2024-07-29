@@ -95,6 +95,8 @@ if __name__ == '__main__':
         s.group_delete_all()
         
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
+        hal.write_stim_electrodes(s, STIM_ELECTRODES[0])
+        hal.write_exp_description(s, "this eperiment tests the write_assay_property API call")
         s.write_assay_property("description:", "this is a test")
         s.write_assay_property("spaces?", "nospaces")
         s.write_assay_input("test", "super duper")
