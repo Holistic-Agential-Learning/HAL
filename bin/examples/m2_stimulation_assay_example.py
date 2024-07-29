@@ -147,6 +147,14 @@ def parse_json(json_name):
     for well in wells:
         configs[well] = params['CONFIGS'][str(well)]['PATH']
 
+def query_stimulation_to_electrode(array, stim_units):
+    electrodes = []
+    for unit in stim_units:
+        amplifier = array.query_stimulation_at_amplifier(unit)
+        electrodes.append(array.query_amplifier_at_electrode(amplifier))
+
+    return electrodes
+
 ################################################################################
 # MAIN
 #
@@ -182,6 +190,7 @@ if __name__ == "__main__":
 
         # grab the stimulation electrodes
         stim_elecs = stimulation_electrodes[well]
+        print(f"Stimulation electrodes: {(stimulation_electrodes[well]).sort()}")
 
         array = mx.chip.Array("stimulation")
 
@@ -196,6 +205,10 @@ if __name__ == "__main__":
         stimulation_units = connect_stim_units_to_stim_electrodes(
             stim_elecs, array
         )
+
+        query_stims = query_stimulation_to_electrode(array, stimulation_units)
+        print(f"Query: {query_stims.sort()}")
+
 
         # power up stimulation units
         for stim_unit in stimulation_units:
