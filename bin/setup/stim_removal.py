@@ -22,6 +22,7 @@ import bin.lib.py_src.hal as hal
 
 
 STIM_ELECTRODES = {
+    0: [2907,4365,22677,23713],
     2: [3315,6127,22413,22671]
 }
 MINUTES = 60
@@ -118,7 +119,7 @@ if __name__ == '__main__':
 
         single_pulse = Stimulation("pulse", 0, 50, 200, 1, 1, 10, 1, well = well)
         duration = single_pulse.get_duration()
-        single_pulse.build_sequence()
+        single_pulse.build_sequence(initial_delay = 0)
 
 
 
