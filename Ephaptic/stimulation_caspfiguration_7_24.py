@@ -178,17 +178,15 @@ if __name__ == "__main__":
         # Note: stimulation electrodes must also be recording electrodes
         array.select_electrodes(recording_electrodes)
         array.select_stimulation_electrodes(stim_elecs)
-        array.route()
-
-
-        # download data to the well
-        array.download([well])
-        
+        array.route()        
         
         # connect stimulation units
         stimulation_units = connect_stim_units_to_stim_electrodes(
             stim_elecs, array
         )
+
+        # download data to the well
+        array.download([well])
 
         # power up stimulation units
         for stim_unit in stimulation_units:
