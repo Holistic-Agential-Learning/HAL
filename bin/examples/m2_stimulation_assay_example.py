@@ -44,7 +44,7 @@ recording_dir = "/home/mxwbio/Desktop/HAL/data/stimulation_assay_example"
 # @edit
 #
 # wells to record from (just use 0 if using the MaxOne)
-wells = [0, 1] 
+wells = [0] 
 
 
 # @edit
@@ -70,7 +70,7 @@ configs = [
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
 stimulation_electrodes = [
-    [14915, 14551, 14919], # well 0 stimulation electrodes
+    [14915, 14551, 20550], # well 0 stimulation electrodes
     [20590], # well 1 stimulation electrodes
     [], # ... 
     [],
@@ -125,7 +125,7 @@ def get_config_electrodes(config_file):
         # all electrodes have been processed
         elif (char == 'H'):
             break
-        else:
+        else:                                                                       
             curr_word = curr_word + char
     
     file.close()
@@ -146,14 +146,6 @@ def parse_json(json_name):
 
     for well in wells:
         configs[well] = params['CONFIGS'][str(well)]['PATH']
-
-def query_stimulation_to_electrode(array, stim_units):
-    electrodes = []
-    for unit in stim_units:
-        amplifier = array.query_stimulation_at_amplifier(unit)
-        electrodes.append(array.query_amplifier_at_electrode(amplifier))
-
-    return electrodes
 
 ################################################################################
 # MAIN
@@ -190,7 +182,7 @@ if __name__ == "__main__":
 
         # grab the stimulation electrodes
         stim_elecs = stimulation_electrodes[well]
-        print(f"Stimulation electrodes: {(stimulation_electrodes[well]).sort()}")
+        print(f"Stimulation electrodes: {stim_elecs}")
 
         array = mx.chip.Array("stimulation")
 
@@ -205,9 +197,6 @@ if __name__ == "__main__":
         stimulation_units = connect_stim_units_to_stim_electrodes(
             stim_elecs, array
         )
-
-        query_stims = query_stimulation_to_electrode(array, stimulation_units)
-        print(f"Query: {query_stims.sort()}")
 
 
         # power up stimulation units
