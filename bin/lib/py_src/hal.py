@@ -36,7 +36,6 @@ def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect
     array = mx.Array(f"stimulation{well_no}")
     array.reset()
     array.clear_selected_electrodes()
-    #NOTE: stim_electrodes can include electrodes that aren't in rec_electrodes. In the future, maybe throw a warning if this is the case
     
     array.select_electrodes(stim_elecs + rec_elecs)
     
