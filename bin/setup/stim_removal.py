@@ -22,9 +22,9 @@ import bin.lib.py_src.hal as hal
 
 
 STIM_ELECTRODES = {
-    2: [4639,6127,22241,22413]
+    2: [3315,6127,22413,22671]
 }
-MINUTES = 15
+MINUTES = 60
 THRESH = 0.2
 STIM_RATE = 5 #stims per second?
 
