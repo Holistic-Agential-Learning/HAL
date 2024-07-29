@@ -4,6 +4,56 @@ import shutil
 from typing import List
 import maxlab as mx
 
+def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
+    """ Initilizes the well recording electrodes and stimulation electrodes. 
+    By default, it will connect the stimulation units and power them, but this 
+    can be overridden. The stimulation electrodes will also be selected for 
+    recording, so they don't need to be in the recording electrodes list.
+
+    :param well_no: Well number
+    :type well_no: ``int``
+    :param rec_elecs: Recording electrodes, as a list of electrode numbers
+    :type rec_elecs: ``List[int]``
+    :param stim_elecs: Stimulation electrodes, as a list of electrode numbers
+    :type stim_elecs: ``List[int]``
+    :param connect: Indicates if the stimulation units should be connected, 
+                    defaults to True
+    :type connect: ``bool``, optional
+    :param power_up: Indicates if the stimulation units should be powered up, 
+                    defaults to True
+    :type power_up: ``bool``, optional
+    :return: a maxlab array with the configured electrodes
+    :rtype: ``mx.Array``
+    """
+    mx.activate([well_no])
+    mx.set_primary_well(well_no)
+
+    mx.initialize()
+    mx.send(mx.Core().enable_stimulation_power(True))
+
+    # stimulation electrodes for configs/newconfig.cfg
+    
+    array = mx.Array(f"stimulation{well_no}")
+    array.reset()
+    array.clear_selected_electrodes()
+    #NOTE: stim_electrodes can include electrodes that aren't in rec_electrodes. In the future, maybe throw a warning if this is the case
+    
+    array.select_electrodes(stim_elecs + rec_elecs)
+    
+    array.select_stimulation_electrodes(stim_elecs)
+    
+    array.route()
+
+    if connect:
+        stimulation_units = connect_stim_units_to_stim_electrodes(stim_elecs, array)
+    
+    array.download([well_no])
+
+    if power_up:
+        power_up_stim_units(stimulation_units)
+
+    return array
+
 def write_exp_description(s: mx.Saving, description: str) -> None:
     """Writes experiment description as a property to the experiment h5 file
     under key "description"
@@ -18,7 +68,7 @@ def write_exp_description(s: mx.Saving, description: str) -> None:
 def write_stim_electrodes(s: mx.Saving, stim_electrodes: List[int]):
     """Writes the stimulation electrodes as a property to the experiment h5 file
     under key "stim_electrodes"
-    
+
     Note that this function must be called after opening the file
 
     :param s: Experiment to save the stimulation electrodes for
