@@ -44,7 +44,7 @@ recording_dir = "/home/mxwbio/Desktop/HAL/data/stimulation_assay_example"
 # @edit
 #
 # wells to record from (just use 0 if using the MaxOne)
-wells = [0, 1] 
+wells = [0] 
 
 
 # @edit
@@ -70,7 +70,7 @@ configs = [
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
 stimulation_electrodes = [
-    [14915, 14551, 14919], # well 0 stimulation electrodes
+    [14915, 14551, 20550], # well 0 stimulation electrodes
     [20590], # well 1 stimulation electrodes
     [], # ... 
     [],
@@ -125,7 +125,7 @@ def get_config_electrodes(config_file):
         # all electrodes have been processed
         elif (char == 'H'):
             break
-        else:
+        else:                                                                       
             curr_word = curr_word + char
     
     file.close()
@@ -182,6 +182,7 @@ if __name__ == "__main__":
 
         # grab the stimulation electrodes
         stim_elecs = stimulation_electrodes[well]
+        print(f"Stimulation electrodes: {stim_elecs}")
 
         array = mx.chip.Array("stimulation")
 
@@ -196,6 +197,7 @@ if __name__ == "__main__":
         stimulation_units = connect_stim_units_to_stim_electrodes(
             stim_elecs, array
         )
+
 
         # power up stimulation units
         for stim_unit in stimulation_units:

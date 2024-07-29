@@ -308,19 +308,19 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
         
         // if the current spike count is over the threshold
         if  (spikeCount > threshold * TOTAL_ELECTRODES) {
-            bursting = true;
-            if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
-                maxSpikes = spikeCount;
-                maxSpikesFrame = i;
-                maxSpikesLoc = window.getAvgX();
-            }
+            if (!bursting){
+                bursting = true;
+                cout << "burst started" << endl;
 
-            // start of the burst
-            if (noSpikeFrameCount > 0 && spikeFrameCount == 0) { 
                 locs[0] = window.getAvgX(); // starting location
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
                 burstStart = i;
+            }
+            if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
+                maxSpikes = spikeCount;
+                maxSpikesFrame = i;
+                maxSpikesLoc = window.getAvgX();
             }
             
             spikeFrameCount++; // spike at this frame
@@ -433,7 +433,7 @@ float get_avg_side(ChannelWindow window) {
                 if(channel > 1024) {
                     cout << "ERROR WITH CHANNEL NUMBER- TOO HIGH" << endl;
                 }
-                float x_coord = emap.get_x(channel);
+                float x_coord = emap.getX(channel);
                 if(x_coord < 0){ //channel number not found in the emap
                     // cout << "channel number " << channel << " fired, but is not in the channel mapping" << endl;
                 }

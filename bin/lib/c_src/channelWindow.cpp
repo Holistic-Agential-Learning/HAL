@@ -1,15 +1,64 @@
 #include "channelWindow.h"
 #include <fstream>
+#include <cmath>
 
 using namespace maxlab;
 
-ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap) {
+ChannelWindow::ChannelWindow() {
+    size = 0;
+    sum = 0;
+    spikeWindow = vector<maxlab::FilteredFrameData>();
+    newWindowCount = 0;
+    savesWindows = false;
+    pastData = vector<float>();
+    numPastWindows = 0;
+}
+
+ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap, int toSave) {
     emap = electrodeMap;
     size = length;
     sum = 0;
+    newWindowCount = 0;
+    savesWindows = toSave;
+    numPastWindows = toSave;
+}
+
+ChannelWindow::ChannelWindow(int length, const char *configPath, int toSave) {
+    emap = ElectrodeMap(configPath);
+    size = length;
+    sum = 0;
+    newWindowCount = 0;
+    savesWindows = toSave;
+    numPastWindows = toSave;
+}
+
+void ChannelWindow::init() {
+    for (int i = 0; i < size; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+
+        addFrame(frameData);
+    }
+}
+
+void ChannelWindow::shiftOrAdd(maxlab::FilteredFrameData frame) {
+    if (spikeWindow.size() < size) {
+        addFrame(frame);
+    } else {
+        shiftFrame(frame);
+    }
 }
 
 void ChannelWindow::add(maxlab::FilteredFrameData frame) {
+    addFrame(frame);
+}
+
+void ChannelWindow::addFrame(maxlab::FilteredFrameData frame) {
     const maxlab::SpikeEvent *spikeEvents = frame.spikeEvents;
     int spikeCount = frame.spikeCount;
     int numValid = 0; // number of channels found in the config
@@ -36,35 +85,40 @@ void ChannelWindow::add(maxlab::FilteredFrameData frame) {
 
     frame.spikeCount = numValid;
     
-    window.push_back(frame);
+    spikeWindow.push_back(frame);
+
+    if (savesWindows) {
+        newWindowCount++;
+        
+        // a completely new, unique window has been created
+        if (newWindowCount == size) {
+            pastData.push_back(firingRate());
+            newWindowCount = 0;
+        }
+    }
 }
 
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
-    maxlab::FilteredFrameData firstFrame = window[0];
+    shiftFrame(frame);
+}
+
+void ChannelWindow::shiftFrame(maxlab::FilteredFrameData frame) {
+    maxlab::FilteredFrameData firstFrame = spikeWindow[0];
     const maxlab::SpikeEvent *spikeEvents = firstFrame.spikeEvents;
     int spikeCount = firstFrame.spikeCount;
-    // int beforeSum = sum;
-    // for (int i = 0; i < spikeCount; i++) {
-    //     if (emap.exists(spikeEvents[i].channel)) {
-    //         sum--;
-    //     }
-    // }
+    
     sum -= spikeCount;
     if (spikeCount > 0) {
         free((void *)firstFrame.spikeEvents);
     }
-    window.erase(window.begin());
-    // if (beforeSum != sum) {
-    //     debug("Removing frame with a positive spikeCount:");
-    // }
-    // beforeSum = sum;
-    add(frame);
+    spikeWindow.erase(spikeWindow.begin());
+    
+    addFrame(frame);
 
-    // if (beforeSum != sum) {
-    //     debug("Adding VALIDATED with positive spikeCount:");
-    // } else if (frame.spikeCount > 0) {
-    //     debug("Adding INVALID frame with positive spikeCount");
-    // }
+    // a completely new, unique window has been created
+    if (savesWindows && pastData.size() == numPastWindows + 1 && newWindowCount == 0) {
+        pastData.erase(pastData.begin());
+    }
 }
 
 FilteredFrameData ChannelWindow::get(int idx) {
@@ -72,7 +126,7 @@ FilteredFrameData ChannelWindow::get(int idx) {
         exit(1);
     }
 
-    return window[idx];
+    return spikeWindow[idx];
 }
 
 int ChannelWindow::length() {
@@ -87,8 +141,25 @@ ElectrodeMap ChannelWindow::electrodeMap() {
     return emap;
 }
 
-float ChannelWindow::getAvgX() {
+vector<float> ChannelWindow::pastWindows() {
+    return pastData;
+}
 
+bool ChannelWindow::pastWindowsReady() {
+    return (savesWindows && newWindowCount == 0); 
+}
+
+float ChannelWindow::avgPastWindows() {
+    float sum = 0;
+
+    for (int i = 0; i < pastData.size(); i++) {
+        sum += pastData[i];
+    }
+
+    return sum / pastData.size();
+}
+
+float ChannelWindow::getAvgX() {
     // used to make sure that each channel is only counted once
     int channels[1024] = {0};
     float avgSum = 0;
@@ -102,7 +173,7 @@ float ChannelWindow::getAvgX() {
             int channel = event[j].channel;
             // if the channel has already been counted
             if (channels[channel] == 0) {
-                float x_coord = emap.get_x(channel);
+                float x_coord = emap.getX(channel);
                 avgSum += x_coord;
                 channels[channel] = 1;
                 count++;
@@ -118,16 +189,42 @@ float ChannelWindow::getAvgX() {
     return average;
 }
 
+float ChannelWindow::firingRate() {
+    // Takes number of channels into account, but seems to make the output 
+    // way too small:
+    
+    // int numChannels = emap.size();
+    // double firingRate = (double) sum / (double) spikeWindow.size();
+    // return firingRate / numChannels;
+
+    return (double) sum / (double) spikeWindow.size();
+}
+
+float ChannelWindow::stdDev() {
+    float sumPastWindows = 0;
+    for (int rate: pastData) {
+        sumPastWindows += rate;
+    }
+    float mean = sumPastWindows / numPastWindows;
+
+    float devSum = 0;
+    for (int rate: pastData) {
+        devSum += (rate - mean) * (rate - mean);
+    }
+
+    return sqrt(devSum / numPastWindows);
+}
+
 void ChannelWindow::debug(string message) {
     std::fstream file;
     file.open("ERR_LOG", std::fstream::out | std::fstream::app);
     file << "Debugging window ----------------------------" << endl;
     file << message << endl;
     file << "Size: " << size << endl;
-    file << "Window Length: " << window.size() << endl;
+    file << "Window Length: " << spikeWindow.size() << endl;
     file << "Sum: " << sum << endl;
     int tempSum = 0;
-    for (int i = 0; i < window.size(); i++) {
+    for (int i = 0; i < spikeWindow.size(); i++) {
         maxlab::FilteredFrameData fd = get(i);
         file << "Index " << i << endl;
         file << "Spike count: " << fd.spikeCount << endl;
@@ -159,7 +256,7 @@ void ChannelWindow::print() {
     file.open("ERR_LOG", std::fstream::out | std::fstream::app);
     file << "Printing window ----------------------------" << endl;
     file << "Size: " << size << endl;
-    file << "Window Length: " << window.size() << endl;
+    file << "Window Length: " << spikeWindow.size() << endl;
     file << "Sum: " << sum << endl;
     for (int i = 0; i < size; i++) {
         maxlab::FilteredFrameData fd = get(i);
@@ -177,7 +274,6 @@ void ChannelWindow::print() {
 
 int ChannelWindow::addEvent(maxlab::SpikeEvent se) {
     if (emap.exists(se.channel)) {
-        // cout << "activity detected from channel " << se.channel << endl;
         sum++;
         return 1;
     }

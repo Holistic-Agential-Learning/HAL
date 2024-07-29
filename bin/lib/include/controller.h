@@ -1,0 +1,82 @@
+#include "channelWindow.h"
+#include <map>
+#include <string>
+
+#ifndef __CONTROLLER_H__
+#define __CONTROLLER_H__
+
+using namespace std;
+
+
+class Controller {
+    public:
+
+        /**
+         * @brief Construct a new Controller object
+         * 
+         */
+        Controller();
+
+        /**
+         * @brief Destroy the Controller object
+         * 
+         */
+        ~Controller();
+
+        /**
+         * @brief Adds a new button (ChannelWindow) to the Controller 
+         * 
+         * @param id <code>string</code> identifier of the button/config
+         * @param windowLength <code>int</code> length of the window
+         * @param configPath <code>char</code> array representing the full path 
+         *                  of the config file
+         * @param saveWindows <code>int</code> indicating how many windows to 
+         *                  save, default 0
+         */
+        void addButton(string id, int windowLength, const char *configPath, int saveWindows=0);
+
+        /**
+         * @brief Get the ChannelWindow of the specified button
+         * 
+         * @param id <code>string</code> id of the button
+         * @return pointer to a <code>ChannelWindow</code>
+         */
+        ChannelWindow *getButtonWindow(string id);
+
+        /**
+         * @brief Adds a data frame to all button windows
+         * 
+         * @param frame <code>maxlab::FilteredFrameData</code> frame to add to 
+         *              each window
+         */
+        void add(maxlab::FilteredFrameData frame);
+
+        /**
+         * @brief Shifts all button windows
+         * 
+         * @param frame <code>maxlab::FilteredFrameData</code> frame to add to 
+         *              each window
+         */
+        void shift(maxlab::FilteredFrameData frame);
+
+        /**
+         * @brief Gets the number of channels tracked by a button
+         * 
+         * @param id <code>string</code> id of the button
+         * @return <code>int</code>
+         */
+        int numChannels(string id);
+
+        /**
+         * @brief Gets the number of spikes in the window of a button
+         * 
+         * @param id <code>string</code> id of the button
+         * @return <code>int</code>
+         */
+        int numSpikes(string id);
+
+    private:
+        map<string, ChannelWindow *> buttons;
+};
+
+#endif

@@ -16,15 +16,21 @@ class ArbitraryStimulation:
     """
     A class that holds any stimulation that could be passed to the MaxLab system. Initialized with a list of ``ApiObject``. 
     It remains unclear whether the sample rate is always 20000 samples per second when generating stimuli, regardless of the system being used.
+
+    :param token: The unique token identifying the sequence
+    :type token: ``str``
+
+    :param sequence_list: A list of ``ApiObject`` defining the sequence
+    :type sequence_list: ``List[ApiObject]``
     """    
     def __init__(self, token: str, sequence_list: List[ApiObject]):
         """Initialize an ``ArbitraryStimulation`` from a list of ``ApiObject``.
 
         :param token: The unique token identifying the sequence
-        :type token: str
+        :type token: ``str``
 
         :param sequence_list: A list of ``ApiObject`` defining the sequence
-        :type sequence_list: List[ApiObject]
+        :type sequence_list: ``List[ApiObject]``
         """        
         self.token = token
         for command in sequence_list:
@@ -36,11 +42,11 @@ class ArbitraryStimulation:
     def build_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
         """Creates an ``mx.Sequence`` from the sequence list.
 
-        :param initial_delay: Defaults to ``5``
-        :type initial_delay: float
+        :param initial_delay: The delay time in ms for downloading the stim sequence. Defaults to ``5``
+        :type initial_delay: ``float``
 
         :param persistent: Defaults to ``True``
-        :type persistent: bool
+        :type persistent: ``bool``
         
         :returns: Initialized stimulation sequence
         :rtype: ``mx.Sequence``
@@ -62,35 +68,58 @@ class ArbitraryStimulation:
         :type sequence_list: ``mx.ApiObject`` list
 
         :returns: The duration of the sequence, in frames.
-        :rtype: float
+        :rtype: ``float``
         """
         duration_frames = 0
         for command in self.sequence_list:
             if type(command) == mx.DelaySamples:
                 duration_frames += command.samples
         
-        return duration_frames/20000 #because DelaySamples always seems to be in units of frames at 20000 fps
+        return duration_frames/FPS #because DelaySamples always seems to be in units of frames at 20000 fps
+        
 
 
 #TODO: Make code to convert a sequence list into something that is human readable.
 #Big picture:
 #Different classes inherit from Stimulation (Regular stimulation). Stimulation has a way to create more abstract stimulation sequences (eg. turning stim_units on and off in the middle).
 class Stimulation(ArbitraryStimulation):
-    def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, well: int = 0):
-        """Create a Stimulation object.
+    """_summary_
 
-        Args:
-            token (str): unique identifier
-            dac_source (int): The DAC channel to send signals to. Must be 0, 1, or 2.
-            amplitude (float, optional): Amplitude of biphasic pulse, in mV. Suggested values between 0 and 1000. Defaults to 100.
-            phase (float, optional): Stimulation pulse phase duration (half of a period), in us. Suggested values between 100 and 1000. Defaults to 500.
-            pulses_per_train (int, optional): number of pulses per train. Defaults to 10.
-            num_trains (int, optional): Number of pulse trains. Defaults to 1.
-            pulse_interval (float, optional): Time between pulses within a single train, in ms. Suggested values between 1 and 100. Defaults to 10.
-            pulse_train_interval (float, optional): Time between pulse trains, in s. Suggested values between 0.01 and 10. Defaults to 1.
-            stim_units (list, optional): List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
+        :param token: unique identifier
+        :type token: ``str``
+
+        :param dac_source: The DAC channel to send signals to. Must be 0, 1, or 2.
+        :type dac_source: ``int``
+
+        :param amplitude: Amplitude of biphasic pulse, in mV. Suggested values between 0 and 1000. Defaults to 100.
+        :type amplitude: ``float``, optional
+
+        :param phase: Stimulation pulse phase duration (half of a period), in us. Suggested values between 100 and 1000. Defaults to 500.
+        :type phase: ``float``, optional
+
+        :param pulses_per_train: number of pulses per train. Defaults to 10.
+        :type pulses_per_train: ``int``, optional
+
+        :param num_trains: Number of pulse trains. Defaults to 1.
+        :type num_trains: ``int``, optional
+
+        :param pulse_interval: Time between pulses within a single train, in ms. Suggested values between 1 and 100. Defaults to 10.
+        :type pulse_interval: ``float``, optional
+
+        :param pulse_train_interval:  Time between pulse trains, in s. Suggested values between 0.01 and 10. Defaults to 1.
+        :type pulse_train_interval: ``float``, optional
+
+        :param stim_units: List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
                 IF THIS IS USED, ENSURE THAT ALL STIM_UNITS ARE POWERED OFF TO BEGIN WITH.
+        :type stim_units: ``Optional[List[int]]``, optional
+
+        :param well: _description_, defaults to 0
+        :type well: ``int``, optional
         """
+    
+    def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, well: int = 0):
+        
+        
         #Everything is converted to frames.
         self.dac_source = dac_source
         self.stim_units = stim_units
@@ -135,7 +164,21 @@ class Stimulation(ArbitraryStimulation):
     
 
 
-    def __create_stim_pulse(seq: mx.Sequence, amplitude: float, phase: int, dac_source: int) -> mx.Sequence:   
+    def __create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.Sequence | List[ApiObject]:   
+        """
+        _summary_
+
+        :param seq: _description_
+        :type seq: mx.Sequence | List[ApiObject]
+        :param amplitude: _description_
+        :type amplitude: float
+        :param phase: _description_
+        :type phase: int
+        :param dac_source: _description_
+        :type dac_source: int
+        :return: _description_
+        :rtype: mx.mx.Sequence | List[ApiObject]
+        """
         try:
             dac_lsb_mV = float(mx.query_DAC_lsb_mV())
         except TypeError:
@@ -143,14 +186,14 @@ class Stimulation(ArbitraryStimulation):
 
 
         seq.append(mx.DAC(dac_source, 512 - int(amplitude/dac_lsb_mV)))
-        seq.append(mx.DelaySamples(phase))
+        __append_delay(seq, phase)
         seq.append(mx.DAC(dac_source, 512 + int(amplitude/dac_lsb_mV)))
-        seq.append(mx.DelaySamples(phase))
+        __append_delay(seq, phase)
         seq.append(mx.DAC(dac_source, 512))
         return seq
     
     
-    def __create_sequence_list(self):
+    def __create_sequence_list(self) -> List[ApiObject]:
         """Create a stim sequence for the given Stimulation pattern.
 
         Args:
@@ -177,11 +220,11 @@ class Stimulation(ArbitraryStimulation):
                 seq = Stimulation.__create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
                 #Don't append the last delay in a pulse train.
                 if j < self.pulses_per_train - 1:
-                    seq.append(mx.DelaySamples(self.pulse_interval))
+                        __append_delay(seq, self.pulse_interval)
             
             #Don't append the last delay.
             if i < self.num_trains - 1:
-                seq.append(mx.DelaySamples(self.pulse_train_interval))
+                    __append_delay(seq, self.pulse_train_interval)
 
         seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {int(self.phase/ FPS *(10**6))} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {int(self.pulse_interval/FPS * 1000)} pulse_train_interval_s {int(self.pulse_train_interval/FPS)}"))
         event_number += 1
@@ -192,11 +235,10 @@ class Stimulation(ArbitraryStimulation):
                 stim = mx.StimulationUnit(stim_unit)
                 seq.append(stim.power_up(False).connect(False))
         return seq
-    
 
 
     @classmethod
-    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str, maxtwo = False)->ArbitraryStimulation:
+    def combine_stimuli(cls, stim1: Self, stim2: Self, token: str)->ArbitraryStimulation:
         """Combine two Stimulation objects into a sequence that runs them simultaneously.
 
         Args:
@@ -218,7 +260,7 @@ class Stimulation(ArbitraryStimulation):
         def process_delay_times(min_delay, max_delay, min_delay_seq):
             #Helper function
             if min_delay > 0:
-                seq.append(mx.DelaySamples(min_delay))
+                    __append_delay(seq, min_delay)
             max_delay -= min_delay
 
             while(type(next_command := min_delay_seq.pop(0)) != mx.DelaySamples and (type(next_command) != mx.Event or next_command.properties[0:15] != "end_stimulation")):
@@ -240,8 +282,6 @@ class Stimulation(ArbitraryStimulation):
         # assert stim1.dac_source != 0, "stim1 must have a dac source of 0."
         # assert stim2.dac_source == 1, "stim2 must have a dac source of 1."
         fps = 20000
-        if maxtwo:
-            fps = 10000
 
         seq = list()
         
@@ -295,6 +335,13 @@ class Stimulation(ArbitraryStimulation):
 
 
 
+
+def __append_delay(seq: mx.Sequence | List[ApiObject], frames: int):
+    while frames > 0:
+        num_frames_added = min(frames, 2^16 - 1)
+        seq.append(mx.DelaySamples(num_frames_added))
+        frames -= num_frames_added
+    
 
 
 

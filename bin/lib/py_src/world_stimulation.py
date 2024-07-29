@@ -77,8 +77,8 @@ def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: boo
     stimuli = list()
     world_size = len(world)
     for i, loc in enumerate(world):
-        leftward_stim = Stimulation(f"l{i}", 0, amplitude = 0, phase = 0, pulses_per_train = 0, num_trains = 0, pulse_train_interval = 0, pulse_interval = 0, maxtwo = maxtwo, well = well)
-        rightward_stim = Stimulation(f"l{i}", 1, amplitude = 0, phase = 0, pulses_per_train = 0, num_trains = 0, pulse_train_interval = 0, pulse_interval = 0, maxtwo = maxtwo, well = well)
+        leftward_stim = Stimulation(f"l{i}", 0, amplitude = 0, phase = 0, pulses_per_train = 0, num_trains = 0, pulse_train_interval = 0, pulse_interval = 0, well = well)
+        rightward_stim = Stimulation(f"l{i}", 1, amplitude = 0, phase = 0, pulses_per_train = 0, num_trains = 0, pulse_train_interval = 0, pulse_interval = 0, well = well)
         #find nearest object to the left
         for j in range(1, world_size):
             leftward_loc = world[i-j]
@@ -93,7 +93,6 @@ def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: boo
                                             num_trains = obj_params.num_trains[distance_index],
                                             pulse_interval = obj_params.pulse_intervals[distance_index],
                                             pulse_train_interval = obj_params.pulse_train_intervals[distance_index],
-                                            maxtwo = maxtwo,
                                             well = well
                                             )
                 
@@ -114,7 +113,6 @@ def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: boo
                                             num_trains = obj_params.num_trains[distance_index],
                                             pulse_interval = obj_params.pulse_intervals[distance_index],
                                             pulse_train_interval = obj_params.pulse_train_intervals[distance_index],
-                                            maxtwo = maxtwo,
                                             well = well
                                             )
                 

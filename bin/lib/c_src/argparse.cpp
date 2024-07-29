@@ -13,7 +13,7 @@ bool checkOption(string name, int argc, char *argv[]) {
     return false;
 }
 
-string getStringArg(string name, int argc, char *argv[]) {
+string getStringArg(string name, int argc, char *argv[], string usage) {
     const char * n = name.c_str();
     for (int i = 0; i < argc; i++) {
         char *arg = argv[i];
@@ -22,12 +22,15 @@ string getStringArg(string name, int argc, char *argv[]) {
             return string(argv[i + 1]);
         }
     }
-
-    return "\0";
+    if (usage != "") {
+        cout << usage << endl;
+    }
+    cout << "Error: argument " << name << " not found." << endl;
+    exit(1);
 }
 
-int getIntArg(string name, int argc, char *argv[]) {
-    string arg = getStringArg(name, argc, argv);
+int getIntArg(string name, int argc, char *argv[], string usage) {
+    string arg = getStringArg(name, argc, argv, usage);
 
     if (arg == "\0") {
         cerr << "Integer argument <" << name << "> not found." << endl;
@@ -37,8 +40,8 @@ int getIntArg(string name, int argc, char *argv[]) {
     return stoi(arg);
 }
 
-float getFloatArg(string name, int argc, char *argv[]) {
-    string arg = getStringArg(name, argc, argv);
+float getFloatArg(string name, int argc, char *argv[], string usage) {
+    string arg = getStringArg(name, argc, argv, usage);
 
     if (arg == "\0") {
         cerr << "Float argument <" << name << "> not found." << endl;

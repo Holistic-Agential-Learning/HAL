@@ -15,7 +15,7 @@ HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 # all .o files in hal lib
 HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(basename $(cpp)).o)
 
-PROGRAMS = train-wave-direction mouse_1d raw-data-test reward-punish
+PROGRAMS = train-wave-direction mouse_1d reward-punish control stim_removal
 
 all : dir $(PROGRAMS)
 
@@ -30,16 +30,16 @@ dir:
 train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-raw-data-test: $(SRC)/raw-data-test.o $(HAL_O)
-	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
-
-# raw-vs-filtered: $(SRC)/$@.o $(HAL_O)
-# 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
-
 mouse_1d: $(SRC)/mouse_1d.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 reward-punish: $(SRC)/closed_loop_rp.o $(HAL_O)
+	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+
+control: $(SRC)/control.o $(HAL_O)
+	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+
+stim_removal: $(SRC)/rp_stim_removal.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 clean :
