@@ -123,12 +123,10 @@ if __name__ == "__main__":
     print(stim_single_high.get_duration())
     #single low
     #1 stim/10 sec
-    timing_stimulation = Stimulation(token = "timing", dac_source = 1, amplitude = 0, phase = 500, pulses_per_train = 1, num_trains = 9, pulse_interval = 0, pulse_train_interval = 0.999, well = wells[0])
-    stim_single_low_stims = Stimulation(token="stim_single_low_stims", dac_source=0, amplitude=600, phase=400, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval= 0.9992, well=wells[0]) 
-    timing_stimulation_seq = timing_stimulation.build_sequence()
-    stim_single_low_stims_seq = stim_single_low_stims.build_sequence()
-    print(timing_stimulation.get_duration())
-    print(stim_single_low_stims.get_duration())
+    stim_single_low = Stimulation(token = "stim_single_low", dac_sourc = 0,  amplitude=600, phase=400, pulses_per_train=1, num_trains=30, pulse_interval=0,  pulse_train_interval=9.9992, well=wells[0])
+    
+    stim_single_low_seq = stim_single_low.build_sequence()
+    print(stim_single_low.get_duration())
 
 
 
@@ -152,11 +150,7 @@ if __name__ == "__main__":
     # this will stimulate all wells, since they are all activated
     print("Sending first stimulation...")
     #stim_single_low_seq.send() # send stimulation 
-    for _ in range(30):
-        stim_single_low_stims_seq.send()
-        mx.send(mx.DelaySamples(int(0.9992 * 20000)))
-        timing_stimulation_seq.send()
-        mx.send(mx.DelaySamples(int(0.999 * 20000)))
+    stim_single_low_seq.send()
     sleep(330) # wait for 300 seconds
 
     print("Sending second stimulation...")
