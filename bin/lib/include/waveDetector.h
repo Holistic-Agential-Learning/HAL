@@ -18,7 +18,7 @@ using namespace std;
 class WaveDetector {
     public:
 
-        enum wave {noBurst, burstStart, right, left};
+        enum Wave {noBurst, bursting, burstStart, endShortBurst, leftToRight, rightToLeft};
 
         struct WaveMetadata {
             bool firstBurstDone;
@@ -43,12 +43,17 @@ class WaveDetector {
 
         typedef struct WaveMetadata WaveMetadata;
 
+        /**
+         * @brief Constructor
+        */
         WaveDetector();
         WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz=10000);
         ~WaveDetector();
 
         void shiftWindow(maxlab::FilteredFrameData frame);
-        void checkBurst();
+
+        // value corresponds to Wave enum
+        int checkBurst(int frameNo);
 
     private:
         ChannelWindow *window;

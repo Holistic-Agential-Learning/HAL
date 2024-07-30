@@ -9,7 +9,7 @@ WaveDetector::WaveDetector() {
 
 }
 
-WaveDetector::WaveDetector(int numLocations, int windowLength, const char *configPath, float threshold, int minFrames, int frameHz) {
+WaveDetector::WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz) {
     ChannelWindow *window = new ChannelWindow(windowLength, configPath);
 
     ElectrodeMap emap = window->electrodeMap();
@@ -19,7 +19,7 @@ WaveDetector::WaveDetector(int numLocations, int windowLength, const char *confi
     minFrames = minFrames;
     totalElectrodes = emap.size();
 
-    metadata = calloc(1, sizeof(WaveMetadata));
+    metadata = (WaveMetadata *)calloc(1, sizeof(WaveMetadata));
 
     if (metadata == NULL) {
         cerr << "metadata memory allocation failed." << endl;
@@ -54,25 +54,32 @@ void WaveDetector::shiftWindow(maxlab::FilteredFrameData frame) {
     window->shift(frame);
 }
 
-void WaveDetector::checkBurst(int frameNo) {
+int WaveDetector::checkBurst(int frameNo) {
+
+    int ret = Wave::noBurst;
     int spikeCount = window->totalSpikeCount();
 
     // spike in activity
     if  (spikeCount > threshold * totalElectrodes) { 
+        ret = Wave::bursting;
+
+        // NOTE: needs more logic here
         if (!metadata->bursting) {
             // burst started
             metadata->bursting = true;
 
-            metadata->burstStartLocation = window.getAvgX(); 
+            metadata->burstStartLocation = window->getAvgX(); 
             metadata->burstStartSpikeCount = spikeCount;
             metadata->burstStartFrame = frameNo;
+
+            ret = Wave::burstStart;
         }
 
-        // what does 0.005 represent?
+        // what does 0.005 represent? potentially add else
         if (!metadata->firstBurstDone && spikeCount > metadata->maxSpikes && frameNo % (int)(framesPerSec * 0.005) == 0){
             metadata->maxSpikes = spikeCount;
             metadata->maxSpikesFrame = frameNo;
-            metadata->maxSpikesLoc = window.getAvgX();
+            metadata->maxSpikesLoc = window->getAvgX();
         }
         
         metadata->spikeFrameCount++; // spike at this frame
@@ -82,7 +89,7 @@ void WaveDetector::checkBurst(int frameNo) {
     } else { 
 
         // 0.2?
-        if (!firstBurstDone && metadata->noSpikeFrameCount > 0.2 * framesPerSec) {
+        if (!metadata->firstBurstDone && metadata->noSpikeFrameCount > 0.2 * framesPerSec) {
             metadata->firstBurstDone = true; 
         }
 
@@ -92,16 +99,24 @@ void WaveDetector::checkBurst(int frameNo) {
             metadata->bursting = false;
             
             // burst is long enough to be significant
-            if (spikeFrameCount >= minFrames) {
+            if (metadata->spikeFrameCount >= minFrames) {
                 
-                int leftToRight = metadata->burstStartLocation < metadata->maxSpikesLoc;
-                string locString = leftToRight ? "left to right" : "right to left";
-                          
-            }      
+                int startLeft = metadata->burstStartLocation < metadata->maxSpikesLoc;
+                if (startLeft) {
+                    ret = Wave::leftToRight;
+                } else {
+                    ret = Wave::rightToLeft;
+                }
+            } else {
+                ret = endShortBurst;
+            }
+
             metadata->firstBurstDone = false;
             metadata->maxSpikes = 0;  
             metadata->spikeFrameCount = 0;
         }
-        noSpikeFrameCount++;
+        metadata->noSpikeFrameCount++;
     }
+
+    return ret;
 }
