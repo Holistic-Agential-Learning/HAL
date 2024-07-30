@@ -108,7 +108,25 @@ class WaveDetector {
          */
         void shiftWindow(maxlab::FilteredFrameData frame);
 
-        // value corresponds to Wave enum
+        /**
+         * @brief Returns the window
+         * 
+         * @return <code>ChannelWindow</code>
+         */
+        ChannelWindow window();
+
+        /**
+         * @brief Processes a frame
+         * 
+         * Shifts the window, and returns the status of the burst
+         * 
+         * @param frame <code>maxlab::FilteredFrameData</code> frame to 
+         *              process
+         * @param frameNo <code>int</code> frame number when <code>frame</code>
+         *                was received
+         * @return <code>int</code>
+         */
+        int processFrame(maxlab::FilteredFrameData frame, int frameNo);
 
         /**
          * @brief Checks the direction of a burst

@@ -54,6 +54,16 @@ void WaveDetector::shiftWindow(maxlab::FilteredFrameData frame) {
     window->shift(frame);
 }
 
+ChannelWindow window() {
+    return window;
+}
+
+int processFrame(maxlab::FilteredFrameData frame, int frameNo) {
+    window->shift(frame);
+
+    return checkBurst(frameNo);
+}
+
 int WaveDetector::checkBurst(int frameNo) {
 
     int ret = Wave::noBurst;
