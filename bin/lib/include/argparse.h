@@ -2,7 +2,12 @@
 
 using namespace std;
 
-
+/**
+ * @brief test
+ * DOCUMENTING THE NAMESPACE
+ */
+namespace argparse {
+    
 /**
  * @brief Parses through arguments and checks if an option/flag exists
  * 
@@ -132,3 +137,5 @@ int getIntArgSecure(string name, int defaultValue, int argc, char *argv[]);
  *          option isn't found
  */
 float getFloatArgSecure(string name, float defaultValue, int argc, char *argv[]);
+
+};

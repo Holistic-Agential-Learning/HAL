@@ -2,6 +2,8 @@
 #include <iostream>
 #include <cstring>
 
+namespace argparse {
+
 bool checkOption(string name, int argc, char *argv[]) {
     const char * n = name.c_str();
     for (int i = 0; i < argc; i++) {
@@ -81,3 +83,5 @@ float getFloatArgSecure(string name, float defaultValue, int argc, char *argv[])
 
     return defaultValue;
 }
+
+};

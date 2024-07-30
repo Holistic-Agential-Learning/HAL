@@ -17,6 +17,8 @@
 
 using namespace std;
 using namespace maxlab;
+using namespace argparse;
+
 
 //To generate a random sequence with a set firing rate, I shuffle 0s and 1s. 
     //How long are my stim pulses?

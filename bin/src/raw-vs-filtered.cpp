@@ -32,6 +32,8 @@
 #include <chrono>
 
 using namespace std;
+using namespace argparse;
+
 
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define TOTAL_ELECTRODES emap.size()

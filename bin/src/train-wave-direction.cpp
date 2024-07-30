@@ -14,6 +14,7 @@
 
 using namespace std;
 using namespace maxlab;
+using namespace argparse;
 
 /*
 Arguments:

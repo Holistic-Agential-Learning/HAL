@@ -12,7 +12,9 @@
 
 using namespace std;
 
-
+/**
+ * Add description for the <code>ChannelWindow</code> class
+ */
 class ChannelWindow {
     public:
 

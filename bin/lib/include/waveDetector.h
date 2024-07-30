@@ -18,6 +18,10 @@ using namespace std;
 class WaveDetector {
     public:
 
+        /**
+         * documentation for Wave enum
+         *
+        */
         enum Wave {noBurst, bursting, burstStart, endShortBurst, leftToRight, rightToLeft};
 
         struct WaveMetadata {
