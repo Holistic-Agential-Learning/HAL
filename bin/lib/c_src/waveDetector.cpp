@@ -25,24 +25,6 @@ WaveDetector::WaveDetector(int windowLength, const char *configPath, float thres
         cerr << "metadata memory allocation failed." << endl;
         exit(1);
     }
-
-    // metaData->firstBurstDone = false;
-
-    // metaData->spikeFrameCount = 0;
-
-    // metaData->burstStartFrame= 0;
-    // metaData->burstStartSpikeCount = 0;
-    // metaData->burstStartLocation = 0;
-    // metaData->burstEnd = 0;
-
-    // metaData->noSpikeFrameCount = 0;
-
-    // metaData->maxSpikesFrame = 0;
-    // metaData->maxSpikes = 0;
-
-    // metaData->maxSpikesLoc = 0;
-
-    // metaData->bursting = false;
 }
 
 WaveDetector::~WaveDetector() {
