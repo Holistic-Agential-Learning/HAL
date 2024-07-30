@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonmn
 
 import maxlab as mx
 from typing import List
@@ -10,17 +10,25 @@ sys.path.append("..")
 import bin.lib.py_src.hal as hal
 from bin.lib.py_src.stimulation import Stimulation
 
-main_dict = {"FOLDER": "/home/mxwbio/Desktop/HAL/data/burst_control/M07472",
+main_dict = {"FOLDER": "/home/mxwbio/Desktop/HAL/data/burst_control/M07470",
  "NAME": "burst_control",
- "WELLS": [5]}
+ "WELLS": [4]}
 
 file_name = main_dict["NAME"]
 trial_path = hal.make_trial_folders(main_dict)
 wells = main_dict["WELLS"]
 recording_dir = f"{trial_path}/well{wells[0]}"
 
-configs = ["/home/mxwbio/configs/240723/15h44m01s.cfg"]
-stim_electrode_single = [13463, 15353, 1621, 23703]
+configs = ["/home/mxwbio/configs/240729/16h31m24s.cfg"]
+stim_electrode_single = [3339,3943,20651,22261]
+
+
+
+
+
+
+
+
 
 # function for connecting stimulation units to stimulation electrodes
 def connect_stim_units_to_stim_electrodes(

@@ -12,6 +12,8 @@ import math
 event_number = 100
 FPS = 20000
 
+
+
 class ArbitraryStimulation:
     """
     A class that holds any stimulation that could be passed to the MaxLab system. Initialized with a list of ``ApiObject``. 
@@ -38,6 +40,13 @@ class ArbitraryStimulation:
         
         self.sequence_list = sequence_list
         self.duration = self.get_duration()
+
+    @staticmethod
+    def _append_delay(seq: mx.Sequence | List[ApiObject], frames: int):
+        while frames > 0:
+            num_frames_added = min(frames, 2^16 - 1)
+            seq.append(mx.DelaySamples(num_frames_added))
+            frames -= num_frames_added
 
     def build_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
         """Creates an ``mx.Sequence`` from the sequence list.
@@ -133,7 +142,7 @@ class Stimulation(ArbitraryStimulation):
 
         self.token = token
 
-        super().__init__(token, self.__create_sequence_list())
+        super().__init__(token, self._create_sequence_list())
 
         
     
@@ -164,7 +173,7 @@ class Stimulation(ArbitraryStimulation):
     
 
 
-    def __create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.Sequence | List[ApiObject]:   
+    def _create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.Sequence | List[ApiObject]:   
         """
         _summary_
 
@@ -186,14 +195,14 @@ class Stimulation(ArbitraryStimulation):
 
 
         seq.append(mx.DAC(dac_source, 512 - int(amplitude/dac_lsb_mV)))
-        __append_delay(seq, phase)
+        ArbitraryStimulation._append_delay(seq, phase)
         seq.append(mx.DAC(dac_source, 512 + int(amplitude/dac_lsb_mV)))
-        __append_delay(seq, phase)
+        ArbitraryStimulation._append_delay(seq, phase)
         seq.append(mx.DAC(dac_source, 512))
         return seq
     
     
-    def __create_sequence_list(self) -> List[ApiObject]:
+    def _create_sequence_list(self) -> List[ApiObject]:
         """Create a stim sequence for the given Stimulation pattern.
 
         Args:
@@ -217,14 +226,14 @@ class Stimulation(ArbitraryStimulation):
         event_number += 1
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
-                seq = Stimulation.__create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
+                seq = Stimulation._create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
                 #Don't append the last delay in a pulse train.
                 if j < self.pulses_per_train - 1:
-                        __append_delay(seq, self.pulse_interval)
+                        ArbitraryStimulation._append_delay(seq, self.pulse_interval)
             
             #Don't append the last delay.
             if i < self.num_trains - 1:
-                    __append_delay(seq, self.pulse_train_interval)
+                    ArbitraryStimulation._append_delay(seq, self.pulse_train_interval)
 
         seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {int(self.phase/ FPS *(10**6))} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {int(self.pulse_interval/FPS * 1000)} pulse_train_interval_s {int(self.pulse_train_interval/FPS)}"))
         event_number += 1
@@ -260,7 +269,7 @@ class Stimulation(ArbitraryStimulation):
         def process_delay_times(min_delay, max_delay, min_delay_seq):
             #Helper function
             if min_delay > 0:
-                    __append_delay(seq, min_delay)
+                    ArbitraryStimulation._append_delay(seq, min_delay)
             max_delay -= min_delay
 
             while(type(next_command := min_delay_seq.pop(0)) != mx.DelaySamples and (type(next_command) != mx.Event or next_command.properties[0:15] != "end_stimulation")):
@@ -330,17 +339,6 @@ class Stimulation(ArbitraryStimulation):
             seq.append(command)
 
         return ArbitraryStimulation(token, seq)
-    
-
-
-
-
-
-def __append_delay(seq: mx.Sequence | List[ApiObject], frames: int):
-    while frames > 0:
-        num_frames_added = min(frames, 2^16 - 1)
-        seq.append(mx.DelaySamples(num_frames_added))
-        frames -= num_frames_added
     
 
 

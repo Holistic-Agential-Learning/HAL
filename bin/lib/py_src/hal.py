@@ -147,7 +147,6 @@ def make_trial_folders(experiment_parameters):
 
     if not os.path.exists(full_folder_path):
         os.makedirs(full_folder_path)
-        os.makedirs(full_folder_path)
     
     # create the trial folder
     trial = 0
