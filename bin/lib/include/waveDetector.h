@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <utility>
 
 #ifndef __WAVEDETECTOR_H__
 #define __WAVEDETECTOR_H__
@@ -17,38 +18,46 @@ using namespace std;
 class WaveDetector {
     public:
 
+        enum wave {noBurst, burstStart, right, left};
+
+        struct WaveMetadata {
+            bool firstBurstDone;
+            bool bursting;
+
+            int spikeFrameCount;
+
+            int burstStartLocation;
+            int burstStartSpikeCount;
+            int burstStartFrame;
+
+            int burstEnd;
+
+            int noSpikeFrameCount;
+
+            int maxSpikesFrame;
+
+            int maxSpikes;
+
+            float maxSpikesLoc;
+        }; 
+
+        typedef struct WaveMetadata WaveMetadata;
+
         WaveDetector();
-        WaveDetector(int windowLength, const char *configPath, float threshold, int frameHz=10000);
+        WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz=10000);
         ~WaveDetector();
 
         void shiftWindow(maxlab::FilteredFrameData frame);
-        // void checkBurst();
+        void checkBurst();
 
     private:
         ChannelWindow *window;
 
+        WaveMetadata *metadata;
         int framesPerSec;
-
-        int totalElectrodes;
+        int minFrames;
         float threshold;
-
-        int spikeFrameCount;
-
-        int burstStart;
-        int burstEnd;
-
-        int noSpikeFrameCount;
-
-        bool firstBurstDone;
-        int maxSpikesFrame;
-        int maxSpikes;
-
-        float maxSpikesLoc;
-        int locCounter;
-        float monitoringLoc;
-
-        int previousBurstInDesiredDirection;
-        bool bursting;
+        int totalElectrodes;
 
 };
 

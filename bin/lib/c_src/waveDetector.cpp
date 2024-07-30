@@ -1,111 +1,107 @@
 #include "waveDetector.h"
 
+// #define MEM_ERR() {\
+//     cerr << "Error (" << __FILE__ << ", " << __LINE__ << ": memory allocation failed." << endl;\
+//     exit(1);\
+// }
+
 WaveDetector::WaveDetector() {
 
 }
 
-WaveDetector::WaveDetector(int windowLength, const char *configPath, float threshold, int frameHz) {
+WaveDetector::WaveDetector(int numLocations, int windowLength, const char *configPath, float threshold, int minFrames, int frameHz) {
     ChannelWindow *window = new ChannelWindow(windowLength, configPath);
 
     ElectrodeMap emap = window->electrodeMap();
 
-    totalElectrodes = emap.size();
-    this->threshold = threshold;
-
+    threshold = threshold;
     framesPerSec = frameHz;
+    minFrames = minFrames;
+    totalElectrodes = emap.size();
 
-    spikeFrameCount = 0;
+    metadata = calloc(1, sizeof(WaveMetadata));
 
-    burstStart = 0;
-    burstEnd = 0;
+    if (metadata == NULL) {
+        cerr << "metadata memory allocation failed." << endl;
+        exit(1);
+    }
 
-    noSpikeFrameCount = 0;
+    // metaData->firstBurstDone = false;
 
-    firstBurstDone = false;
-    maxSpikesFrame = 0;
-    maxSpikes = 0;
+    // metaData->spikeFrameCount = 0;
 
-    maxSpikesLoc = 0;
-    locCounter = 0;
-    monitoringLoc = 0;
+    // metaData->burstStartFrame= 0;
+    // metaData->burstStartSpikeCount = 0;
+    // metaData->burstStartLocation = 0;
+    // metaData->burstEnd = 0;
 
-    previousBurstInDesiredDirection = 0;
-    bursting = false;
+    // metaData->noSpikeFrameCount = 0;
+
+    // metaData->maxSpikesFrame = 0;
+    // metaData->maxSpikes = 0;
+
+    // metaData->maxSpikesLoc = 0;
+
+    // metaData->bursting = false;
 }
 
 WaveDetector::~WaveDetector() {
     delete window;
+    free(metadata);
 }
 
 void WaveDetector::shiftWindow(maxlab::FilteredFrameData frame) {
     window->shift(frame);
 }
 
-// void WaveDetector::checkBurst() {
-//     int spikeCount = window->totalSpikeCount();
+void WaveDetector::checkBurst(int frameNo) {
+    int spikeCount = window->totalSpikeCount();
 
-//     if  (spikeCount > threshold * totalElectrodes) {
-//         if (!bursting) {
-//             bursting = true;
-//             cout << "burst started" << endl;
+    // spike in activity
+    if  (spikeCount > threshold * totalElectrodes) { 
+        if (!metadata->bursting) {
+            // burst started
+            metadata->bursting = true;
 
-//             locs[0] = window.getAvgX(); // starting location
-//             burstSpikeCounts[0] = spikeCount;
-//             locCounter = 1;
-//             burstStart = i;
-//         }
+            metadata->burstStartLocation = window.getAvgX(); 
+            metadata->burstStartSpikeCount = spikeCount;
+            metadata->burstStartFrame = frameNo;
+        }
 
-//         if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(framesPerSec * 0.005) == 0){
-//             maxSpikes = spikeCount;
-//             maxSpikesFrame = i;
-//             maxSpikesLoc = window.getAvgX();
-//         }
+        // what does 0.005 represent?
+        if (!metadata->firstBurstDone && spikeCount > metadata->maxSpikes && frameNo % (int)(framesPerSec * 0.005) == 0){
+            metadata->maxSpikes = spikeCount;
+            metadata->maxSpikesFrame = frameNo;
+            metadata->maxSpikesLoc = window.getAvgX();
+        }
         
-//         spikeFrameCount++; // spike at this frame
-//         noSpikeFrameCount = 0;
-//     } else {
-//         if (!firstBurstDone && noSpikeFrameCount > 0.2 * framesPerSec) {
-//             firstBurstDone = true; 
-//         }
+        metadata->spikeFrameCount++; // spike at this frame
+        metadata->noSpikeFrameCount = 0;
 
-//         // burst is over
-//         if (noSpikeFrameCount > 0.2 * framesPerSec) {
+    // no spike in activity
+    } else { 
+
+        // 0.2?
+        if (!firstBurstDone && metadata->noSpikeFrameCount > 0.2 * framesPerSec) {
+            metadata->firstBurstDone = true; 
+        }
+
+        // burst is over
+        if (metadata->noSpikeFrameCount > 0.2 * framesPerSec) {
             
-//             bursting = false;
-//             // burst is long enough to be significant
-//             if (spikeFrameCount >= MIN_FRAMES) {
+            metadata->bursting = false;
+            
+            // burst is long enough to be significant
+            if (spikeFrameCount >= minFrames) {
                 
-//                 // // edge case: startingLocDiff = 0 (right for now)
-//                 int left_to_right = locs[0] < maxSpikesLoc;
-//                 string loc_string = left_to_right ? "left to right" : "right to left";
-//                 cout << loc_string << endl;
-//                 file <<"BURST" << endl;
-//                 for(int m = 0; m < capacity; m++) {
-//                     file << burstStart + SYS_START_BUFFER + WINDOW + m * (int)(framesPerSec * 0.01) << ", ";
-//                 }
-//                 file << maxSpikesFrame + SYS_START_BUFFER + WINDOW;
-
-//                 file << endl;
-                
-//                 for(int m = 0; m < capacity; m++) {
-//                     file << locs[m] << ", ";
-//                 }
-//                 file << maxSpikesLoc << ", ";
-
-//                 file << loc_string << endl;
-//                 for(int m = 0; m < capacity; m++) {
-//                     file << burstSpikeCounts[m] << ", ";
-//                 }
-//                 file << maxSpikes;
-                
-//                 file << endl;       
-
-//                 previousBurstInDesiredDirection = left_to_right;             
-//             }      
-//             firstBurstDone = false;
-//             maxSpikes = 0;  
-//             spikeFrameCount = 0;
-//         }
-//         noSpikeFrameCount++;
-//     }
-// }
+                int leftToRight = metadata->burstStartLocation < metadata->maxSpikesLoc;
+                string locString = leftToRight ? "left to right" : "right to left";
+                          
+            }      
+            metadata->firstBurstDone = false;
+            metadata->maxSpikes = 0;  
+            metadata->spikeFrameCount = 0;
+        }
+        noSpikeFrameCount++;
+    }
+}
