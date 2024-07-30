@@ -39,22 +39,25 @@ class WaveDetector {
          */
         struct WaveMetadata {
             bool firstBurstDone; /**< indicates first burst is done*/
+
             bool bursting; /**< indicates if currently bursting*/
 
             int spikeFrameCount; /**< number of frames since the total spike 
                                       count was below the threshold*/
+            
+            int noSpikeFrameCount; /**< number of frames since the total spike 
+                                        count went over the threshold*/
 
             int burstStartLocation; /**< starting location of the current or 
                                           most recent burst*/
+
             int burstStartSpikeCount; /**< starting spike count of the current 
                                             or most recent burst*/
+
             int burstStartFrame; /**< starting frame of the current or most 
                                       recent burst*/
 
             int burstEnd; /**< frame when the last burst ended*/
-
-            int noSpikeFrameCount; /**< number of frames since the total spike 
-                                        count went over the threshold*/
             
             int maxSpikes; /**< spike count of the peak of the burst (or most 
                                 recent peak within the burst)*/
@@ -78,11 +81,17 @@ class WaveDetector {
         /**
          * @brief Constructs a new Wave Detector object
          * 
-         * @param windowLength 
-         * @param configPath 
-         * @param threshold 
-         * @param minFrames 
-         * @param frameHz 
+         * @param windowLength <code>int</code> length of the window
+         * @param configPath c-style string containing the full path of the 
+         *                   electrode config
+         * @param threshold <code>float</code> threshold used to check the total 
+         *                  spike count against
+         * @param minFrames <code>int</code> minimum number of frames 
+         *                  during which the window must be over the spike 
+         *                  threshold in order to be considered a burst
+         * @param frameHz <code>int</code> framerate, defaults
+         *                to <code>10000</code>. It shoud be <code>10000</code> for the 
+         *                MaxTwo, and <code>20000</code> for the MaxOne
          */
         WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz=10000);
         
@@ -92,19 +101,21 @@ class WaveDetector {
         ~WaveDetector();
 
         /**
-         * @brief 
+         * @brief Shifts the window, adding a new frame
          * 
-         * @param frame 
+         * @param frame <code>maxlab::FilteredFrameData</code> frame to add to 
+         *              the window
          */
         void shiftWindow(maxlab::FilteredFrameData frame);
 
         // value corresponds to Wave enum
 
         /**
-         * @brief 
+         * @brief Checks the direction of a burst
          * 
-         * @param frameNo 
-         * @return int 
+         * @param frameNo <code>int</code> frame number of the most recently 
+         *                received frame
+         * @return <code>int</code>, corresponds to <code>enum Wave</code> 
          */
         int checkBurst(int frameNo);
 
