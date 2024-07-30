@@ -419,7 +419,7 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
                     // // edge case: startingLocDiff = 0 (right for now)
                     int left_to_right = locs[0] < maxSpikesLoc;
                     string loc_string = left_to_right ? "left to right" : "right to left";
-                    cout << string << endl;
+                    cout << loc_string << endl;
                     file <<"BURST" << endl;
                     for(int m = 0; m < capacity; m++) {
                         file << burstStart + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";

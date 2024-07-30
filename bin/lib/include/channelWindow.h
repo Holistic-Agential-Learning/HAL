@@ -47,6 +47,8 @@ class ChannelWindow {
          */
         ChannelWindow(int length, ElectrodeMap emap, int toSave=0);
         
+        // assumes that the data streamer is open
+        void init();
 
 
         /**

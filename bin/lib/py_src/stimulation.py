@@ -42,7 +42,7 @@ class ArbitraryStimulation:
     def build_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
         """Creates an ``mx.Sequence`` from the sequence list.
 
-        :param initial_delay: Defaults to ``5``
+        :param initial_delay: The delay time in ms for downloading the stim sequence. Defaults to ``5``
         :type initial_delay: ``float``
 
         :param persistent: Defaults to ``True``
@@ -75,9 +75,7 @@ class ArbitraryStimulation:
             if type(command) == mx.DelaySamples:
                 duration_frames += command.samples
         
-        return duration_frames/20000 #because DelaySamples always seems to be in units of frames at 20000 fps
-    
-    # def __append_delay(cls, seq: mx.Sequence, frames):
+        return duration_frames/FPS #because DelaySamples always seems to be in units of frames at 20000 fps
         
 
 
@@ -202,9 +200,9 @@ class Stimulation(ArbitraryStimulation):
 
 
         seq.append(mx.DAC(dac_source, 512 - int(amplitude/dac_lsb_mV)))
-        seq.append(mx.DelaySamples(phase))
+        __append_delay(seq, phase)
         seq.append(mx.DAC(dac_source, 512 + int(amplitude/dac_lsb_mV)))
-        seq.append(mx.DelaySamples(phase))
+        __append_delay(seq, phase)
         seq.append(mx.DAC(dac_source, 512))
         return seq
     
@@ -228,11 +226,11 @@ class Stimulation(ArbitraryStimulation):
                 seq = Stimulation.__create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
                 #Don't append the last delay in a pulse train.
                 if j < self.pulses_per_train - 1:
-                    seq.append(mx.DelaySamples(self.pulse_interval))
+                        __append_delay(seq, self.pulse_interval)
             
             #Don't append the last delay.
             if i < self.num_trains - 1:
-                seq.append(mx.DelaySamples(self.pulse_train_interval))
+                    __append_delay(seq, self.pulse_train_interval)
 
         seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {int(self.phase/ FPS *(10**6))} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {int(self.pulse_interval/FPS * 1000)} pulse_train_interval_s {int(self.pulse_train_interval/FPS)}"))
         event_number += 1
@@ -265,7 +263,7 @@ class Stimulation(ArbitraryStimulation):
         def process_delay_times(min_delay, max_delay, min_delay_seq):
             #Helper function
             if min_delay > 0:
-                seq.append(mx.DelaySamples(min_delay))
+                    __append_delay(seq, min_delay)
             max_delay -= min_delay
 
             while(type(next_command := min_delay_seq.pop(0)) != mx.DelaySamples and (type(next_command) != mx.Event or next_command.properties[0:15] != "end_stimulation")):
@@ -337,6 +335,16 @@ class Stimulation(ArbitraryStimulation):
         return ArbitraryStimulation(token, seq)
     
 
+
+
+
+
+def __append_delay(seq: mx.Sequence | List[ApiObject], frames: int):
+    while frames > 0:
+        num_frames_added = min(frames, 2^16 - 1)
+        seq.append(mx.DelaySamples(num_frames_added))
+        frames -= num_frames_added
+    
 
 
 
