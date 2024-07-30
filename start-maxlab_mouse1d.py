@@ -74,23 +74,6 @@ rec_electrodes = []
 ############################################################################
 
 
-
-
-# load recording electrodes and stimulation electrodes
-def config_electrodes(electrode_config, stim_electrodes):
-    
-    # recording electrodes config file
-    array = mx.Array("stimulation")
-    array.load_config(electrode_config)
-
-    array.reset()
-    # array.clear_selected_electrodes()
-    # array.select_electrodes()
-    array.select_stimulation_electrodes(stim_electrodes)
-    array.route()
-
-    return array
-
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
