@@ -79,7 +79,8 @@ class WaveDetector {
         WaveDetector();
 
         /**
-         * @brief Constructs a new Wave Detector object
+         * @brief Constructs a new Wave Detector object and inititalizes the 
+         *        window
          * 
          * @param windowLength <code>int</code> length of the window
          * @param configPath c-style string containing the full path of the 
@@ -101,19 +102,26 @@ class WaveDetector {
         ~WaveDetector();
 
         /**
+         * @brief Returns the window
+         * 
+         * @return pointer to <code>ChannelWindow</code>
+         */
+        ChannelWindow *window();
+
+        /**
+         * @brief Gets metadata of the Wave Detector
+         * 
+         * @return <code>WaveMetadata</code>
+         */
+        WaveMetadata metadata();
+
+        /**
          * @brief Shifts the window, adding a new frame
          * 
          * @param frame <code>maxlab::FilteredFrameData</code> frame to add to 
          *              the window
          */
         void shiftWindow(maxlab::FilteredFrameData frame);
-
-        /**
-         * @brief Returns the window
-         * 
-         * @return <code>ChannelWindow</code>
-         */
-        ChannelWindow window();
 
         /**
          * @brief Processes a frame

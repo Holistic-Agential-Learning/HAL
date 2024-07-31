@@ -250,23 +250,6 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         }
     }
     cout << "Finished buffer, looking for spikes..." << endl;
-    // cout << threshold * TOTAL_ELECTRODES << endl;
-
-    // the number of frames where the spike count goes over the threshold
-    int spikeFrameCount = 0;
-
-    ChannelWindow window = ChannelWindow(WINDOW, emap);
-    
-
-    // frame number representing the start of a burst
-    int burstStart = 0;
-
-    // frame number representing the end of a burst 
-    int burstEnd = 0;
-
-    /* the number of frames since the last frame where the spike count went over
-       the threshold */ 
-    int noSpikeFrameCount = 0;
 
     // amount of blanking time
     int blanking = 0;
@@ -296,24 +279,11 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
 
     int previousBurstInDesiredDirection = 0;
 
-    // stores data for each frame in a 200-frame window
-    vector<FilteredFrameData> frameWindow;
     cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
 
-
-    // initialize the vector with 200 frames
-    for (int i = 0; i < window.length(); i++) {
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
-
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
-            continue;
-        }
-
-        window.add(frameData);
-    }
-
+    // gets wave detector object and initializes window
+    WaveDetector sensor = WaveDetector(WINDOW, configPath, threshold, MIN_FRAMES, FRAMES_PER_SEC);
+    ChannelWindow *window = sensor.window();
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
@@ -329,8 +299,8 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         }
 
         // const SpikeEvent *spike = frameData.spikeEvents;
-        window.shift(frameData);
-        int spikeCount = window.totalSpikeCount();
+        int waveVal = sensor.processFrame(i);
+        int spikeCount = window->totalSpikeCount();
 
         if (i == 0){
             maxlab::verifyStatus(maxlab::sendSequence("before-training"));
@@ -381,71 +351,44 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
         }
-        
-        // if the current spike count is over the threshold
-        if  (spikeCount > threshold * TOTAL_ELECTRODES) {
-            if (!bursting){
-                bursting = true;
-                cout << "burst started" << endl;
 
-                locs[0] = window.getAvgX(); // starting location
-                burstSpikeCounts[0] = spikeCount;
-                locCounter = 1;
-                burstStart = i;
-            }
+        if (waveVal == Wave::burstStart) {
+            cout << "burst started" << endl;
 
-            if (!firstBurstDone && spikeCount > maxSpikes && i % (int)(FRAMES_PER_SEC * 0.005) == 0){
-                maxSpikes = spikeCount;
-                maxSpikesFrame = i;
-                maxSpikesLoc = window.getAvgX();
+            locs[0] = window.getAvgX(); // starting location
+            burstSpikeCounts[0] = spikeCount;
+            locCounter = 1;
+        } else if (waveVal == Wave::leftToRight || waveVal == Wave::rightToLeft) {
+
+            int left_to_right = waveVal == Wave::leftToRight;
+            string loc_string = left_to_right ? "left to right" : "right to left";
+            cout << loc_string << endl;
+            file << "BURST" << endl;
+
+            WaveMetadata metadata = sensor.metadata();
+
+            // leftToRight, rightToLeft
+            for(int m = 0; m < capacity; m++) {
+                file << metadata->burstStartFrame + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
             }
+            file << metadata->maxSpikesFrame + SYS_START_BUFFER + WINDOW;
+
+            file << endl;
             
-            spikeFrameCount++; // spike at this frame
-            noSpikeFrameCount = 0;
-        } else {
-            if (!firstBurstDone && noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
-                firstBurstDone = true; 
+            for(int m = 0; m < capacity; m++) {
+                file << locs[m] << ", ";
             }
+            file << metadata->maxSpikesLoc << ", ";
 
-            // burst is over
-            if (noSpikeFrameCount > 0.2 * FRAMES_PER_SEC) {
-                
-                bursting = false;
-                // burst is long enough to be significant
-                if (spikeFrameCount >= MIN_FRAMES) {
-                    
-                    // // edge case: startingLocDiff = 0 (right for now)
-                    int left_to_right = locs[0] < maxSpikesLoc;
-                    string loc_string = left_to_right ? "left to right" : "right to left";
-                    cout << loc_string << endl;
-                    file <<"BURST" << endl;
-                    for(int m = 0; m < capacity; m++) {
-                        file << burstStart + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
-                    }
-                    file << maxSpikesFrame + SYS_START_BUFFER + WINDOW;
-
-                    file << endl;
-                    
-                    for(int m = 0; m < capacity; m++) {
-                        file << locs[m] << ", ";
-                    }
-                    file << maxSpikesLoc << ", ";
-
-                    file << loc_string << endl;
-                    for(int m = 0; m < capacity; m++) {
-                        file << burstSpikeCounts[m] << ", ";
-                    }
-                    file << maxSpikes;
-                    
-                    file << endl;       
-
-                    previousBurstInDesiredDirection = left_to_right;             
-                }      
-                firstBurstDone = false;
-                maxSpikes = 0;  
-                spikeFrameCount = 0;
+            file << loc_string << endl;
+            for(int m = 0; m < capacity; m++) {
+                file << burstSpikeCounts[m] << ", ";
             }
-            noSpikeFrameCount++;
+            file << metadata->maxSpikes;
+            
+            file << endl;       
+
+            previousBurstInDesiredDirection = left_to_right;
         }
 
         //STIMULATE IF APPROPRIATE

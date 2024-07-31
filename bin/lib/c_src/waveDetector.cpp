@@ -11,6 +11,7 @@ WaveDetector::WaveDetector() {
 
 WaveDetector::WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz) {
     ChannelWindow *window = new ChannelWindow(windowLength, configPath);
+    window.init();
 
     ElectrodeMap emap = window->electrodeMap();
 
@@ -32,12 +33,16 @@ WaveDetector::~WaveDetector() {
     free(metadata);
 }
 
-void WaveDetector::shiftWindow(maxlab::FilteredFrameData frame) {
-    window->shift(frame);
+ChannelWindow *window() {
+    return window;
 }
 
-ChannelWindow window() {
-    return window;
+WaveMetadata metadata() {
+    return *metadata;
+}
+
+void WaveDetector::shiftWindow(maxlab::FilteredFrameData frame) {
+    window->shift(frame);
 }
 
 int processFrame(maxlab::FilteredFrameData frame, int frameNo) {
@@ -100,7 +105,7 @@ int WaveDetector::checkBurst(int frameNo) {
                     ret = Wave::rightToLeft;
                 }
             } else {
-                ret = endShortBurst;
+                ret = Wave::endShortBurst;
             }
 
             metadata->firstBurstDone = false;
