@@ -72,7 +72,7 @@ int WaveDetector::checkBurst(int frameNo) {
             ret = Wave::burstStart;
         }
 
-        // what does 0.005 represent? potentially add else
+        // TODO: add variable for 0.005
         if (!metadata->firstBurstDone && spikeCount > metadata->maxSpikes && frameNo % (int)(framesPerSec * 0.005) == 0){
             metadata->maxSpikes = spikeCount;
             metadata->maxSpikesFrame = frameNo;
@@ -85,11 +85,12 @@ int WaveDetector::checkBurst(int frameNo) {
     // no spike in activity
     } else { 
 
-        // 0.2?
+        // TODO: add variable for 0.2
         if (!metadata->firstBurstDone && metadata->noSpikeFrameCount > 0.2 * framesPerSec) {
             metadata->firstBurstDone = true; 
         }
 
+        // TODO: add another variable for 0.2
         // burst is over
         if (metadata->noSpikeFrameCount > 0.2 * framesPerSec) {
             
@@ -98,12 +99,13 @@ int WaveDetector::checkBurst(int frameNo) {
             // burst is long enough to be significant
             if (metadata->spikeFrameCount >= minFrames) {
                 
-                int startLeft = metadata->burstStartLocation < metadata->maxSpikesLoc;
+                bool startLeft = metadata->burstStartLocation < metadata->maxSpikesLoc;
                 if (startLeft) {
                     ret = Wave::leftToRight;
                 } else {
                     ret = Wave::rightToLeft;
                 }
+
             } else {
                 ret = Wave::endShortBurst;
             }
