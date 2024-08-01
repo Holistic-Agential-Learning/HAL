@@ -282,8 +282,8 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
     cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
 
     // gets wave detector object and initializes window
-    WaveDetector sensor = WaveDetector(WINDOW, configPath, threshold, MIN_FRAMES, FRAMES_PER_SEC);
-    ChannelWindow *window = sensor.window();
+    WaveDetector sensor = WaveDetector(WINDOW, configPath, threshold, MIN_FRAMES, FRAMES_PER_SEC, 0.2, 0.2);
+    ChannelWindow *window = sensor.getWindow();
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
@@ -365,7 +365,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
             cout << loc_string << endl;
             file << "BURST" << endl;
 
-            WaveMetadata metadata = sensor.metadata();
+            WaveMetadata metadata = sensor.getMetadata();
 
             // leftToRight, rightToLeft
             for(int m = 0; m < capacity; m++) {

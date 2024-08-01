@@ -14,64 +14,64 @@
 
 using namespace std;
 
+/**
+ * @struct WaveMetadata
+ * @brief Wave metadata struct
+ * 
+ */
+struct WaveMetadata {
+    bool firstBurstDone; /**< indicates first burst is done*/
+
+    bool bursting; /**< indicates if currently bursting*/
+
+    int spikeFrameCount; /**< number of frames since the total spike 
+                                count was below the threshold*/
+    
+    int noSpikeFrameCount; /**< number of frames since the total spike 
+                                count went over the threshold*/
+
+    int burstStartLocation; /**< starting location of the current or 
+                                    most recent burst*/
+
+    int burstStartSpikeCount; /**< starting spike count of the current 
+                                    or most recent burst*/
+
+    int burstStartFrame; /**< starting frame of the current or most 
+                                recent burst*/
+
+    int burstEnd; /**< frame when the last burst ended*/
+    
+    int maxSpikes; /**< spike count of the peak of the burst (or most 
+                        recent peak within the burst)*/
+
+    int maxSpikesFrame; /**< frame number where the peak of the burst 
+                                occured (or most recent peak within the 
+                                burst)*/
+
+    float maxSpikesLoc; /**< locatin on the chpi of the peak of the 
+                                burst (or most recent peak within the 
+                                burst)*/
+}; 
+
+/**
+ * @brief Wave enum
+ * 
+ */
+enum Wave {
+    noBurst, /**< culture is not currently bursting */
+    bursting, /**< culture is currently bursting */
+    burstStart, /**< burst just started */
+    endShortBurst, /**< burst ended, but it was too short to be 
+                        significant*/
+    leftToRight, /**< burst ended, and it went left to right*/
+    rightToLeft /**< burst ended, and it went right to left*/
+};
+
+typedef struct WaveMetadata WaveMetadata;
+
 
 class WaveDetector {
     public:
-
-        /**
-         * @brief Wave enum
-         * 
-         */
-        enum Wave {
-            noBurst, /**< culture is not currently bursting */
-            bursting, /**< culture is currently bursting */
-            burstStart, /**< burst just started */
-            endShortBurst, /**< burst ended, but it was too short to be 
-                                significant*/
-            leftToRight, /**< burst ended, and it went left to right*/
-            rightToLeft /**< burst ended, and it went right to left*/
-        };
-
-        /**
-         * @struct WaveMetadata
-         * @brief Wave metadata struct
-         * 
-         */
-        struct WaveMetadata {
-            bool firstBurstDone; /**< indicates first burst is done*/
-
-            bool bursting; /**< indicates if currently bursting*/
-
-            int spikeFrameCount; /**< number of frames since the total spike 
-                                      count was below the threshold*/
-            
-            int noSpikeFrameCount; /**< number of frames since the total spike 
-                                        count went over the threshold*/
-
-            int burstStartLocation; /**< starting location of the current or 
-                                          most recent burst*/
-
-            int burstStartSpikeCount; /**< starting spike count of the current 
-                                            or most recent burst*/
-
-            int burstStartFrame; /**< starting frame of the current or most 
-                                      recent burst*/
-
-            int burstEnd; /**< frame when the last burst ended*/
-            
-            int maxSpikes; /**< spike count of the peak of the burst (or most 
-                                recent peak within the burst)*/
-
-            int maxSpikesFrame; /**< frame number where the peak of the burst 
-                                      occured (or most recent peak within the 
-                                      burst)*/
-
-            float maxSpikesLoc; /**< locatin on the chpi of the peak of the 
-                                      burst (or most recent peak within the 
-                                      burst)*/
-        }; 
-
-        typedef struct WaveMetadata WaveMetadata;
 
         /**
          * @brief Constructs a new Wave Detector object
@@ -94,7 +94,7 @@ class WaveDetector {
          *                to <code>10000</code>. It shoud be <code>10000</code> for the 
          *                MaxTwo, and <code>20000</code> for the MaxOne
          */
-        WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz=10000);
+        WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz, float firstBurstThreshold, float burstDoneThreshold);
         
         /**
          * @brief Destroys the Wave Detector Object 
@@ -106,14 +106,14 @@ class WaveDetector {
          * 
          * @return pointer to <code>ChannelWindow</code>
          */
-        ChannelWindow *window();
+        ChannelWindow *getWindow();
 
         /**
          * @brief Gets metadata of the Wave Detector
          * 
-         * @return <code>WaveMetadata</code>
+         * @return <code>WaveMetadata</code> struct
          */
-        WaveMetadata metadata();
+        WaveMetadata getMetadata();
 
         /**
          * @brief Shifts the window, adding a new frame
@@ -153,6 +153,8 @@ class WaveDetector {
         int minFrames;
         float threshold;
         int totalElectrodes;
+        float firstBurstThreshold;
+        float burstDoneThreshold;
 
 };
 

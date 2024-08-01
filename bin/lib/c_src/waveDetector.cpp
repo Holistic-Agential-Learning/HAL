@@ -4,20 +4,21 @@
 //     cerr << "Error (" << __FILE__ << ", " << __LINE__ << ": memory allocation failed." << endl;\
 //     exit(1);\
 // }
-
 WaveDetector::WaveDetector() {
 
 }
 
-WaveDetector::WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz) {
+WaveDetector::WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz, float firstBurstThreshold, float burstDoneThreshold) {
     ChannelWindow *window = new ChannelWindow(windowLength, configPath);
-    window.init();
+    window->init();
 
     ElectrodeMap emap = window->electrodeMap();
 
-    threshold = threshold;
+    this->threshold = threshold;
     framesPerSec = frameHz;
-    minFrames = minFrames;
+    this->minFrames = minFrames;
+    this->firstBurstThreshold = firstBurstThreshold;
+    this->burstDoneThreshold = burstDoneThreshold;
     totalElectrodes = emap.size();
 
     metadata = (WaveMetadata *)calloc(1, sizeof(WaveMetadata));
@@ -33,11 +34,11 @@ WaveDetector::~WaveDetector() {
     free(metadata);
 }
 
-ChannelWindow *window() {
+ChannelWindow *WaveDetector::getWindow() {
     return window;
 }
 
-WaveMetadata metadata() {
+WaveMetadata WaveDetector::getMetadata() {
     return *metadata;
 }
 
@@ -45,11 +46,7 @@ void WaveDetector::shiftWindow(maxlab::FilteredFrameData frame) {
     window->shift(frame);
 }
 
-int processFrame(maxlab::FilteredFrameData frame, int frameNo) {
-    window->shift(frame);
 
-    return checkBurst(frameNo);
-}
 
 int WaveDetector::checkBurst(int frameNo) {
 
@@ -86,13 +83,13 @@ int WaveDetector::checkBurst(int frameNo) {
     } else { 
 
         // TODO: add variable for 0.2
-        if (!metadata->firstBurstDone && metadata->noSpikeFrameCount > 0.2 * framesPerSec) {
+        if (!metadata->firstBurstDone && metadata->noSpikeFrameCount > firstBurstThreshold * framesPerSec) {
             metadata->firstBurstDone = true; 
         }
 
         // TODO: add another variable for 0.2
         // burst is over
-        if (metadata->noSpikeFrameCount > 0.2 * framesPerSec) {
+        if (metadata->noSpikeFrameCount > burstDoneThreshold * framesPerSec) {
             
             metadata->bursting = false;
             
@@ -118,4 +115,10 @@ int WaveDetector::checkBurst(int frameNo) {
     }
 
     return ret;
+}
+
+int WaveDetector::processFrame(maxlab::FilteredFrameData frame, int frameNo) {
+    window->shift(frame);
+
+    return checkBurst(frameNo);
 }
