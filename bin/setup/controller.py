@@ -216,13 +216,14 @@ if __name__ == '__main__':
         
         print("calling c++ script... well" + str(well))
         # This is the command to run (will last as long as the cpp files lasts)
-        mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
-        try:
-            subprocess.run(program_args)
-        except KeyboardInterrupt:
-            print("start-maxlab.py: ^C signalled")
+        # mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
+        # try:
+        #     subprocess.run(program_args)
+        # except KeyboardInterrupt:
+        #     print("start-maxlab.py: ^C signalled")
         # except Exception as err:
         #     print(err)
+        time.sleep(60 * 20)
 
         mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
 

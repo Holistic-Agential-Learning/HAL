@@ -22,6 +22,10 @@ class WorldState{
         int location;
         string world_map;//How do we encode different types of rewards? Maybe a char * of length "nodes"?
 
+        /**
+         * @brief Construct a new World State object
+         * 
+         */
         WorldState();
 
         WorldState(string map, int loc);

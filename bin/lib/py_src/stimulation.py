@@ -12,6 +12,8 @@ import math
 event_number = 100
 FPS = 20000
 
+
+
 class ArbitraryStimulation:
     """
     A class that holds any stimulation that could be passed to the MaxLab system. Initialized with a list of ``ApiObject``. 
@@ -39,10 +41,17 @@ class ArbitraryStimulation:
         self.sequence_list = sequence_list
         self.duration = self.get_duration()
 
+    @staticmethod
+    def _append_delay(seq: mx.Sequence | List[ApiObject], frames: int):
+        while frames > 0:
+            num_frames_added = min(frames, 2^16 - 1)
+            seq.append(mx.DelaySamples(num_frames_added))
+            frames -= num_frames_added
+
     def build_sequence(self, initial_delay: float = 5, persistent = True) -> mx.Sequence:
         """Creates an ``mx.Sequence`` from the sequence list.
 
-        :param initial_delay: Defaults to ``5``
+        :param initial_delay: The delay time in ms for downloading the stim sequence. Defaults to ``5``
         :type initial_delay: ``float``
 
         :param persistent: Defaults to ``True``
@@ -75,9 +84,7 @@ class ArbitraryStimulation:
             if type(command) == mx.DelaySamples:
                 duration_frames += command.samples
         
-        return duration_frames/20000 #because DelaySamples always seems to be in units of frames at 20000 fps
-    
-    # def __append_delay(cls, seq: mx.Sequence, frames):
+        return duration_frames/FPS #because DelaySamples always seems to be in units of frames at 20000 fps
         
 
 
@@ -85,7 +92,7 @@ class ArbitraryStimulation:
 #Big picture:
 #Different classes inherit from Stimulation (Regular stimulation). Stimulation has a way to create more abstract stimulation sequences (eg. turning stim_units on and off in the middle).
 class Stimulation(ArbitraryStimulation):
-    """_summary_
+    """Class that represents a regular stimulation,, as created by the MaxLab GUI.
 
         :param token: unique identifier
         :type token: ``str``
@@ -115,7 +122,7 @@ class Stimulation(ArbitraryStimulation):
                 IF THIS IS USED, ENSURE THAT ALL STIM_UNITS ARE POWERED OFF TO BEGIN WITH.
         :type stim_units: ``Optional[List[int]]``, optional
 
-        :param well: _description_, defaults to 0
+        :param well: The well number, used for Events, defaults to 0
         :type well: ``int``, optional
         """
     
@@ -135,12 +142,40 @@ class Stimulation(ArbitraryStimulation):
 
         self.token = token
 
-        super().__init__(token, self.__create_sequence_list())
+        super().__init__(token, self._create_sequence_list())
 
         
     
     @classmethod
     def from_frequency(cls, token: str, dac_source: int, frequency: float, duration: float, amplitude: float = 100, num_trains: int = 1, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, maxtwo: bool = False, well = 0) -> Self:
+        """
+        _summary_
+
+        :param token: _description_
+        :type token: str
+        :param dac_source: _description_
+        :type dac_source: int
+        :param frequency: _description_
+        :type frequency: float
+        :param duration: _description_
+        :type duration: float
+        :param amplitude: _description_, defaults to 100
+        :type amplitude: float, optional
+        :param num_trains: _description_, defaults to 1
+        :type num_trains: int, optional
+        :param pulse_train_interval: _description_, defaults to 1
+        :type pulse_train_interval: float, optional
+        :param stim_units: _description_, defaults to None
+        :type stim_units: Optional[List[int]], optional
+        :param maxtwo: _description_, defaults to False
+        :type maxtwo: bool, optional
+        :param well: _description_, defaults to 0
+        :type well: int, optional
+        :return: _description_
+        :rtype: Self
+        """
+
+
         """constructor method, using frequency and duration instead of phase and pulses per train.
 
         Args:
@@ -166,7 +201,7 @@ class Stimulation(ArbitraryStimulation):
     
 
 
-    def __create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.Sequence | List[ApiObject]:   
+    def _create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.Sequence | List[ApiObject]:   
         """
         _summary_
 
@@ -188,14 +223,14 @@ class Stimulation(ArbitraryStimulation):
 
 
         seq.append(mx.DAC(dac_source, 512 - int(amplitude/dac_lsb_mV)))
-        seq.append(mx.DelaySamples(phase))
+        ArbitraryStimulation._append_delay(seq, phase)
         seq.append(mx.DAC(dac_source, 512 + int(amplitude/dac_lsb_mV)))
-        seq.append(mx.DelaySamples(phase))
+        ArbitraryStimulation._append_delay(seq, phase)
         seq.append(mx.DAC(dac_source, 512))
         return seq
     
     
-    def __create_sequence_list(self) -> List[ApiObject]:
+    def _create_sequence_list(self) -> List[ApiObject]:
         """Create a stim sequence for the given Stimulation pattern.
 
         Args:
@@ -219,14 +254,14 @@ class Stimulation(ArbitraryStimulation):
         event_number += 1
         for i in range(self.num_trains):
             for j in range(self.pulses_per_train):
-                seq = Stimulation.__create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
+                seq = Stimulation._create_stim_pulse(seq, self.amplitude, self.phase, self.dac_source)
                 #Don't append the last delay in a pulse train.
                 if j < self.pulses_per_train - 1:
-                    seq.append(mx.DelaySamples(self.pulse_interval))
+                        ArbitraryStimulation._append_delay(seq, self.pulse_interval)
             
             #Don't append the last delay.
             if i < self.num_trains - 1:
-                seq.append(mx.DelaySamples(self.pulse_train_interval))
+                    ArbitraryStimulation._append_delay(seq, self.pulse_train_interval)
 
         seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {int(self.phase/ FPS *(10**6))} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {int(self.pulse_interval/FPS * 1000)} pulse_train_interval_s {int(self.pulse_train_interval/FPS)}"))
         event_number += 1
@@ -241,28 +276,25 @@ class Stimulation(ArbitraryStimulation):
 
     @classmethod
     def combine_stimuli(cls, stim1: Self, stim2: Self, token: str)->ArbitraryStimulation:
-        """Combine two Stimulation objects into a sequence that runs them simultaneously.
-
-        Args:
-            stim1 (Self): The Stimulation object to run through dac source 0.
-            stim2 (Self): The Stimulation object to run through dac source 1.
-            token (str): The unique identifier token for the sequence.
-            initial_delay (float, optional): The delay before the sequence, in ms. Defaults to 5.
-            persistent(bool, optional): Whether or not the sequence exists on the server after its scope is complete. Defaults to True.
-            maxtwo (bool, optional): whether or not the maxtwo is being used. If True, fps is equal to 10000.
-
-        Returns:
-            ArbitraryStimulation: The ArbitraryStimulation object that runs both stim1 and stim2 simultaneously.
-
-        Notes:
+        """
+        Combine two ``Stimulation`` objects into a sequence that runs them simultaneously.
+            NOTE: A more general version of this function may be written to support combining arbitrary stimuli, not just ``Stimulation`` objects.
+            Currently, this code depends on ``mx.Event`` objects of a specific format to determine when stimuli start and end, making it inappropriate for general use.
             Not configured to deal with ``mx.DelayCycles`` objects.
-        """         
 
-
+        :param stim1: The first ``Stimulation`` object.
+        :type stim1: ``Self``
+        :param stim2: The second ``Stimulation`` object.
+        :type stim2: ``Self``
+        :param token: The unique identifier token for the sequence.
+        :type token: ``str``
+        :return: An ArbitraryStimulation object combining the two ``Stimulation`` objects.
+        :rtype: ``ArbitraryStimulation``
+        """     
         def process_delay_times(min_delay, max_delay, min_delay_seq):
             #Helper function
             if min_delay > 0:
-                seq.append(mx.DelaySamples(min_delay))
+                    ArbitraryStimulation._append_delay(seq, min_delay)
             max_delay -= min_delay
 
             while(type(next_command := min_delay_seq.pop(0)) != mx.DelaySamples and (type(next_command) != mx.Event or next_command.properties[0:15] != "end_stimulation")):
@@ -333,7 +365,6 @@ class Stimulation(ArbitraryStimulation):
 
         return ArbitraryStimulation(token, seq)
     
-
 
 
 

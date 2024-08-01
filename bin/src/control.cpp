@@ -17,6 +17,8 @@
 
 using namespace std;
 using namespace maxlab;
+using namespace argparse;
+
 
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define TOTAL_ELECTRODES emap.size()

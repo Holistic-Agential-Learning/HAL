@@ -2,3 +2,4 @@
 #include "controller.h"
 #include "argparse.h"
 #include "worldstate.h"
+#include "waveDetector.h"

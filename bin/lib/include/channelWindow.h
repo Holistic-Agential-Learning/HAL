@@ -141,24 +141,20 @@ class ChannelWindow {
          * @return <code>float</code> 
          */
         float getAvgX();
-<<<<<<< HEAD
-        float firingRateSD();
-=======
-
+        
         /**
          * @brief Computes the standard deviation of the firing rates of all 
          *          past windows
          * 
          * @return <code>float</code>
          */
-        float stdDev();
+        float firingRateSD();
 
         /**
          * @brief Computes the firing rate of the window
          * 
          * @return <code>float</code>
          */
->>>>>>> main
         float firingRate();
 
         /**
