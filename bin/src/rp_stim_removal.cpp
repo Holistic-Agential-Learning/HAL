@@ -54,7 +54,7 @@ Options:
 #define RANDOM_SEED 10
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define TOTAL_ELECTRODES emap.size()
-#define MIN_FRAMES 0.1 * FRAMES_PER_SEC
+#define MIN_FRAMES 0.2 * FRAMES_PER_SEC
 #define WINDOW 0.01 * FRAMES_PER_SEC
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
@@ -368,9 +368,6 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
 
         if (blanking > 0) {
             blanking--;
-            if (blanking != 0) {
-                continue;
-            }
         }
 
         
@@ -387,7 +384,7 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
         }
         
         // if the current spike count is over the threshold
-        if  (spikeCount > threshold * TOTAL_ELECTRODES) {
+        if  (spikeCount > threshold * TOTAL_ELECTRODES && blanking == 0) {
             if (!bursting){
                 bursting = true;
                 cout << "burst started" << endl;
@@ -457,7 +454,7 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
             maxlab::verifyStatus(maxlab::sendSequence("pulse"));
             cout << i << ": PULSE SENT" << endl;
             //blanking += int(FRAMES_PER_SEC) / 2 + polling_window_size;
-            blanking += int(FRAMES_PER_SEC)/10 +  polling_window_size;
+            blanking = int(FRAMES_PER_SEC)/10 +  polling_window_size;
         }
     } 
 

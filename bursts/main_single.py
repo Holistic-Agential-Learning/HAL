@@ -1,4 +1,4 @@
-#!/usr/bin/env pythonmn
+#!/usr/bin/env python
 
 import maxlab as mx
 from typing import List
@@ -19,8 +19,8 @@ trial_path = hal.make_trial_folders(main_dict)
 wells = main_dict["WELLS"]
 recording_dir = f"{trial_path}/well{wells[0]}"
 
-configs = ["/home/mxwbio/configs/240729/16h31m24s.cfg"] #TODO: change this coonfig
-stim_electrode_single = [3339,3943,20651,22261] #TODO: change these electrodes
+configs = ["/home/mxwbio/configs/240731/14h55m46s.cfg"] #TODO: change this coonfig
+stim_electrode_single = [ 3317,21799,4385,20653] #TODO: change these electrodes
 
 
 # function for connecting stimulation units to stimulation electrodes
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     print(stim_single_high.get_duration())
     #single low
     #1 stim/10 sec
-    stim_single_low = Stimulation(token = "stim_single_low", dac_sourc = 0,  amplitude=600, phase=400, pulses_per_train=1, num_trains=180, pulse_interval=0,  pulse_train_interval=9.9992, well=wells[0])
+    stim_single_low = Stimulation(token = "stim_single_low", dac_source = 0,  amplitude=600, phase=400, pulses_per_train=1, num_trains=180, pulse_interval=0,  pulse_train_interval=9.9992, well=wells[0])
     
     stim_single_low_seq = stim_single_low.build_sequence()
     print(stim_single_low.get_duration())
@@ -156,6 +156,7 @@ if __name__ == "__main__":
     sleep(1800)
 
     #now for none
+    print("sending nothing :P")
     sleep(1800)
     
     # stop recording
