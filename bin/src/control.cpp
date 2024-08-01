@@ -214,7 +214,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 blanking = 30000;
             } 
             cout << "Fano: " << fano;
-            cout "A(val, avg, sd): " << 
+            cout << "A(val, avg, sd): " << endl; 
         }
 
         float numSeconds = (float) i / FRAMES_PER_SEC;
