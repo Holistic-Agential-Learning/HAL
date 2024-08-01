@@ -32,6 +32,20 @@ ChannelWindow::ChannelWindow(int length, const char *configPath, int toSave) {
     numPastWindows = toSave;
 }
 
+void ChannelWindow::init() {
+    for (int i = 0; i < size; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+
+        addFrame(frameData);
+    }
+}
+
 void ChannelWindow::shiftOrAdd(maxlab::FilteredFrameData frame) {
     if (spikeWindow.size() < size) {
         addFrame(frame);

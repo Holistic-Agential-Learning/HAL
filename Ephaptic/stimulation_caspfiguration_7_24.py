@@ -58,21 +58,21 @@ wells = range(6)
 # @edit
 #
 # Modify this to contain the FULL PATH of configs for each well. 
-with open("/home/ephys/Documents/HAL/Ephaptic/configs/caspfiguration_left_M07458.txt", 'r') as f:
+with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_left_M07458.txt", 'r') as f:
     left_config = [int(row[0]) for row in csv.reader(f, delimiter='\t')]
 
 
-left_x_coords, left_y_coords = get_electrode_coords(left_config)
-plt.plot(left_x_coords, left_y_coords, ".")
-plt.show()
+# left_x_coords, left_y_coords = get_electrode_coords(left_config)
+# plt.plot(left_x_coords, left_y_coords, ".")
+# plt.show()
 #GUI.display_config(left_coords)
 
-with open("/home/ephys/Documents/HAL/Ephaptic/configs/caspfiguration_right_M07458.txt", 'r') as f:
+with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_right_M07458.txt", 'r') as f:
     right_config = [int(row[0]) for row in csv.reader(f, delimiter='\t')]  
 
-right_x_coords, right_y_coords = get_electrode_coords(right_config)
-plt.plot(right_x_coords, right_y_coords, ".")
-plt.show()
+# right_x_coords, right_y_coords = get_electrode_coords(right_config)
+# plt.plot(right_x_coords, right_y_coords, ".")
+# plt.show()
 
 
 configs = [
@@ -89,9 +89,9 @@ stimulation_electrodes = [
     [], # well 0 stimulation electrode: none
     [], # well 1 stimulation electrode: none
     [13260], # well 2 stimulation electrode: left center
-    [13360+1], # well 3 stimulation electrode: right center
+    [13360], # well 3 stimulation electrode: right center
     [13260], # well 4 stimulation electrode: left center
-    [13360+1]  # well 5 stimulation electrode: right center
+    [13360]  # well 5 stimulation electrode: right center
 ]
 
 
@@ -170,24 +170,23 @@ if __name__ == "__main__":
         # grab the stimulation electrodes
         stim_elecs = stimulation_electrodes[well]
 
-        array = mx.chip.Array("stimulation")
+        array = mx.chip.Array(f"well{well}")
+        array.reset()
 
         # set recording and stimulation electrodes
         #
         # Note: stimulation electrodes must also be recording electrodes
         array.select_electrodes(recording_electrodes)
         array.select_stimulation_electrodes(stim_elecs)
-        array.route()
-
-
-        # download data to the well
-        array.download([well])
-        
+        array.route()        
         
         # connect stimulation units
         stimulation_units = connect_stim_units_to_stim_electrodes(
             stim_elecs, array
         )
+
+        # download data to the well
+        array.download([well])
 
         # power up stimulation units
         for stim_unit in stimulation_units:
