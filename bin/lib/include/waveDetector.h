@@ -93,6 +93,16 @@ class WaveDetector {
          * @param frameHz <code>int</code> framerate, defaults
          *                to <code>10000</code>. It shoud be <code>10000</code> for the 
          *                MaxTwo, and <code>20000</code> for the MaxOne
+         * @param firstBurstThreshold <code>float</code> the amount of time (in
+         *                            seconds) during which the total spike
+         *                            count of the window cannot go over the 
+         *                            threshold in order for the first birst to 
+         *                            be considered done.
+         * @param burstDoneThreshold <code>float</code> the amount of time (in 
+         *                           seconds) during which the total spike
+         *                            count of the window cannot go over the 
+         *                            threshold in order for the entire birst to 
+         *                            be considered done.
          */
         WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz, float firstBurstThreshold, float burstDoneThreshold);
         
