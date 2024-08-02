@@ -6,6 +6,31 @@ import maxlab as mx
 
 # def save_well_data(trial_path: str, )
 
+def build_training_sequences(well_no: int):
+    """Builds general event sequences: before-training (ID: 2), training
+    (ID: 3), and after-training (ID: 4)
+
+    These are meant to be used to signal when the training actually happens in 
+    the closed-loop program.
+
+    :param well_no: well number
+    :type well_no: ``int``
+    """
+    start_seq = mx.Sequence("before-training", persistent = False)
+    del start_seq
+    start_seq = mx.Sequence("before-training", persistent = True)
+    start_seq.append(mx.Event(well_no, 1, 2, "before_training 1"))
+
+    train_seq = mx.Sequence("training", persistent = False)
+    del train_seq
+    train_seq = mx.Sequence("training", persistent = True)
+    train_seq.append(mx.Event(well_no, 1, 3, "training 1"))
+
+    end_seq = mx.Sequence("after-training", persistent = False)
+    del end_seq
+    end_seq = mx.Sequence("after-training", persistent = True)
+    end_seq.append(mx.Event(well_no, 1, 4, "after_training 1"))
+
 def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
     """ Initilizes the well recording electrodes and stimulation electrodes. 
     By default, it will connect the stimulation units and power them, but this 
@@ -54,47 +79,6 @@ def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect
         power_up_stim_units(stimulation_units)
 
     return array
-
-def write_closed_loop_args(s: mx.Saving, arguments: List[str]):
-    """Writes arguments of closed-loop C++ program to the experiment h5 file
-    under key "closed_loop_args"
-
-    :param s: Experiment to save the stimulation electrodes for
-    :type s: ``mx.Saving``
-    :param arguments: arguments of the closed loop program
-    :type arguments: List[str]
-    """
-    s.write_assay_property("closed_loop_args", " ".join(arguments))
-
-
-def write_exp_description(s: mx.Saving, description: str) -> None:
-    """Writes experiment description as a property to the experiment h5 file
-    under key "description"
-
-    :param s: Experiment to save the stimulation electrodes for
-    :type s: ``mx.Saving``
-    :param description: description of the experiment
-    :type description: ``str``
-    """
-    s.write_assay_property("description", description)
-
-def write_stim_electrodes(s: mx.Saving, stim_electrodes: List[int]):
-    """Writes the stimulation electrodes as a property to the experiment h5 file
-    under key "stim_electrodes"
-
-    Note that this function must be called after opening the file
-
-    :param s: Experiment to save the stimulation electrodes for
-    :type s: ``mx.Saving``
-    :param stim_electrodes: stimulation electrodes
-    :type stim_electrodes: ``List[int]``
-    """
-    val = ""
-    for stim in stim_electrodes:
-        val += str(stim) + ", "
-    val = val[:len(val) - 2]
-    
-    s.write_assay_property("stim_elecs", ", ".join(str(x) for x in stim_electrodes))
 
 #TODO: move this to an Array class.
 def connect_stim_units_to_stim_electrodes(stim_electrodes: List[int], array: mx.Array) -> List[int]:
@@ -244,3 +228,44 @@ def make_trial_folders_raw(parent_path, experiment_name, chip_id, wells):
         os.makedirs(well_path)
 
     return trial_path
+
+def write_closed_loop_args(s: mx.Saving, arguments: List[str]):
+    """Writes arguments of closed-loop C++ program to the experiment h5 file
+    under key "closed_loop_args"
+
+    :param s: Experiment to save the stimulation electrodes for
+    :type s: ``mx.Saving``
+    :param arguments: arguments of the closed loop program
+    :type arguments: List[str]
+    """
+    s.write_assay_property("closed_loop_args", " ".join(arguments))
+
+
+def write_exp_description(s: mx.Saving, description: str) -> None:
+    """Writes experiment description as a property to the experiment h5 file
+    under key "description"
+
+    :param s: Experiment to save the stimulation electrodes for
+    :type s: ``mx.Saving``
+    :param description: description of the experiment
+    :type description: ``str``
+    """
+    s.write_assay_property("description", description)
+
+def write_stim_electrodes(s: mx.Saving, stim_electrodes: List[int]):
+    """Writes the stimulation electrodes as a property to the experiment h5 file
+    under key "stim_electrodes"
+
+    Note that this function must be called after opening the file
+
+    :param s: Experiment to save the stimulation electrodes for
+    :type s: ``mx.Saving``
+    :param stim_electrodes: stimulation electrodes
+    :type stim_electrodes: ``List[int]``
+    """
+    val = ""
+    for stim in stim_electrodes:
+        val += str(stim) + ", "
+    val = val[:len(val) - 2]
+    
+    s.write_assay_property("stim_elecs", ", ".join(str(x) for x in stim_electrodes))

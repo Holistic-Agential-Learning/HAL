@@ -55,14 +55,14 @@ if __name__ == '__main__':
         wells = exp_args['WELLS']
     else:
         wells = [0]
-
     
     
     for well in wells:
         rec_electrodes = exp_args["CONFIGS"][str(well)]["E_NUMS"]
         does_stimulations = True
 
-        array = hal.init_well(well, STIM_ELECTRODES[well] + rec_electrodes, STIM_ELECTRODES[well])
+        array = hal.init_well(well, rec_electrodes, STIM_ELECTRODES[well])
+
         ############################################################################
 
         directory_name = f"{trial_path}/well{well}"
@@ -101,20 +101,7 @@ if __name__ == '__main__':
         single_pulse.build_sequence(initial_delay = 0)
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
-        start_seq = mx.Sequence("before-training", persistent = False)
-        del start_seq
-        start_seq = mx.Sequence("before-training", persistent = True)
-        start_seq.append(mx.Event(well, 1, 2, "before_training 1"))
-
-        train_seq = mx.Sequence("training", persistent = False)
-        del train_seq
-        train_seq = mx.Sequence("training", persistent = True)
-        train_seq.append(mx.Event(well, 1, 3, "training 1"))
-
-        end_seq = mx.Sequence("after-training", persistent = False)
-        del end_seq
-        end_seq = mx.Sequence("after-training", persistent = True)
-        end_seq.append(mx.Event(well, 1, 4, "after_training 1"))
+        hal.build_training_sequences(well)
 
         ##############################################################################
 
