@@ -4,6 +4,8 @@ import shutil
 from typing import List
 import maxlab as mx
 
+# def save_well_data(trial_path: str, )
+
 def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
     """ Initilizes the well recording electrodes and stimulation electrodes. 
     By default, it will connect the stimulation units and power them, but this 
@@ -53,6 +55,18 @@ def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect
 
     return array
 
+def write_closed_loop_args(s: mx.Saving, arguments: List[str]):
+    """Writes arguments of closed-loop C++ program to the experiment h5 file
+    under key "closed_loop_args"
+
+    :param s: Experiment to save the stimulation electrodes for
+    :type s: ``mx.Saving``
+    :param arguments: arguments of the closed loop program
+    :type arguments: List[str]
+    """
+    s.write_assay_property("closed_loop_args", " ".join(arguments))
+
+
 def write_exp_description(s: mx.Saving, description: str) -> None:
     """Writes experiment description as a property to the experiment h5 file
     under key "description"
@@ -75,13 +89,12 @@ def write_stim_electrodes(s: mx.Saving, stim_electrodes: List[int]):
     :param stim_electrodes: stimulation electrodes
     :type stim_electrodes: ``List[int]``
     """
-
     val = ""
     for stim in stim_electrodes:
         val += str(stim) + ", "
     val = val[:len(val) - 2]
     
-    s.write_assay_property("stim_elecs", val)
+    s.write_assay_property("stim_elecs", ", ".join(str(x) for x in stim_electrodes))
 
 #TODO: move this to an Array class.
 def connect_stim_units_to_stim_electrodes(stim_electrodes: List[int], array: mx.Array) -> List[int]:
