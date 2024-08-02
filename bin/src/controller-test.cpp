@@ -16,6 +16,7 @@
 
 using namespace std;
 using namespace maxlab;
+using namespace argparse;
 
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define TOTAL_ELECTRODES emap.size()
@@ -43,6 +44,8 @@ int get_max_element(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
 void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
+float fanoFactor(float A, float B);
+bool withinSD(float levels, float avg, float sd, float value);
 
 /* signal_interrupt_handler
  * 
@@ -227,6 +230,21 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     data.close();
+}
+
+float fanoFactor(float A, float B) {
+    if (A == 0 && B == 0) {
+        return 0;
+    } else {
+        return (A - B) / (A + B);
+    }
+}
+
+bool withinSD(float levels, float avg, float sd, float value) {
+    float upper = avg + (levels * sd);
+    float lower = avg - (levels * sd);
+
+    return (value <= upper && value >= lower);
 }
 
 void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {

@@ -15,7 +15,7 @@ HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 # all .o files in hal lib
 HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(basename $(cpp)).o)
 
-PROGRAMS = train-wave-direction mouse_1d reward-punish control stim_removal
+PROGRAMS = train-wave-direction mouse_1d reward-punish stim_removal controller-test
 
 all : dir $(PROGRAMS)
 
@@ -36,8 +36,11 @@ mouse_1d: $(SRC)/mouse_1d.o $(HAL_O)
 reward-punish: $(SRC)/closed_loop_rp.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-control: $(SRC)/control.o $(HAL_O)
+controller-test: $(SRC)/controller-test.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+
+# control: $(SRC)/control.o $(HAL_O)
+	# $(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 stim_removal: $(SRC)/rp_stim_removal.o $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
