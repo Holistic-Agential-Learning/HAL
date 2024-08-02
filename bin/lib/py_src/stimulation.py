@@ -17,7 +17,6 @@ FPS = 20000
 class ArbitraryStimulation:
     """
     A class that holds any stimulation that could be passed to the MaxLab system. Initialized with a list of ``ApiObject``. 
-    It remains unclear whether the sample rate is always 20000 samples per second when generating stimuli, regardless of the system being used.
 
     :param token: The unique token identifying the sequence
     :type token: ``str``
@@ -119,7 +118,7 @@ class Stimulation(ArbitraryStimulation):
         :type pulse_train_interval: ``float``, optional
 
         :param stim_units: List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
-                IF THIS IS USED, ENSURE THAT ALL STIM_UNITS ARE POWERED OFF TO BEGIN WITH.
+                If this is used, ensure that all stimulation units are powered off to begin with.
         :type stim_units: ``Optional[List[int]]``, optional
 
         :param well: The well number, used for Events, defaults to 0

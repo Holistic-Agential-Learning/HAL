@@ -2,7 +2,7 @@
 import sys
 import os
 sys.path.append(os.path.dirname(__file__) + "/..")
-from typing import List, Iterable
+from typing import List, Iterable, Dict
 from pathlib import Path
 
 
@@ -16,7 +16,7 @@ import numpy as np
 
 
 import maxlab as mx
-from bin.lib.py_src.stimulation import *
+from stimulation import *
 
 import matplotlib.pyplot as plt
 
@@ -26,20 +26,25 @@ from h5py import File
 
 
 class ObjectDistanceParams:
-    def __init__(self, world_size: int, amplitudes: list = [], phases: list = [], pulses_per_train: list = [], num_trains: list = [], pulse_intervals: list = [], pulse_train_intervals: list = []):
-        """Stores how stimulus parameters change with distance. 
-            If distance is greater than the length of a given parameter list, the parameter value defaults to 0.
-            If any argument 
+    def __init__(self, world_size: int, amplitudes: List[float] | float = [], phases: List[float] | float  = [], pulses_per_train: List[int] | int  = [], num_trains: List[int] | int  = [], pulse_intervals: List[float] | float  = [], pulse_train_intervals: List[float] | float  = []):
+        """Stores parameters for stimuli delivered to an embodied culture in a 1D world.
 
-        Args:
-            world_size(int): the maximum distance that can be observed in the world. Safest to just use the size of the world.
-            amplitudes (_type_): _description_
-            phases (_type_): _description_
-            pulses_per_train (_type_): _description_
-            num_trains (_type_): _description_
-            pulse_intervals (_type_): _description_
-            pulse_train_intervals (_type_): _description_
+        :param world_size: The maximum distance observable by the culture in a 1D world.
+        :type world_size: int
+        :param amplitudes: A list of amplitudes of stim pulses for each unit away an object of interest is, in mV. If a float is passed, the same amplitude is used for all distances. defaults to []
+        :type amplitudes: List[float] | float, optional
+        :param phases: A list of phases of stim pulses for each unit away an object of interest is, in us. If a float is passed, the same phase is used for all distances. defaults to []
+        :type phases: List[float] | float, optional
+        :param pulses_per_train: A list of pulses per train of stimuli for each unit away an object of interest is. If an int is passed, the same number of pulses per train is used for all distances. defaults to []
+        :type pulses_per_train: List[int] | int, optional
+        :param num_trains: A list of numbers of trains of stimuli for each unit away an object of interest is. If an int is passed, the same number of number of trains is used for all distances. defaults to []
+        :type num_trains: List[int] | int, optional
+        :param pulse_intervals: A list of pulse intervals for each stimuli for each unit away an object of interest is. If a float is passed, the same pulse interval is used for all distances. defaults to []
+        :type pulse_intervals: List[float] | float, optional
+        :param pulse_train_intervals: A list of pulse train intervals for each stimuli for each unit away an object of interest is. If a float is passed, the same pulse train interval is used for all distances. defaults to []
+        :type pulse_train_intervals: List[float] | float, optional
         """
+
         def assign_list_num(size, list_or_num):
             ret = [0] * size
             if not isinstance(list_or_num, Iterable):
@@ -60,18 +65,19 @@ class ObjectDistanceParams:
 
 #parameters for stimulations:
     #amplitude, phase, pulses_per_train, num_trains, pulse_interval, pulse_train_interval
-def build_distance_stimuli(world: str, object_distance_params: dict, maxtwo: bool = False, well: int = 0)->List[ArbitraryStimulation]:
+def build_distance_stimuli(world: str, object_distance_params: Dict[str, ObjectDistanceParams], maxtwo: bool = False, well: int = 0)->List[ArbitraryStimulation]:
     """Function to create Sequences for every single position in the world. Stores sequences with tokens of the form f"loc{i}_distance".
 
-    Args:
-        world (str): A string representing the 1D world.
-        objects (dict): A dictionary of stimulus parameters.
-        maxtwo (bool, optional): Whether or not the code is being run on the MaxTwo. Defaults to False.
-        well (int, optional): The well number. Defaults to 0.
-        list_mode (bool, optional): Whether or not to output a list instead of a sequence. Defaults to False.
-    
-    Returns:
-        list of sequences, indexed by the location in the world.
+    :param world: A string representing the 1D world.
+    :type world: ``str``
+    :param object_distance_params: A dictionary of ObjectDistanceParams, each indexed by its corresponding "location of interest" in the world.
+    :type object_distance_params: ``dict``
+    :param maxtwo: Whether or not the code is being run on the MaxTwo, defaults to False
+    :type maxtwo: ``bool``, optional
+    :param well: The well number. Defaults to 0.
+    :type well: ``int``, optional
+    :return: list of Stimulation sequences, indexed by the location in the world.
+    :rtype: ``List[ArbitraryStimulation]``
     """
     #each stimulus 
     stimuli = list()
