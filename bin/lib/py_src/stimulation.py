@@ -103,7 +103,7 @@ class Stimulation(ArbitraryStimulation):
         :param amplitude: Amplitude of biphasic pulse, in mV. Suggested values between 0 and 1000. Defaults to 100.
         :type amplitude: ``float``, optional
 
-        :param phase: Stimulation pulse phase duration (half of a period), in us. Suggested values between 100 and 1000. Defaults to 500.
+        :param phase: Stimulation pulse phase duration (half of a square wave), in us. Suggested values between 100 and 1000. Defaults to 500.
         :type phase: ``float``, optional
 
         :param pulses_per_train: number of pulses per train. Defaults to 10.
@@ -147,74 +147,60 @@ class Stimulation(ArbitraryStimulation):
         
     
     @classmethod
-    def from_frequency(cls, token: str, dac_source: int, frequency: float, duration: float, amplitude: float = 100, num_trains: int = 1, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, maxtwo: bool = False, well = 0) -> Self:
+    def from_frequency(cls, token: str, dac_source: int, frequency: float, duration: float, amplitude: float = 100, phase: float = 500, num_trains: int = 1, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, well = 0) -> Self:
         """
-        _summary_
+        Constructor method. Creates a regular stimulation of a given frequency. Phase can be customized, but is restricted to being at a rate that enables the desired frequency.
 
-        :param token: _description_
-        :type token: str
-        :param dac_source: _description_
-        :type dac_source: int
-        :param frequency: _description_
-        :type frequency: float
-        :param duration: _description_
-        :type duration: float
-        :param amplitude: _description_, defaults to 100
-        :type amplitude: float, optional
-        :param num_trains: _description_, defaults to 1
-        :type num_trains: int, optional
-        :param pulse_train_interval: _description_, defaults to 1
-        :type pulse_train_interval: float, optional
-        :param stim_units: _description_, defaults to None
-        :type stim_units: Optional[List[int]], optional
-        :param maxtwo: _description_, defaults to False
-        :type maxtwo: bool, optional
-        :param well: _description_, defaults to 0
-        :type well: int, optional
-        :return: _description_
-        :rtype: Self
-        """
-
-
-        """constructor method, using frequency and duration instead of phase and pulses per train.
-
-        Args:
-            token (str): unique identifier
-            dac_source (int): The DAC channel to send signals to. Must be 0, 1, or 2 to send to a single DAC channel.
-            frequency (float): Stimulation frequency, in Hz.
-            duration (float): How long the stimulus should last (for a single train), in s.
-            amplitude (float, optional): Amplitude of oscillation, in mV. Suggested value between 0 and 1000. Defaults to 100.
-            num_trains (int, optional): Number of pulse trains. Defaults to 1.
-            pulse_train_interval (float, optional): Time between pulse trains, in s. Defaults to 1.
-            stim_units (list, optional): List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
+        :param token: Unique identifier
+        :type token: ``str``
+        :param dac_source:  The DAC channel to send signals to. Must be 0, 1, or 2.
+        :type dac_source: ``int``
+        :param frequency: The frequency of the stimulation, in Hz.
+        :type frequency: ``float``
+        :param duration: How long the stimulus should last (for a single train), in s.
+        :type duration: ``float``
+        :param amplitude: Amplitude of biphasic pulse, in mV. Suggested values between 0 and 1000. Defaults to 100.
+        :type amplitude: ``float``, optional
+        :param phase: Stimulation pulse phase duration (half of a period), in us. Suggested values between 100 and 1000. Defaults to 500. Must be less than than 5,000/frequency.
+        :type phase: ``float``, optional
+        :param num_trains: Number of pulse trains. Defaults to 1.
+        :type num_trains: ``int``, optional
+        :param pulse_train_interval:  Time between pulse trains, in s. Suggested values between 0.01 and 10. Defaults to 1.
+        :type pulse_train_interval: ``float``, optional
+        :param stim_units: List of stimulation stim_units. Must have a length of less than 32. If None, just sends stimuli to the desired DAC channel. Otherwise, powering on and off stim units is included in the sequence.
                 IF THIS IS USED, ENSURE THAT ALL STIM_UNITS ARE POWERED OFF TO BEGIN WITH.
-
-        Returns:
-            Self: A Stimulation object.
+        :type stim_units: ``Optional[List[int]]``, optional
+        :param well: The well number, used for Events, defaults to 0
+        :type well: ``int``, optional
+        :return: A Stimulation object representing the stimulus pattern.
+        :rtype: ``Self``
         """
-        phase = (5*10**5/frequency) #in microseconds. 10^6 microseconds in 1 second, divided by 2 because phase is half of a period
+
+        assert phase < (5*10**5/frequency), "Phase must be less than half of the period, determined by the frequency value passed in." #in microseconds. 10^6 microseconds in 1 second, divided by 2 because phase is half of a period
+        pulse_interval = 1000/frequency - 2 * phase/1000
+        
         pulses_per_train = duration * frequency
 
 
-        return Stimulation(token, dac_source, amplitude = amplitude, phase = phase, pulses_per_train = pulses_per_train, num_trains = num_trains, pulse_interval = 0, pulse_train_interval = pulse_train_interval, stim_units = stim_units, well = well, maxtwo = maxtwo)
+        return Stimulation(token, dac_source, amplitude = amplitude, phase = phase, pulses_per_train = pulses_per_train, num_trains = num_trains, pulse_interval = pulse_interval, pulse_train_interval = pulse_train_interval, stim_units = stim_units, well = well)
 
     
 
 
     def _create_stim_pulse(seq: mx.Sequence | List[ApiObject], amplitude: float, phase: int, dac_source: int) -> mx.Sequence | List[ApiObject]:   
         """
-        _summary_
+        Puts together ther ``ApiObject``s that correspond to a pulse of a given amplitude.
 
-        :param seq: _description_
-        :type seq: mx.Sequence | List[ApiObject]
-        :param amplitude: _description_
-        :type amplitude: float
-        :param phase: _description_
-        :type phase: int
-        :param dac_source: _description_
-        :type dac_source: int
-        :return: _description_
-        :rtype: mx.mx.Sequence | List[ApiObject]
+        :param seq: The sequence to append the stim pulse to.
+        :type seq: ``mx.Sequence | List[ApiObject]``
+        :param amplitude: The amplitude of the pulse.
+        :type amplitude: ``float``
+        :param phase: The phase of the stimulation, in frames (NOT us)
+        :type phase: ``int``
+        :param dac_source: The DAC channel to send signals to.
+        :type dac_source: ``int``
+        :return: The corresponding ``Sequence`` or ``List[ApiObject]`` with the stim pulse appended.
+        :rtype: ``mx.Sequence | List[ApiObject]``
         """
         try:
             dac_lsb_mV = float(mx.query_DAC_lsb_mV())
@@ -231,13 +217,11 @@ class Stimulation(ArbitraryStimulation):
     
     
     def _create_sequence_list(self) -> List[ApiObject]:
-        """Create a stim sequence for the given Stimulation pattern.
+        """
+        Create a stim sequence for the given ``Stimulation`` pattern, in list form.
 
-        Args:
-            seq (Sequence, list): an empty Sequence or list.
-
-        Returns:
-            The sequence, in whatever type seq is.
+        :return: The sequence as a list of ``ApiObject``s.
+        :rtype: ``List[ApiObject]``
         """
         global event_number
         seq = list()
