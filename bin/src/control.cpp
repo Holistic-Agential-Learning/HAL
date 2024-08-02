@@ -148,6 +148,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     cout << "Finished controller initialization" << endl;
 
+    ChannelWindow *winA = controller.getButtonWindow("A");
+    ChannelWindow *winB = controller.getButtonWindow("B");
+
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
@@ -187,12 +190,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         ////////////////////////////////////////////////////////////////////////
-        ChannelWindow *winA = controller.getButtonWindow("A");
+        
 
         if (winA->pastWindowsReady()) {
-            //
-            
-            ChannelWindow *winB = controller.getButtonWindow("B");
 
             float firingRateAvgA = winA->avgPastWindows();
             float firingRateAvgB = winB->avgPastWindows();
@@ -202,6 +202,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateB = winB->firingRate();
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
             // data << i << ": " << fano << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
+
             if (fano > 0.5 && !withinSD(2, firingRateAvgA, sdA, firingRateA)) {
                 // A is firing more than B
                 cout << "rewarding..." << endl;

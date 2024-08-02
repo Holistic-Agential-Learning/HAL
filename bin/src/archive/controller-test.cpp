@@ -42,6 +42,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 int get_max_element(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
+void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
 
 /* signal_interrupt_handler
  * 
@@ -142,6 +143,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     cout << "Finished controller initialization" << endl;
 
+    ChannelWindow *winA = controller.getButtonWindow("A");
+    ChannelWindow *winB = controller.getButtonWindow("B");
+
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
@@ -181,23 +185,28 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         ////////////////////////////////////////////////////////////////////////
-        ChannelWindow *winA = controller.getButtonWindow("A");
+        
 
-        if (winA->pastWindowsReady()) {
-            //
-            
-            ChannelWindow *winB = controller.getButtonWindow("B");
+        if (winA->pastWindowsReady() && winB->pastWindowsReady()) {
+            float firingRateAvgA = winA->avgPastWindows();
+            float firingRateAvgB = winB->avgPastWindows();
+            float sdA = winA->firingRateSD();
+            float sdB = winB->firingRateSD();
+            float firingRateA = winA->firingRate();
+            float firingRateB = winB->firingRate();
+            float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
-            float firingRateA = winA->avgPastWindows();
-            float firingRateB = winB->avgPastWindows();
-            float devA = winA->stdDev();
-            float devB = winB->stdDev();
-            float ratio = firingRateA / firingRateB;
-            // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
-            if (ratio > 1.1) {
-                data << i << ": A, " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
-            } else if (ratio < 0.9) {
-                data << i << ": B, " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
+            // Button A was pressed
+            if (fano > 0.5 && !withinSD(2, firingRateAvgA, sdA, firingRateA)) {
+
+                printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
+
+            // Button B was pressed
+            } else if (fano < -0.5 && !withinSD(2, firingRateAvgB, sdB, firingRateB)) {
+                
+                printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
             } 
         }
 
@@ -205,12 +214,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         // stimulate config A every second that's a multiple of 10
         if (i % (FRAMES_PER_SEC * 10) == 0) {
-            data << i << ": Stimulating A..." << endl;
+            data << i << ": Pressing A..." << endl;
             maxlab::verifyStatus(maxlab::sendSequence("A"));
 
         // stimulation config B every second that's a multiple of 5 (but not 10)
         } else if (i % (FRAMES_PER_SEC * 5) == 0) {
-            data << i << ": Stimulating B..." << endl;
+            data << i << ": Pressing B..." << endl;
             maxlab::verifyStatus(maxlab::sendSequence("B"));
         }
     } 
@@ -218,6 +227,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     data.close();
+}
+
+void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
+    *data << frameNo << ": " << ab << ", " << ratio << ",";
+    *data << valA << "," << avgA << "," << sdA << ",";
+    *data << valB << "," << avgB << "," << sdB << endl;
 }
 
 float framesToSeconds(int frames) {
