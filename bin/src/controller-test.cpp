@@ -220,11 +220,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         // stimulate config A every second that's a multiple of 10
         if (i % (FRAMES_PER_SEC * 10) == 0) {
             data << i << ": Pressing A..." << endl;
+            cout << "Pressing A" << endl
             maxlab::verifyStatus(maxlab::sendSequence("A"));
 
         // stimulation config B every second that's a multiple of 5 (but not 10)
         } else if (i % (FRAMES_PER_SEC * 5) == 0) {
             data << i << ": Pressing B..." << endl;
+            cout << "Pressing B" << endl;
             maxlab::verifyStatus(maxlab::sendSequence("B"));
         }
     } 

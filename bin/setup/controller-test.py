@@ -28,31 +28,6 @@ a_and_b = [
     "/home/mxwbio/configs/240802/buttonB.cfg"
 ]
 
-
-# load recording electrodes and stimulation electrodes
-def config_electrodes(electrode_config, stim_electrodes):
-    
-    # recording electrodes config file
-    array = mx.Array("stimulation")
-    array.load_config(electrode_config)
-
-    array.reset()
-    # array.clear_selected_electrodes()
-    # array.select_electrodes()
-    array.select_stimulation_electrodes(stim_electrodes)
-    array.route()
-
-    return array
-
-# create stimulation pulse (from maxlab tutorial page)
-def create_stim_pulse(seq: mx.Sequence, amplitude: int, phase: int) -> mx.Sequence:
-    seq.append(mx.DAC(0, 512 - amplitude))
-    seq.append(mx.DelaySamples(phase))
-    seq.append(mx.DAC(0, 512 + amplitude))
-    seq.append(mx.DelaySamples(phase))
-    seq.append(mx.DAC(0, 512))
-    return seq
-
 def merge_configs(configs):
     s = set()
     for config in configs:
@@ -101,7 +76,6 @@ if __name__ == '__main__':
         #     array.select_stimulation_electrodes(stim_electrodes)
         
         array.route()
-        # array = config_electrodes("configs/test_config.cfg", stim_electrodes)
 
         # stimulation setup here 
         if does_stimulations:
