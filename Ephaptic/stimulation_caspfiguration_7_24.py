@@ -32,7 +32,7 @@ from datetime import datetime
 
 
 t = datetime.now()
-date_string = t.strftime('%d%m%Y')
+date_string = t.strftime('%y%m%d')
 
 
 ################################################################################

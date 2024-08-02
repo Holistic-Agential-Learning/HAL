@@ -32,7 +32,7 @@ from datetime import datetime
 
 
 t = datetime.now()
-date_string = t.strftime('%d%m%Y')
+date_string = t.strftime('%y%m%d')
 
 
 ################################################################################
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     
     s = mx.Saving()
     s.open_directory(recording_dir)
-    s.start_file(file_name + "_control_" + date_string) 
+    s.start_file(file_name + "_control_sub_100mV_" + date_string) 
 
     for well in wells:
         s.group_define(well, "all_channels", list(range(1024)))
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     
     s = mx.Saving()
     s.open_directory(recording_dir)
-    s.start_file(file_name+ "_50hz_"  + date_string) 
+    s.start_file(file_name+ "_50hz_sub_100mV_"  + date_string) 
 
     for well in wells:
         s.group_define(well, "all_channels", list(range(1024)))
@@ -389,7 +389,7 @@ if __name__ == "__main__":
     
     s = mx.Saving()
     s.open_directory(recording_dir)
-    s.start_file(file_name+ "_100hz_"  + date_string) 
+    s.start_file(file_name+ "_100hz_sub_100mV_"  + date_string) 
 
     for well in wells:
         s.group_define(well, "all_channels", list(range(1024)))
