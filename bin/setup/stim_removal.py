@@ -33,7 +33,7 @@ STIM_ELECTRODES = {
     4: [4653,5249,21971,23571],
     5: [6009,6965,19317,19655]
 }
-MINUTES = 60
+MINUTES = 1
 THRESH = 0.1
 STIM_RATE = 5 #stims per second?
 
@@ -68,22 +68,6 @@ if __name__ == '__main__':
         well_data[well] = hal.get_file_names(well, file_name, trial_path)
 
         array.save_config(well_data[well]["CFG"])
-
-        program_args = [f"./bin/build/stim_removal", "2>", "ERR_LOG", "--config", well_data[well]["CFG"], "--folder", well_data[well]["CFG"], "--pulse_duration", str(duration)]
-        if exp_args['-MAXTWO-']:
-            program_args.append("--maxtwo")
-        
-        #TODO: put them on top to change from run to run
-        program_args.append("--threshold")
-        program_args.append(str(THRESH))
-        program_args.append("--minutes")
-        program_args.append(str(MINUTES))
-        program_args.append("--well")
-        program_args.append(str(well))
-        program_args.append("--stim_rate")
-        program_args.append(str(STIM_RATE))
-
-        well_data[well]["ARGS"] = program_args
         
         ############################################################################
 
@@ -97,6 +81,22 @@ if __name__ == '__main__':
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         hal.build_training_sequences(well)
+        
+        program_args = [f"./bin/build/stim_removal", "2>", "ERR_LOG", "--config", well_data[well]["CFG"], "--folder", well_data[well]["REC_DIR"], "--pulse_duration", str(duration)]
+        if exp_args['-MAXTWO-']:
+            program_args.append("--maxtwo")
+
+        #TODO: put them on top to change from run to run
+        program_args.append("--threshold")
+        program_args.append(str(THRESH))
+        program_args.append("--minutes")
+        program_args.append(str(MINUTES))
+        program_args.append("--well")
+        program_args.append(str(well))
+        program_args.append("--stim_rate")
+        program_args.append(str(STIM_RATE))
+
+        well_data[well]["ARGS"] = program_args
 
         #############################################################################
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         mx.set_primary_well(well)
         
         s = mx.Saving()
-        s.open_directory(well_data[well]["DIR"])
+        s.open_directory(well_data[well]["REC_DIR"])
         s.start_file(well_data[well]["REC_FILE"])
 
         #Write metadata
