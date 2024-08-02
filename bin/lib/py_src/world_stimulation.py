@@ -26,24 +26,25 @@ from h5py import File
 
 
 class ObjectDistanceParams:
-    def __init__(self, world_size: int, amplitudes: List[float] | float = [], phases: List[float] | float  = [], pulses_per_train: List[int] | int  = [], num_trains: List[int] | int  = [], pulse_intervals: List[float] | float  = [], pulse_train_intervals: List[float] | float  = []):
-        """Stores parameters for stimuli delivered to an embodied culture in a 1D world.
+    """Stores parameters for stimuli delivered to an embodied culture in a 1D world.
 
         :param world_size: The maximum distance observable by the culture in a 1D world.
-        :type world_size: int
-        :param amplitudes: A list of amplitudes of stim pulses for each unit away an object of interest is, in mV. If a float is passed, the same amplitude is used for all distances. defaults to []
-        :type amplitudes: List[float] | float, optional
-        :param phases: A list of phases of stim pulses for each unit away an object of interest is, in us. If a float is passed, the same phase is used for all distances. defaults to []
-        :type phases: List[float] | float, optional
-        :param pulses_per_train: A list of pulses per train of stimuli for each unit away an object of interest is. If an int is passed, the same number of pulses per train is used for all distances. defaults to []
-        :type pulses_per_train: List[int] | int, optional
-        :param num_trains: A list of numbers of trains of stimuli for each unit away an object of interest is. If an int is passed, the same number of number of trains is used for all distances. defaults to []
-        :type num_trains: List[int] | int, optional
-        :param pulse_intervals: A list of pulse intervals for each stimuli for each unit away an object of interest is. If a float is passed, the same pulse interval is used for all distances. defaults to []
-        :type pulse_intervals: List[float] | float, optional
-        :param pulse_train_intervals: A list of pulse train intervals for each stimuli for each unit away an object of interest is. If a float is passed, the same pulse train interval is used for all distances. defaults to []
-        :type pulse_train_intervals: List[float] | float, optional
+        :type world_size: ``int``
+        :param amplitudes: A list of amplitudes of stim pulses for each unit away an object of interest is, in mV. If a float is passed, the same amplitude is used for all distances. defaults to ``[]``
+        :type amplitudes: ``List[float] | float``, optional
+        :param phases: A list of phases of stim pulses for each unit away an object of interest is, in us. If a float is passed, the same phase is used for all distances. defaults to ``[]``
+        :type phases: ``List[float] | float``, optional
+        :param pulses_per_train: A list of pulses per train of stimuli for each unit away an object of interest is. If an int is passed, the same number of pulses per train is used for all distances. defaults to ``[]``
+        :type pulses_per_train: ``List[int] | int``, optional
+        :param num_trains: A list of numbers of trains of stimuli for each unit away an object of interest is. If an int is passed, the same number of number of trains is used for all distances. defaults to ``[]``
+        :type num_trains: ``List[int] | int``, optional
+        :param pulse_intervals: A list of pulse intervals for each stimuli for each unit away an object of interest is. If a float is passed, the same pulse interval is used for all distances. defaults to ``[]``
+        :type pulse_intervals: ``List[float] | float``, optional
+        :param pulse_train_intervals: A list of pulse train intervals for each stimuli for each unit away an object of interest is. If a float is passed, the same pulse train interval is used for all distances. defaults to ``[]``
+        :type pulse_train_intervals: ``List[float] | float``, optional
         """
+    def __init__(self, world_size: int, amplitudes: List[float] | float = [], phases: List[float] | float  = [], pulses_per_train: List[int] | int  = [], num_trains: List[int] | int  = [], pulse_intervals: List[float] | float  = [], pulse_train_intervals: List[float] | float  = []):
+        
 
         def assign_list_num(size, list_or_num):
             ret = [0] * size
@@ -70,13 +71,13 @@ def build_distance_stimuli(world: str, object_distance_params: Dict[str, ObjectD
 
     :param world: A string representing the 1D world.
     :type world: ``str``
-    :param object_distance_params: A dictionary of ObjectDistanceParams, each indexed by its corresponding "location of interest" in the world.
+    :param object_distance_params: A dictionary of ``ObjectDistanceParams``, each indexed by its corresponding "location of interest" in the world.
     :type object_distance_params: ``dict``
-    :param maxtwo: Whether or not the code is being run on the MaxTwo, defaults to False
+    :param maxtwo: Whether or not the code is being run on the MaxTwo, defaults to ``False``
     :type maxtwo: ``bool``, optional
-    :param well: The well number. Defaults to 0.
+    :param well: The well number. Defaults to ``0``.
     :type well: ``int``, optional
-    :return: list of Stimulation sequences, indexed by the location in the world.
+    :return: list of ``Stimulation`` sequences, indexed by the location in the world.
     :rtype: ``List[ArbitraryStimulation]``
     """
     #each stimulus 
