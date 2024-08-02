@@ -4,7 +4,22 @@ import shutil
 from typing import List
 import maxlab as mx
 
-# def save_well_data(trial_path: str, )
+def get_file_names(well_no: int, experiment_name: str, trial_path: str):
+    """_summary_
+
+    :param well_no: _description_
+    :type well_no: int
+    :param experiment_name: _description_
+    :type experiment_name: str
+    :param trial_path: _description_
+    :type trial_path: str
+    """
+    ret = {}
+    ret["REC_DIR"] = f"{trial_path}/well{well_no}"
+    ret["CFG"] = f"{ret['REC_DIR']}/{experiment_name}_well_{well_no}_config.cfg"
+    ret["REC_FILE"] = f"{experiment_name}_well_{str(well_no)}"
+
+    return ret
 
 def build_training_sequences(well_no: int):
     """Builds general event sequences: before-training (ID: 2), training

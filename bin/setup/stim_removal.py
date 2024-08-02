@@ -55,29 +55,35 @@ if __name__ == '__main__':
         wells = exp_args['WELLS']
     else:
         wells = [0]
+
+    file_name = exp_args["NAME"]
     
-    
+    well_data = {}
     for well in wells:
         rec_electrodes = exp_args["CONFIGS"][str(well)]["E_NUMS"]
         does_stimulations = True
 
         array = hal.init_well(well, rec_electrodes, STIM_ELECTRODES[well])
 
-        ############################################################################
+        well_data[well] = hal.get_file_names(well, file_name, trial_path)
 
-        directory_name = f"{trial_path}/well{well}"
-        file_name = exp_args["NAME"]  # <-- THIS NEEDS TO BE CHANGED !!!!
+        array.save_config(well_data[well]["CFG"])
 
-        config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
+        program_args = [f"./bin/build/stim_removal", "2>", "ERR_LOG", "--config", well_data[well]["CFG"], "--folder", directory_name, "--pulse_duration", str(duration)]
+        if exp_args['-MAXTWO-']:
+            program_args.append("--maxtwo")
+        
+        #TODO: put them on top to change from run to run
+        program_args.append("--threshold")
+        program_args.append(str(THRESH))
+        program_args.append("--minutes")
+        program_args.append(str(MINUTES))
+        program_args.append("--well")
+        program_args.append(str(well))
+        program_args.append("--stim_rate")
+        program_args.append(str(STIM_RATE))
 
-        print(config_file_name)
-
-        array.save_config(config_file_name)
-
-
-    for well in wells:
-        directory_name = f"{trial_path}/well{well}"
-        config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
+        well_data[well]["ARGS"] = program_args
 
         mx.activate([well])
         mx.set_primary_well(well)
@@ -96,33 +102,18 @@ if __name__ == '__main__':
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         hal.build_training_sequences(well)
 
-        ##############################################################################
+        #############################################################################
 
-        program_args = [f"./bin/build/stim_removal", "2>", "ERR_LOG", "--config", config_file_name, "--folder", directory_name, "--pulse_duration", str(duration)]
-        if exp_args['-MAXTWO-']:
-            program_args.append("--maxtwo")
+    for well in wells:
         
-        #TODO: put them on top to change from run to run
-        program_args.append("--threshold")
-        program_args.append(str(THRESH))
-        program_args.append("--minutes")
-        program_args.append(str(MINUTES))
-        program_args.append("--well")
-        program_args.append(str(well))
-        program_args.append("--stim_rate")
-        program_args.append(str(STIM_RATE))
-
-        
-
         s = mx.Saving()
-        s.open_directory(directory_name)
-        s.start_file(file_name + "_well_" + str(well))
+        s.open_directory(well_data[well]["DIR"])
+        s.start_file(well_data[well]["REC_FILE"])
 
         #Write metadata
         hal.write_exp_description(s, f"Removal of noxious stimuli to train burst direction. Stim frequency: {STIM_RATE} Hz. Threshold: {THRESH}. Time: {MINUTES} mins.")
         hal.write_stim_electrodes(s, STIM_ELECTRODES[well])
-        hal.write_closed_loop_args(s, program_args)
-
+        hal.write_closed_loop_args(s, well_data[well]["ARGS"])
 
         s.group_delete_all()
         
@@ -137,7 +128,7 @@ if __name__ == '__main__':
 
         mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
         try:
-            subprocess.run(program_args)
+            subprocess.run(well_data[well]["ARGS"])
         except KeyboardInterrupt:
             print("start-maxlab.py: ^C signalled")
         except Exception as err:
