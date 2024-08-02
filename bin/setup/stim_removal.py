@@ -39,7 +39,7 @@ STIM_RATE = 5 #stims per second?
 
 
 if __name__ == '__main__':
-    print("running start-maxlab...")
+    print(f"running {__file__}...")
     if len(sys.argv) > 1:
         f = open(sys.argv[1], "r")
         exp_args = json.load(f)
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
         array.save_config(well_data[well]["CFG"])
 
-        program_args = [f"./bin/build/stim_removal", "2>", "ERR_LOG", "--config", well_data[well]["CFG"], "--folder", directory_name, "--pulse_duration", str(duration)]
+        program_args = [f"./bin/build/stim_removal", "2>", "ERR_LOG", "--config", well_data[well]["CFG"], "--folder", well_data[well]["CFG"], "--pulse_duration", str(duration)]
         if exp_args['-MAXTWO-']:
             program_args.append("--maxtwo")
         
@@ -84,10 +84,6 @@ if __name__ == '__main__':
         program_args.append(str(STIM_RATE))
 
         well_data[well]["ARGS"] = program_args
-
-        mx.activate([well])
-        mx.set_primary_well(well)
-
         
         ############################################################################
 
@@ -105,6 +101,8 @@ if __name__ == '__main__':
         #############################################################################
 
     for well in wells:
+        mx.activate([well])
+        mx.set_primary_well(well)
         
         s = mx.Saving()
         s.open_directory(well_data[well]["DIR"])
