@@ -200,15 +200,17 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
             // Button A was pressed
-            if (fano > 0.5 && !withinSD(2, firingRateAvgA, sdA, firingRateA)) {
+            if (fano > 0.5 && !withinSD(3, firingRateAvgA, sdA, firingRateA)) {
 
                 printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                data << "Detected press from A" << endl;
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
             // Button B was pressed
-            } else if (fano < -0.5 && !withinSD(2, firingRateAvgB, sdB, firingRateB)) {
+            } else if (fano < -0.5 && !withinSD(3, firingRateAvgB, sdB, firingRateB)) {
                 
                 printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                data << "Detected press from B" << endl;
                 maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
             } 
         }
@@ -244,7 +246,7 @@ bool withinSD(float levels, float avg, float sd, float value) {
     float upper = avg + (levels * sd);
     float lower = avg - (levels * sd);
 
-    return (value <= upper && value >= lower);
+    return (value <= upper);
 }
 
 void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {

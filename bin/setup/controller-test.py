@@ -24,8 +24,8 @@ import bin.lib.py_src.hal as hal
 
 rec_electrodes = []
 a_and_b = [
-    "/home/mxwbio/configs/240723/configA.cfg",
-    "/home/mxwbio/configs/240723/config.cfg"
+    "/home/mxwbio/configs/240802/buttonA.cfg",
+    "/home/mxwbio/configs/240802/buttonB.cfg"
 ]
 
 
@@ -69,15 +69,17 @@ if __name__ == '__main__':
     wells = [0]
     file_name = "controller-test"
 
+    stim_a = [13117,17437]
+    stim_b = []
 
-    trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data", file_name, 123456, [0])
+
+    trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data", file_name, 16365, [0])
     
     for well in wells:
         mx.activate([well])
         mx.set_primary_well(well)
 
         # stim_electrodes = exp_args["E_SELECTED"]
-        stim_electrodes = [13117,17437]
         rec_electrodes = merge_configs(a_and_b)
         
         does_stimulations = True
@@ -94,7 +96,7 @@ if __name__ == '__main__':
         if not does_stimulations:
             print("not doing stimulations")
             stim_electrodes = []
-        array.select_electrodes(stim_electrodes + rec_electrodes)
+        array.select_electrodes(stim_a + stim_b + rec_electrodes)
         # if does_stimulations:
         #     array.select_stimulation_electrodes(stim_electrodes)
         
@@ -103,24 +105,8 @@ if __name__ == '__main__':
 
         # stimulation setup here 
         if does_stimulations:
-            stimulation_units = []
-            for stim_el in stim_electrodes:
-                array.connect_electrode_to_stimulation(stim_el)
-                stim = array.query_stimulation_at_electrode(stim_el)
-                if len(stim) == 0:
-                    raise RuntimeError(
-                        f"No stimulation channel can connect to electrode: \
-                            {str(stim_el)}"
-                    )
-                stim_unit_int = int(stim)
-                if stim_unit_int in stimulation_units:
-                    raise RuntimeError(
-                        f"Two electrodes connected to the same stim unit.\
-                                    This is not allowed. Please Select a \
-                                        neighboring electrode of {stim_el}!"
-                    )
-                else:
-                    stimulation_units.append(stim_unit_int)
+            stimulation_units_a = hal.connect_stim_units_to_stim_electrodes(stim_a, array)
+            stimulation_units_b = hal.connect_stim_units_to_stim_electrodes(stim_b, array)
 
 
         directory_name = f"{trial_path}/well{well}"
@@ -139,13 +125,13 @@ if __name__ == '__main__':
         mx.clear_events() 
 
         if does_stimulations:
-            for stimulation_unit in stimulation_units:
-                stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
-                mx.send(stimulation)
+            hal.power_up_stim_units(stimulation_units_a)
+            hal.power_up_stim_units(stimulation_units_b)
 
-        stimA = Stimulation("A", 0, 10, 500, 10, 1, 1, 1, well = well) 
+
+        stimA = Stimulation("A", 0, 20, 500, 10, 1, 1, 1, well = well) 
         stimA.build_sequence()
-        stimB = Stimulation("B", 1, 10, 500, 10, 1, 1, 1, well = well)
+        stimB = Stimulation("B", 1, 20, 500, 10, 1, 1, 1, well = well)
         stimB.build_sequence()
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
@@ -177,7 +163,7 @@ if __name__ == '__main__':
 
         ##############################################################################
 
-        program_args = ["./bin/build/control", "--folder", directory_name]
+        program_args = ["./bin/build/controller-test", "--folder", directory_name]
 
         for i in range(len(a_and_b)):
             program_args.append(f"--config{i}")
@@ -193,6 +179,8 @@ if __name__ == '__main__':
         s.open_directory(directory_name)
         s.start_file(file_name + "_well_" + str(well))
         s.group_delete_all()
+
+        hal.write_exp_description(s, "This program alternates stimulating A and B in order to test the controller class")
         
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
         # s.group_define(0, "smiley", list(range(1024)))
@@ -203,14 +191,13 @@ if __name__ == '__main__':
         
         print("calling c++ script... well" + str(well))
         # This is the command to run (will last as long as the cpp files lasts)
-        # mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
-        # try:
-        #     subprocess.run(program_args)
-        # except KeyboardInterrupt:
-        #     print("start-maxlab.py: ^C signalled")
-        # except Exception as err:
-        #     print(err)
-        time.sleep(60 * 20)
+        mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
+        try:
+            subprocess.run(program_args)
+        except KeyboardInterrupt:
+            print("start-maxlab.py: ^C signalled")
+        except Exception as err:
+            print(err)
 
         mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
 
