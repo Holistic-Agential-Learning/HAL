@@ -125,13 +125,13 @@ if __name__ == '__main__':
         mx.clear_events() 
 
         if does_stimulations:
-            hal.power_up_stim_units(stimulation_units_a)
-            hal.power_up_stim_units(stimulation_units_b)
+            hal.power_up_stim_units(stimulation_units_a, 0)
+            hal.power_up_stim_units(stimulation_units_b, 1)
 
 
-        stimA = Stimulation("A", 0, 20, 500, 10, 1, 1, 1, well = well) 
+        stimA = Stimulation("A", 0, 10, 500, 10, 1, 1, 1, well = well) 
         stimA.build_sequence()
-        stimB = Stimulation("B", 1, 20, 500, 10, 1, 1, 1, well = well)
+        stimB = Stimulation("B", 1, 10, 500, 10, 1, 1, 1, well = well)
         stimB.build_sequence()
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
