@@ -21,12 +21,20 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
 
+# STIM_ELECTRODES = {
+#     0: [2907,4365,22677,23713],
+#     2: [3315,6127,22413,22671]
+# }
 STIM_ELECTRODES = {
-    0: [2907,4365,22677,23713],
-    2: [3315,6127,22413,22671]
+    0: [3319,3919,22243,22845],
+    1: [3757,3929,22411,23115],
+    2: [3765,3941,20483,21977],
+    3: [4213,8323,23285,24017],
+    4: [4653,5249,21971,23571],
+    5: [6009,6965,19317,19655]
 }
 MINUTES = 60
-THRESH = 0.2
+THRESH = 0.1
 STIM_RATE = 5 #stims per second?
 
 
@@ -52,7 +60,6 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well])
         mx.set_primary_well(well)
-
         rec_electrodes = exp_args["CONFIGS"][str(well)]["E_NUMS"]
         
         does_stimulations = True
@@ -94,6 +101,16 @@ if __name__ == '__main__':
         print(config_file_name)
         #save the config prior to running the code
         array.save_config(config_file_name)
+
+
+    for well in wells:
+        directory_name = f"{trial_path}/well{well}"
+        config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
+
+        mx.activate([well])
+        mx.set_primary_well(well)
+
+        
         ############################################################################
 
         mx.offset()
@@ -163,6 +180,12 @@ if __name__ == '__main__':
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name + "_well_" + str(well))
+
+        #Write metadata
+        hal.write_exp_description(s, f"Removal of noxious stimuli to train burst direction. Stim frequency: {STIM_RATE} Hz. Threshold: {THRESH}. Time: {MINUTES} mins.")
+        hal.write_stim_electrodes(s, STIM_ELECTRODES[well])
+
+
         s.group_delete_all()
         
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
