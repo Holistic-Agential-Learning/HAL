@@ -89,13 +89,6 @@ if __name__ == '__main__':
 
         mx.clear_events() 
 
-
-
-        for stimulation_unit in stimulation_units:
-            stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
-            print("Stimulation unit " + str(stimulation_unit) + " routed")
-            mx.send(stimulation)
-
         single_pulse = Stimulation("pulse", 0, 50, 200, 1, 1, 10, 1, well = well)
         duration = single_pulse.get_duration()
         single_pulse.build_sequence(initial_delay = 0)
