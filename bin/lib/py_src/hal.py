@@ -31,19 +31,19 @@ def build_training_sequences(well_no: int):
     :param well_no: well number
     :type well_no: ``int``
     """
-    start_seq = mx.Sequence("before-training", persistent = False)
+    start_seq = mx.Sequence(f"before-training{well_no}", persistent = False)
     del start_seq
-    start_seq = mx.Sequence("before-training", persistent = True)
+    start_seq = mx.Sequence(f"before-training{well_no}", persistent = True)
     start_seq.append(mx.Event(well_no, 1, 2, "before_training 1"))
 
-    train_seq = mx.Sequence("training", persistent = False)
+    train_seq = mx.Sequence(f"training{well_no}", persistent = False)
     del train_seq
-    train_seq = mx.Sequence("training", persistent = True)
+    train_seq = mx.Sequence(f"training{well_no}", persistent = True)
     train_seq.append(mx.Event(well_no, 1, 3, "training 1"))
 
-    end_seq = mx.Sequence("after-training", persistent = False)
+    end_seq = mx.Sequence(f"after-training{well_no}", persistent = False)
     del end_seq
-    end_seq = mx.Sequence("after-training", persistent = True)
+    end_seq = mx.Sequence(f"after-training{well_no}", persistent = True)
     end_seq.append(mx.Event(well_no, 1, 4, "after_training 1"))
 
 def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:

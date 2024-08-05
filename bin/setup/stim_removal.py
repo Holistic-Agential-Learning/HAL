@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
         mx.clear_events() 
 
-        single_pulse = Stimulation("pulse", 0, 50, 200, 1, 1, 10, 1, well = well)
+        single_pulse = Stimulation(f"pulse{well}", 0, 50, 200, 1, 1, 10, 1, well = well)
         duration = single_pulse.get_duration()
         single_pulse.build_sequence(initial_delay = 0)
 

@@ -337,19 +337,19 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
         int spikeCount = window.totalSpikeCount();
 
         if (i == 0){
-            maxlab::verifyStatus(maxlab::sendSequence("before-training"));
+            maxlab::verifyStatus(maxlab::sendSequence("before-training" + str(well)));
             cout << i << ": before training" << endl;
             training = false;
 
         }
         else if (i == (int)((float)(frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("training"));
+            maxlab::verifyStatus(maxlab::sendSequence("training" + str(well)));
             cout << i << ": training" << endl;
             training = true;
             stimVector = generateRandomStim(num_polling_windows, num_stims);
         }
         else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
+            maxlab::verifyStatus(maxlab::sendSequence("after-training" + str(well)));
             cout << i << ": after training" << endl;
             training = false;
         }
@@ -451,7 +451,7 @@ void runExperiment(string path, ElectrodeMap emap, int frames, float threshold, 
 
         //STIMULATE IF APPROPRIATE
         if (stimulate && !bursting){
-            maxlab::verifyStatus(maxlab::sendSequence("pulse"));
+            maxlab::verifyStatus(maxlab::sendSequence("pulse" + str(well)));
             cout << i << ": PULSE SENT" << endl;
             //blanking += int(FRAMES_PER_SEC) / 2 + polling_window_size;
             blanking = int(FRAMES_PER_SEC)/10 +  polling_window_size;
