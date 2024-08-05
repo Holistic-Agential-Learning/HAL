@@ -166,6 +166,9 @@ if __name__ == '__main__':
         s.group_delete_all()
 
         hal.write_exp_description(s, "This program alternates stimulating A and B in order to test the controller class")
+        s.write_assay_property("fano", "0.5")
+        s.write_assay_property("z_score", "3")
+        s.write_assay_property("firing_rate_threshold", "0.5")
         
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
         # s.group_define(0, "smiley", list(range(1024)))

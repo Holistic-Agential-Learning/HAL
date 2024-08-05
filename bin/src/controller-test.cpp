@@ -46,6 +46,7 @@ struct args getArgs(int argc, char *argv[]);
 void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
 float fanoFactor(float A, float B);
 bool withinSD(float levels, float avg, float sd, float value);
+float zScore(float value, float avg, float sd);
 
 /* signal_interrupt_handler
  * 
@@ -188,14 +189,14 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
             // Button A was pressed
-            if (firingRateAvgA != 0 && firingRateA >= 0.0 && fano > 0.5 && !withinSD(2, firingRateAvgA, sdA, firingRateA)) {
+            if (firingRateAvgA != 0 && firingRateA >= 0.0 && fano > 0.5 && zScore(firingRateA, firingRateAvgA, sdA) > 3) {
 
                 printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 // data << "Detected press from A" << endl;
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
             // Button B was pressed
-            } else if (firingRateAvgB != 0 && firingRateB > 0.0 && fano < -0.5 && !withinSD(2, firingRateAvgB, sdB, firingRateB)) {
+            } else if (firingRateAvgB != 0 && firingRateB > 0.0 && fano < -0.5 && zScore(firingRateB, firingRateAvgB, sdB) > 3) {
                 
                 printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 // data << "Detected press from B" << endl;
@@ -230,6 +231,10 @@ float fanoFactor(float A, float B) {
     } else {
         return (A - B) / (A + B);
     }
+}
+
+float zScore(float value, float avg, float sd) {
+    return (value - avg) / sd;
 }
 
 bool withinSD(float levels, float avg, float sd, float value) {
