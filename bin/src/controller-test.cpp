@@ -188,15 +188,15 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateB = winB->firingRate();
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
-            // Button A was pressed
-            if (firingRateAvgA != 0 && firingRateA >= 0.0 && fano > 0.5 && zScore(firingRateA, firingRateAvgA, sdA) > 3) {
+            // Button A was pressed !withinSD(3, firingRateAvgA, sdA, firingRateA)
+            if (firingRateAvgA != 0 && firingRateA >= 0.5 && fano > 0.5 && zScore(firingRateA, firingRateAvgA, sdA) > 2) {
 
                 printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 // data << "Detected press from A" << endl;
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
-
-            // Button B was pressed
-            } else if (firingRateAvgB != 0 && firingRateB > 0.0 && fano < -0.5 && zScore(firingRateB, firingRateAvgB, sdB) > 3) {
+ 
+            // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
+            } else if (firingRateAvgB != 0 && firingRateB > 0.5 && fano < -0.5 && zScore(firingRateB, firingRateAvgB, sdB) > 2) {
                 
                 printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 // data << "Detected press from B" << endl;
