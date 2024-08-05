@@ -24,9 +24,20 @@ import bin.lib.py_src.hal as hal
 
 rec_electrodes = []
 a_and_b = [
-    "/home/mxwbio/configs/240802/buttonA.cfg",
-    "/home/mxwbio/configs/240802/buttonB.cfg"
+    "/home/mxwbio/configs/240805/configB.cfg",
+    "/home/mxwbio/configs/240805/configC.cfg"
 ]
+
+# There are 4 button configs, each representing each quadrant of the chip:
+#  
+#   A  B
+#   C  D
+#
+# Stimulation electrodes:
+#   A: 442
+#   B: 1095
+#   C: 25304
+#   D: 18891  <-- try to pick a new one
 
 def merge_configs(configs):
     s = set()
@@ -44,8 +55,8 @@ if __name__ == '__main__':
     wells = [0]
     file_name = "controller-test"
 
-    stim_a = [13117,17437]
-    stim_b = []
+    stim_a = [1095]
+    stim_b = [25304]
 
 
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data", file_name, 16365, [0])
@@ -132,7 +143,7 @@ if __name__ == '__main__':
         b_pressed = mx.Sequence("B-pressed", persistent=True)
         del b_pressed
         b_pressed = mx.Sequence("B-pressed", persistent=True)
-        end_seq.append(mx.Event(well, 1, 5, "B pressed"))
+        end_seq.append(mx.Event(well, 1, 6, "B pressed"))
 
 
         ##############################################################################

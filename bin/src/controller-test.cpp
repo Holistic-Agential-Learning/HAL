@@ -104,6 +104,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     std::fstream data;
     data.open(path + "/std_dev_test_" + to_string(well) + ".csv", std::fstream::out);
+    data << "frame number,button,fano,value A,avg A,SD A,value B,avg B,SD B" << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -152,19 +153,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
-        if (i == 0){
-            maxlab::verifyStatus(maxlab::sendSequence("before-training"));
-            cout << i << ": before training" << endl;
-
-        }
-        else if (i == (int)((float)(frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("training"));
-            cout << i << ": training" << endl;
-        }
-        else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
-            cout << i << ": after training" << endl;
-        }
 
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
@@ -200,17 +188,17 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
             // Button A was pressed
-            if (firingRateAvgA != 0 && firingRateA != 0 && fano > 0.5 && !withinSD(3, firingRateAvgA, sdA, firingRateA)) {
+            if (firingRateAvgA != 0 && firingRateA >= 0.0 && fano > 0.5 && !withinSD(2, firingRateAvgA, sdA, firingRateA)) {
 
                 printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                data << "Detected press from A" << endl;
+                // data << "Detected press from A" << endl;
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
             // Button B was pressed
-            } else if (firingRateAvgB != 0 && firingRateB != 0 && fano < -0.5 && !withinSD(3, firingRateAvgB, sdB, firingRateB)) {
+            } else if (firingRateAvgB != 0 && firingRateB > 0.0 && fano < -0.5 && !withinSD(2, firingRateAvgB, sdB, firingRateB)) {
                 
                 printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                data << "Detected press from B" << endl;
+                // data << "Detected press from B" << endl;
                 maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
             } 
         }
@@ -220,7 +208,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         // stimulate config A every second that's a multiple of 10
         if (i % (FRAMES_PER_SEC * 10) == 0) {
             data << i << ": Pressing A..." << endl;
-            cout << "Pressing A" << endl
+            cout << "Pressing A" << endl;
             maxlab::verifyStatus(maxlab::sendSequence("A"));
 
         // stimulation config B every second that's a multiple of 5 (but not 10)
@@ -252,7 +240,7 @@ bool withinSD(float levels, float avg, float sd, float value) {
 }
 
 void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
-    *data << frameNo << ": " << ab << ", " << ratio << ",";
+    *data << frameNo << "," << ab << ", " << ratio << ",";
     *data << valA << "," << avgA << "," << sdA << ",";
     *data << valB << "," << avgB << "," << sdB << endl;
 }

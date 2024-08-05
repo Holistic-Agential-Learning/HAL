@@ -202,13 +202,13 @@ float ChannelWindow::firingRate() {
 
 float ChannelWindow::firingRateSD() {
     float sumPastWindows = 0;
-    for (int rate: pastData) {
+    for (float rate: pastData) {
         sumPastWindows += rate;
     }
     float mean = sumPastWindows / numPastWindows;
 
     float devSum = 0;
-    for (int rate: pastData) {
+    for (float rate: pastData) {
         devSum += (rate - mean) * (rate - mean);
     }
 
