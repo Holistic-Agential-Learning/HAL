@@ -138,12 +138,12 @@ if __name__ == '__main__':
         a_pressed = mx.Sequence("A-pressed", persistent=False)
         del a_pressed
         a_pressed = mx.Sequence("A-pressed", persistent=True)
-        end_seq.append(mx.Event(well, 1, 5, "A pressed"))
+        a_pressed.append(mx.Event(well, 1, 5, "A pressed"))
 
         b_pressed = mx.Sequence("B-pressed", persistent=False)
         del b_pressed
         b_pressed = mx.Sequence("B-pressed", persistent=True)
-        end_seq.append(mx.Event(well, 1, 6, "B pressed"))
+        b_pressed.append(mx.Event(well, 1, 6, "B pressed"))
 
 
         ##############################################################################
