@@ -33,7 +33,7 @@ STIM_ELECTRODES = {
     4: [4653,5249,21971,23571],
     5: [6009,6965,19317,19655]
 }
-MINUTES = 60
+MINUTES = 0.1
 THRESH = 0.1
 STIM_RATE = 5 #stims per second?
 
@@ -57,6 +57,9 @@ if __name__ == '__main__':
         wells = [0]
 
     file_name = exp_args["NAME"]
+
+
+    mx.clear_events() 
     
     well_data = {}
     for well in wells:
@@ -72,8 +75,6 @@ if __name__ == '__main__':
         ############################################################################
 
         mx.offset()
-
-        mx.clear_events() 
 
         single_pulse = Stimulation(f"pulse{well}", 0, 50, 200, 1, 1, 10, 1, well = well)
         duration = single_pulse.get_duration()

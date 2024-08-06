@@ -83,7 +83,7 @@ struct args {
     float pulse_duration;
     float stim_rate;
     float threshold;
-    int minutes;
+    float minutes;
     int well;
     string path;
 };
@@ -137,7 +137,7 @@ struct args getArgs(int argc, char *argv[]) {
     }
 
     if (checkOption("--minutes", argc, argv)) {
-        ret.minutes = getIntArg("--minutes", argc, argv);
+        ret.minutes = getFloatArg("--minutes", argc, argv);
     } else {
         ret.minutes = MINUTES_DEFAULT;
     }
