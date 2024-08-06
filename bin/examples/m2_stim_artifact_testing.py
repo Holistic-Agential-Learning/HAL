@@ -25,6 +25,7 @@ import json
 
 import sys
 import os
+import csv
 sys.path.append(os.path.dirname(__file__) + "/../..")
 import bin.lib.py_src.hal as hal
 from bin.lib.py_src.stimulation import Stimulation
@@ -36,7 +37,7 @@ from bin.lib.py_src.stimulation import Stimulation
 # @edit
 #
 # file name of the h5 file where the recording data is stored
-file_name = "stimulation_artifact_test" 
+file_name = "stimulation_artifact_test_fix" 
 
 
 # @edit
@@ -48,21 +49,25 @@ recording_dir = "/home/mxwbio/Desktop/HAL/data/testing/"
 # @edit
 #
 # wells to record from (just use 0 if using the MaxOne)
-wells = [0, 1, 2, 3, 4, 5] 
+wells = [0] #, 1, 2, 3, 4, 5] 
 
 
 # @edit
 #
 # Modify this to contain the FULL PATH of configs for each well. Just use the 
 # first element of the list if using the MaxOne
-configs = [
-    "/home/mxwbio/Desktop/HAL/caspfiguration_center.cfg", # well 0 config
-    "/home/mxwbio/Desktop/HAL/caspfiguration_center.cfg", # well 1 config
-    "/home/mxwbio/Desktop/HAL/caspfiguration_center.cfg", # well 2 config
-    "/home/mxwbio/Desktop/HAL/caspfiguration_center.cfg", # well 3 config
-    "/home/mxwbio/Desktop/HAL/caspfiguration_center.cfg", # well 4 config
-    "/home/mxwbio/Desktop/HAL/caspfiguration_center.cfg", # well 5 config
-]
+
+with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_center.txt", 'r') as f:
+    center_config = [int(row[0]) for row in csv.reader(f, delimiter='\t')]
+
+
+configs = [center_config] # well 0 config
+#     center_config, # well 1 config
+#     center_config, # well 2 config
+#     center_config, # well 3 config
+#     center_config, # well 4 config
+#     center_config, # well 5 config
+# ]
 
 
 # @edit
@@ -73,14 +78,13 @@ configs = [
 #
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
-stimulation_electrodes = [
-    [13310], # well 1 stimulation electrodes
-    [13310], # well 2 stimulation electrodes
-    [13310], # well 3 stimulation electrodes 
-    [13310], # well 4 stimulation electrodes
-    [13310], # well 5 stimulation electrodes
-    [13310]  # well 6 stimulation electrodes
-]
+stimulation_electrodes = [[13310]] # well 1 stimulation electrodes
+#     [13310], # well 2 stimulation electrodes
+#     [13310], # well 3 stimulation electrodes 
+#     [13310], # well 4 stimulation electrodes
+#     [13310], # well 5 stimulation electrodes
+#     [13310]  # well 6 stimulation electrodes
+# ]
 
 
 ################################################################################
@@ -181,8 +185,9 @@ if __name__ == "__main__":
         mx.set_primary_well(well)
 
         # get config file and recording electrode numbers
-        config_file = configs[well]
-        recording_electrodes = get_config_electrodes(config_file)
+        # config_file = configs[well]
+        # recording_electrodes = get_config_electrodes(config_file)
+        recording_electrodes = configs[well] 
 
         # grab the stimulation electrodes
         stim_elecs = stimulation_electrodes[well]
@@ -193,15 +198,19 @@ if __name__ == "__main__":
         # set recording and stimulation electrodes
         #
         # Note: stimulation electrodes must also be recording electrodes
+        #array.reset()
+        array.clear_selected_electrodes( )
         array.select_electrodes(recording_electrodes)
         array.select_stimulation_electrodes(stim_elecs)
         array.route()
 
         # connect stimulation units
-        stimulation_units = connect_stim_units_to_stim_electrodes(
+        stimulation_units = hal.connect_stim_units_to_stim_electrodes(
             stim_elecs, array
         )
 
+        # download data to the well
+        array.download([well])
 
         # power up stimulation units
         for stim_unit in stimulation_units:
@@ -212,9 +221,6 @@ if __name__ == "__main__":
                 .set_voltage_mode()
                 .dac_source(0)
             )
-
-        # download data to the well
-        array.download([well])
 
     mx.activate(wells)
 
@@ -236,13 +242,12 @@ if __name__ == "__main__":
     for wid in range(6):
         stim_array[wid] = [None]*len(amp_list)
         for i, stim_amp in enumerate(amp_list):
-            stim_array[wid][i] = Stimulation.from_frequency(str(freq_list[wid]) + "_Hz", 1,
-                                    dac_source=0,
+            stim_array[wid][i] = Stimulation.from_frequency(str(freq_list[wid]) + "_Hz", 0,
                                     frequency=freq_list[wid],
                                     duration=max(10/freq_list[wid], 2),
                                     amplitude = stim_amp,
                                     phase = 200,
-                                    well=wid
+                                    well=0
                                     )
             
     stim_seq_array = [None]*6   # A list for 6 wells
@@ -275,11 +280,11 @@ if __name__ == "__main__":
 
     for wid in range(6):
         for i, stim_amp in enumerate(amp_list):
-            mx.set_primary_well(wid)
-            mx.activate(wid)
-            print("Sending stimulations to well " + str(wid) + " at " + str(freq_list[wid]) + "Hz")
-            stim_array[wid][i].send()
-            sleep(stim_seq_array[wid][i].duration + 0.5)
+            mx.set_primary_well(0)
+            mx.activate([0])
+            print("Sending stimulations to well " + str(0) + " at " + str(freq_list[wid]) + "Hz")
+            stim_seq_array[wid][i].send()
+            sleep(stim_array[wid][i].duration + 0.5)
 
     print("Sleeping for a hot 10 seconds b/c holy moly...")
     sleep(10)

@@ -178,7 +178,7 @@ class Stimulation(ArbitraryStimulation):
         assert phase < (5*10**5/frequency), "Phase must be less than half of the period, determined by the frequency value passed in." #in microseconds. 10^6 microseconds in 1 second, divided by 2 because phase is half of a period
         pulse_interval = 1000/frequency - 2 * phase/1000
         
-        pulses_per_train = duration * frequency
+        pulses_per_train = int(duration * frequency)
 
 
         return Stimulation(token, dac_source, amplitude = amplitude, phase = phase, pulses_per_train = pulses_per_train, num_trains = num_trains, pulse_interval = pulse_interval, pulse_train_interval = pulse_train_interval, stim_units = stim_units, well = well)
