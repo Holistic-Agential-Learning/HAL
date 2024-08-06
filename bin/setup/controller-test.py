@@ -137,10 +137,10 @@ if __name__ == '__main__':
 
         a_pressed = mx.Sequence("A-pressed", persistent=False)
         del a_pressed
-        a_pressed = mx.Sequence("A-pressed", persistent=False)
+        a_pressed = mx.Sequence("A-pressed", persistent=True)
         end_seq.append(mx.Event(well, 1, 5, "A pressed"))
 
-        b_pressed = mx.Sequence("B-pressed", persistent=True)
+        b_pressed = mx.Sequence("B-pressed", persistent=False)
         del b_pressed
         b_pressed = mx.Sequence("B-pressed", persistent=True)
         end_seq.append(mx.Event(well, 1, 6, "B pressed"))
@@ -158,7 +158,6 @@ if __name__ == '__main__':
 
         program_args.append(str(well))
 
-        
 
         s = mx.Saving()
         s.open_directory(directory_name)
