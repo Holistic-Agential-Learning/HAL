@@ -9,9 +9,16 @@ def get_buttons(full_config, buttons, save_path):
         for data in button:
             data[0] = full_config_map[data[1]]
 
+    new_buttons = []
+
     for i in range(len(buttons)):
         print(f"writing {save_path + os.basename(buttons[i])}")
         make_config(buttons_data[i], save_path + os.basename(buttons[i]))
+        new_buttons.append(save_path + os.basename(buttons[i]))
+
+    return new_buttons
+
+
     
     
 def make_config(data, file_name):

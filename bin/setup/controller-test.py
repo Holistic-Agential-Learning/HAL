@@ -21,6 +21,7 @@ from punish_reward.sine_reward import sine_reward
 import bin.gui.GUI as GUI
 from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
+import bin.lib.py_src.config as cfg
 
 rec_electrodes = []
 a_and_b = [
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     stim_b = [25304]
 
 
-    trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data", file_name, 16365, [0])
+    trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/controller", file_name, 16365, [0])
     
     for well in wells:
         mx.activate([well])
@@ -102,6 +103,8 @@ if __name__ == '__main__':
         print(config_file_name)
         #save the config prior to running the code
         array.save_config(config_file_name)
+
+        new_buttons = cfg.get_buttons(config_file_name, a_and_b, directory_name)
 
         array.download([well]) 
 
