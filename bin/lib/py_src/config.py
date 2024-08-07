@@ -5,11 +5,14 @@ def get_buttons(full_config, buttons, save_path):
     full_config_map = read_config_electrode_to_channel(full_config)
     buttons_data = [read_config(b) for b in buttons]
 
-    new_buttons = []
-
-    for button in buttons:
+    for button in buttons_data:
         for data in button:
             data[0] = full_config_map[data[1]]
+
+    for i in range(len(buttons)):
+        print(f"writing {save_path + os.basename(buttons[i])}")
+        make_config(buttons_data[i], save_path + os.basename(buttons[i]))
+    
     
 def make_config(data, file_name):
     f = open(file_name, "w")
