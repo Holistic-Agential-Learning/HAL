@@ -25,8 +25,8 @@ import bin.lib.py_src.config as cfg
 
 rec_electrodes = []
 a_and_b = [
-    "/home/mxwbio/configs/240805/configB.cfg",
-    "/home/mxwbio/configs/240805/configC.cfg"
+    "/home/mxwbio/configs/240805/configA.cfg",
+    "/home/mxwbio/configs/240805/configD.cfg"
 ]
 
 # There are 4 button configs, each representing each quadrant of the chip:
@@ -35,7 +35,7 @@ a_and_b = [
 #   C  D
 #
 # Stimulation electrodes:
-#   A: 442
+#   A: 442, 6630
 #   B: 1095
 #   C: 25304
 #   D: 18891  <-- try to pick a new one
@@ -56,8 +56,8 @@ if __name__ == '__main__':
     wells = [0]
     file_name = "controller-test"
 
-    stim_a = [1095]
-    stim_b = [25304]
+    stim_a = [6630]
+    stim_b = [18891]
 
 
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/controller", file_name, 16365, [0])
@@ -113,13 +113,13 @@ if __name__ == '__main__':
         mx.clear_events() 
 
         if does_stimulations:
-            hal.power_up_stim_units(stimulation_units_a, 0)
-            hal.power_up_stim_units(stimulation_units_b, 1)
+            hal.power_up_stim_units(stimulation_units_a, 1)
+            hal.power_up_stim_units(stimulation_units_b, 0)
 
 
-        stimA = Stimulation("A", 0, 10, 500, 10, 1, 1, 1, well = well) 
+        stimA = Stimulation("A", 1, 10, 500, 10, 1, 1, 1, well = well) 
         stimA.build_sequence()
-        stimB = Stimulation("B", 1, 10, 500, 10, 1, 1, 1, well = well)
+        stimB = Stimulation("B", 0, 10, 500, 10, 1, 1, 1, well = well)
         stimB.build_sequence()
 
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
         program_args = ["./bin/build/controller-test", "--folder", directory_name]
 
-        for i in range(len(a_and_b)):
+        for i in range(len(new_buttons)):
             program_args.append(f"--config{i}")
             program_args.append(a_and_b[i])
 

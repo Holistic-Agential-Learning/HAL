@@ -12,9 +12,11 @@ def get_buttons(full_config, buttons, save_path):
     new_buttons = []
 
     for i in range(len(buttons)):
-        print(f"writing {save_path + os.basename(buttons[i])}")
-        make_config(buttons_data[i], save_path + os.basename(buttons[i]))
-        new_buttons.append(save_path + os.basename(buttons[i]))
+        new_path = save_path + "/" + os.path.basename(buttons[i])
+        print(f"writing {new_path}")
+
+        make_config(buttons_data[i], new_path)
+        new_buttons.append(new_path)
 
     return new_buttons
 
@@ -31,7 +33,7 @@ def make_config(data, file_name):
 
     to_write += "\nH"
 
-    f.write(data)
+    f.write(to_write)
 
 def read_config(file):
     # Error checking
@@ -55,7 +57,6 @@ def read_config(file):
 
     all_electrodes = []
     for channel_data in channels:
-        print("splitting")
         data = re.split("\\(|\\)|/", channel_data)
         all_electrodes.append(data)
 
