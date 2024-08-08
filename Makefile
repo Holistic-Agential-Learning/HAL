@@ -27,23 +27,23 @@ dir:
 %.o: %.cpp 
 	$(CXX) $(INCLUDE_PATH) -c $< -o $(BUILD)/$(shell basename $@)
 
-train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_O)
+%: $(SRC)/$@ $(HAL_O)
 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-mouse_1d: $(SRC)/mouse_1d.o $(HAL_O)
-	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+# train-wave-direction: $(SRC)/train-wave-direction.o $(HAL_O)
+# 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-reward-punish: $(SRC)/closed_loop_rp.o $(HAL_O)
-	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+# mouse_1d: $(SRC)/mouse_1d.o $(HAL_O)
+# 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-controller-test: $(SRC)/controller-test.o $(HAL_O)
-	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+# reward-punish: $(SRC)/closed_loop_rp.o $(HAL_O)
+# 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-# control: $(SRC)/control.o $(HAL_O)
-	# $(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+# controller-test: $(SRC)/controller-test.o $(HAL_O)
+# 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
-stim_removal: $(SRC)/rp_stim_removal.o $(HAL_O)
-	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
+# stim_removal: $(SRC)/rp_stim_removal.o $(HAL_O)
+# 	$(CXX) $(foreach o,$^,$(BUILD)/$(shell basename $(o))) -o $(BUILD)/$@ $(LIBS)
 
 clean :
 	rm -r $(BUILD)
