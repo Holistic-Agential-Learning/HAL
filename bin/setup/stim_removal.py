@@ -83,7 +83,7 @@ if __name__ == '__main__':
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         hal.build_training_sequences(well)
         
-        program_args = [f"./bin/build/stim_removal", "2>", "ERR_LOG", "--config", well_data[well]["CFG"], "--folder", well_data[well]["REC_DIR"], "--pulse_duration", str(duration)]
+        program_args = [f"./bin/build/rp_stim_removal", "2>", "ERR_LOG", "--config", well_data[well]["CFG"], "--folder", well_data[well]["REC_DIR"], "--pulse_duration", str(duration)]
         if exp_args['-MAXTWO-']:
             program_args.append("--maxtwo")
 
