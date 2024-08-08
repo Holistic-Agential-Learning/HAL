@@ -13,6 +13,7 @@
 #include <string>
 #include "hal.h"
 #include <map>
+#include <stdio.h>
 
 using namespace std;
 using namespace maxlab;
@@ -42,7 +43,11 @@ float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
 void runExperiment(string path, string config0, string config1, int frames, int well);
 int get_max_element(vector<int> v);
-void printAndStimulate(fstream *data, string ab, int frameNo, float ratio, float firingRateA, float devA, float firingRateB, float devB);
+void printAndStimulate(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
+void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
+float fanoFactor(float A, float B);
+bool withinSD(float levels, float avg, float sd, float value);
+
 /* signal_interrupt_handler
  * 
  * Closes the DataStreamer when ^C is signalled.
@@ -143,6 +148,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     cout << "Finished controller initialization" << endl;
 
+    ChannelWindow *winA = controller.getButtonWindow("A");
+    ChannelWindow *winB = controller.getButtonWindow("B");
+
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
@@ -182,28 +190,32 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         ////////////////////////////////////////////////////////////////////////
-        ChannelWindow *winA = controller.getButtonWindow("A");
+        
 
         if (winA->pastWindowsReady()) {
-            //
-            
-            ChannelWindow *winB = controller.getButtonWindow("B");
 
-            float firingRateA = winA->avgPastWindows();
-            float firingRateB = winB->avgPastWindows();
-            float devA = winA->stdDev();
-            float devB = winB->stdDev();
-            float ratio = firingRateA / firingRateB;
-            // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
-            if (ratio > 1.1) {
+            float firingRateAvgA = winA->avgPastWindows();
+            float firingRateAvgB = winB->avgPastWindows();
+            float sdA = winA->firingRateSD();
+            float sdB = winB->firingRateSD();
+            float firingRateA = winA->firingRate();
+            float firingRateB = winB->firingRate();
+            float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
+            // data << i << ": " << fano << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
+
+            if (fano > 0.5 && !withinSD(2, firingRateAvgA, sdA, firingRateA)) {
+                // A is firing more than B
                 cout << "rewarding..." << endl;
-                printAndStimulate(&data, "A", i, ratio, firingRateA, devA, firingRateB, devB);
+                printAndStimulate(&data, "A", i, fano, firingRateAvgA, sdA, firingRateAvgB, sdB);
                 blanking = 30000;
-            } else if (ratio < 0.9) {
+            } else if (fano < -0.5 && !withinSD(2, firingRateAvgB, sdB, firingRateB)) {
+                // B is firing more than A
                 cout << "punishing..." << endl;
-                printAndStimulate(&data, "B", i, ratio, firingRateA, devA, firingRateB, devB);
+                printAndStimulate(&data, "B", i, fano, firingRateAvgA, sdA, firingRateAvgB, sdB);
                 blanking = 30000;
             } 
+            cout << "Fano: " << fano;
+            cout << "A(val, avg, sd): " << endl; 
         }
 
         float numSeconds = (float) i / FRAMES_PER_SEC;
@@ -214,8 +226,23 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     data.close();
 }
 
-void printAndStimulate(fstream *data, string ab, int frameNo, float ratio, float firingRateA, float devA, float firingRateB, float devB) {
-    *data << frameNo << ": " << ab << ", " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
+bool withinSD(float levels, float avg, float sd, float value) {
+    float upper = avg + (levels * sd);
+    float lower = avg - (levels * sd);
+
+    return (value <= upper && value >= lower);
+}
+
+float fanoFactor(float A, float B) {
+    if (A == 0 && B == 0) {
+        return 0;
+    } else {
+        return (A - B) / (A + B);
+    }
+}
+
+void printAndStimulate(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
+    printValues(data, ab, frameNo, ratio, valA, avgA, sdA, valB, avgB, sdB);
     if (ab == "B") {
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -228,8 +255,12 @@ void printAndStimulate(fstream *data, string ab, int frameNo, float ratio, float
     } else if (ab == "A") {
         maxlab::verifyStatus(maxlab::sendSequence("reward"));
     }
-    
-    
+}
+
+void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
+    *data << frameNo << ": " << ab << ", " << ratio << ",";
+    *data << valA << "," << avgA << "," << sdA << ",";
+    *data << valB << "," << avgB << "," << sdB << endl;
 }
 
 float framesToSeconds(int frames) {

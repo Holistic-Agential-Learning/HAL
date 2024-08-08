@@ -126,14 +126,14 @@ def connect_stim_units_to_stim_electrodes(stim_electrodes: List[int], array: mx.
             stim_units.append(stim_unit_int)
     return stim_units
 
-def power_up_stim_units(stimulation_units: List[int]):
+def power_up_stim_units(stimulation_units: List[int], dac=0):
     """Powers up stimulation units for an experiment
 
     :param stimulation_units: stimulation units to power up
     :type stimulation_units: ``List[int]``
     """
     for stimulation_unit in stimulation_units:
-            stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
+            stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(dac)
             mx.send(stimulation)
 
 def make_trial_folders(experiment_parameters):

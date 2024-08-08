@@ -16,6 +16,7 @@
 
 using namespace std;
 using namespace maxlab;
+using namespace argparse;
 
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define TOTAL_ELECTRODES emap.size()
@@ -42,6 +43,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 int get_max_element(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
+void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
+float fanoFactor(float A, float B);
+bool withinSD(float levels, float avg, float sd, float value);
+float zScore(float value, float avg, float sd);
 
 /* signal_interrupt_handler
  * 
@@ -100,6 +105,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     std::fstream data;
     data.open(path + "/std_dev_test_" + to_string(well) + ".csv", std::fstream::out);
+    data << "frame number,button,fano,value A,avg A,SD A,value B,avg B,SD B" << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -142,22 +148,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     cout << "Finished controller initialization" << endl;
 
+    ChannelWindow *winA = controller.getButtonWindow("A");
+    ChannelWindow *winB = controller.getButtonWindow("B");
+
 
     // start processing frames
     for (int i = 0; i < frames; i++) {
-        if (i == 0){
-            maxlab::verifyStatus(maxlab::sendSequence("before-training"));
-            cout << i << ": before training" << endl;
-
-        }
-        else if (i == (int)((float)(frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("training"));
-            cout << i << ": training" << endl;
-        }
-        else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
-            cout << i << ": after training" << endl;
-        }
 
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
@@ -181,23 +177,30 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         ////////////////////////////////////////////////////////////////////////
-        ChannelWindow *winA = controller.getButtonWindow("A");
+        
 
-        if (winA->pastWindowsReady()) {
-            //
-            
-            ChannelWindow *winB = controller.getButtonWindow("B");
+        if (winA->pastWindowsReady() && winB->pastWindowsReady()) {
+            float firingRateAvgA = winA->avgPastWindows();
+            float firingRateAvgB = winB->avgPastWindows();
+            float sdA = winA->firingRateSD();
+            float sdB = winB->firingRateSD();
+            float firingRateA = winA->firingRate();
+            float firingRateB = winB->firingRate();
+            float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
-            float firingRateA = winA->avgPastWindows();
-            float firingRateB = winB->avgPastWindows();
-            float devA = winA->stdDev();
-            float devB = winB->stdDev();
-            float ratio = firingRateA / firingRateB;
-            // data << i << ": " << ratio << "," << winA->totalSpikeCount() << "," << winB->totalSpikeCount() << endl;
-            if (ratio > 1.1) {
-                data << i << ": A, " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
-            } else if (ratio < 0.9) {
-                data << i << ": B, " << ratio << "," << firingRateA << "," << devA << "," << firingRateB << "," << devB << endl;
+            // Button A was pressed !withinSD(3, firingRateAvgA, sdA, firingRateA)
+            if (firingRateAvgA != 0 && firingRateA >= 0.5 && fano > 0.5 && zScore(firingRateA, firingRateAvgA, sdA) > 2) {
+
+                printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                // data << "Detected press from A" << endl;
+                maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
+ 
+            // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
+            } else if (firingRateAvgB != 0 && firingRateB > 0.5 && fano < -0.5 && zScore(firingRateB, firingRateAvgB, sdB) > 2) {
+                
+                printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                // data << "Detected press from B" << endl;
+                maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
             } 
         }
 
@@ -205,12 +208,14 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         // stimulate config A every second that's a multiple of 10
         if (i % (FRAMES_PER_SEC * 10) == 0) {
-            data << i << ": Stimulating A..." << endl;
+            data << i << ": Pressing A..." << endl;
+            cout << "Pressing A" << endl;
             maxlab::verifyStatus(maxlab::sendSequence("A"));
 
         // stimulation config B every second that's a multiple of 5 (but not 10)
         } else if (i % (FRAMES_PER_SEC * 5) == 0) {
-            data << i << ": Stimulating B..." << endl;
+            data << i << ": Pressing B..." << endl;
+            cout << "Pressing B" << endl;
             maxlab::verifyStatus(maxlab::sendSequence("B"));
         }
     } 
@@ -218,6 +223,31 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     data.close();
+}
+
+float fanoFactor(float A, float B) {
+    if (A == 0 && B == 0) {
+        return 0;
+    } else {
+        return (A - B) / (A + B);
+    }
+}
+
+float zScore(float value, float avg, float sd) {
+    return (value - avg) / sd;
+}
+
+bool withinSD(float levels, float avg, float sd, float value) {
+    float upper = avg + (levels * sd);
+    float lower = avg - (levels * sd);
+
+    return (value <= upper);
+}
+
+void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
+    *data << frameNo << "," << ab << ", " << ratio << ",";
+    *data << valA << "," << avgA << "," << sdA << ",";
+    *data << valB << "," << avgB << "," << sdB << endl;
 }
 
 float framesToSeconds(int frames) {

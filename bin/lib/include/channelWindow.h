@@ -128,7 +128,7 @@ class ChannelWindow {
         vector<float> pastWindows();
 
         /**
-         * @brief Returns the average of all the past windows
+         * @brief Returns the average firing rate of all the past windows
          * 
          * @return <code>float</code>
          */
@@ -141,14 +141,14 @@ class ChannelWindow {
          * @return <code>float</code> 
          */
         float getAvgX();
-
+        
         /**
          * @brief Computes the standard deviation of the firing rates of all 
          *          past windows
          * 
          * @return <code>float</code>
          */
-        float stdDev();
+        float firingRateSD();
 
         /**
          * @brief Computes the firing rate of the window
