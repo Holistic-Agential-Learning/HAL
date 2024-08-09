@@ -18,36 +18,31 @@ import bin.gui.GUI as GUI
 from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
-PARENT_PATH = "/home/mxwbio/Desktop/HAL/data/24-hour-recordings"
-EXPERIMENT_NAME = "maxtwo-plates"
-CHIP_ID = 123456
-NOTES = """
-Add your notes here"""
+parent_path = "/home/mxwbio/Desktop/HAL/data/24-hour-recordings"
+experiment_name = "test"
+chip_id = 123456
 
-config = "config"
+config_path = "/home/mxwbio/Desktop/HAL/test_config_2.cfg"
 
 
 
 
 if __name__ == '__main__':
 
-    trial_path = hal.make_trial_folders_raw()
+    trial_path = hal.make_trial_folders_raw(parent_path, experiment_name, chip_id, [0])
 
     mx.clear_events() 
     
-    well_data = {}
     mx.activate([0])
 
     mx.initialize()
     mx.send(mx.Core().enable_stimulation_power(True))
-
-    # stimulation electrodes for configs/newconfig.cfg
     
     array = mx.Array(f"recording")
     array.reset()
     array.clear_selected_electrodes()
     
-    array.load_config()
+    array.load_config(config_path)
     
     array.route()
 
@@ -55,17 +50,17 @@ if __name__ == '__main__':
 
     recording_dir = trial_path + "/well0"
 
-    array.save_config()
+    array.save_config(f"{recording_dir}/{experiment_name}_well_0_config.cfg")
 
     mx.offset()
 
     # loop
-    for i in range(24):
-        recording_file = f"{EXPERIMENT_NAME}_{i}"
+    for i in range(2):
+        recording_file = f"{experiment_name}_{i}"
         
         s = mx.Saving()
         s.open_directory(recording_dir)
-        s.start_file()
+        s.start_file(recording_file)
 
         #Write metadata
         now = datetime.datetime.now()
@@ -88,3 +83,5 @@ if __name__ == '__main__':
         now = datetime.datetime.now()
         print(f"Hour {i} ({now.time()}): sleeping")
         time.sleep(2700)
+
+    subprocess.run(["./mail.sh"])
