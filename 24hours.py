@@ -21,7 +21,7 @@ import bin.lib.py_src.hal as hal
 parent_path = "/home/mxwbio/Desktop/HAL/data/24-hour-recordings"
 experiment_name = "test"
 chip_id = 123456
-
+notes = ""
 config_path = "/home/mxwbio/Desktop/HAL/test_config_2.cfg"
 
 
@@ -65,6 +65,7 @@ if __name__ == '__main__':
         #Write metadata
         now = datetime.datetime.now()
         hal.write_exp_description(s, f"Hour {i}, recorded at {now.time()}")
+        s.write_assay_property("Notes", notes)
 
         s.group_delete_all()
         

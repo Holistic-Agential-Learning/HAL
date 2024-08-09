@@ -264,7 +264,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
     cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
 
     // gets wave detector object and initializes window
-    WaveDetector sensor = WaveDetector(WINDOW, configPath, threshold, MIN_FRAMES, FRAMES_PER_SEC, 0.2, 0.2);
+    WaveDetector sensor = WaveDetector(WINDOW, configPath.c_str(), threshold, MIN_FRAMES, FRAMES_PER_SEC, 0.2, 0.2);
     ChannelWindow *window = sensor.getWindow();
 
     // start processing frames
@@ -281,23 +281,23 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         }
 
         // const SpikeEvent *spike = frameData.spikeEvents;
-        int waveVal = sensor.processFrame(i);
+        int waveVal = sensor.processFrame(frameData, i);
         int spikeCount = window->totalSpikeCount();
 
         if (i == 0){
-            maxlab::verifyStatus(maxlab::sendSequence("before-training" + to_string(well).c_str()));
+            maxlab::verifyStatus(maxlab::sendSequence(("before-training" + to_string(well)).c_str()));
             cout << i << ": before training" << endl;
             training = false;
 
         }
         else if (i == (int)((float)(frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("training" + to_string(well).c_str()));
+            maxlab::verifyStatus(maxlab::sendSequence(("training" + to_string(well)).c_str()));
             cout << i << ": training" << endl;
             training = true;
             stimVector = generateRandomStim(num_polling_windows, num_stims);
         }
         else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("after-training" + to_string(well).c_str()));
+            maxlab::verifyStatus(maxlab::sendSequence(("after-training" + to_string(well)).c_str()));
             cout << i << ": after training" << endl;
             training = false;
         }
@@ -324,12 +324,12 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         
 
         if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
-            monitoringLoc = window.getAvgX();
+            monitoringLoc = window->getAvgX();
             alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
         }
    
         if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            locs[locCounter] = window.getAvgX();
+            locs[locCounter] = window->getAvgX();
             burstSpikeCounts[locCounter] = spikeCount;
             locCounter++;
         }
@@ -337,7 +337,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         if (waveVal == Wave::burstStart) {
             cout << "burst started" << endl;
 
-            locs[0] = window.getAvgX(); // starting location
+            locs[0] = window->getAvgX(); // starting location
             burstSpikeCounts[0] = spikeCount;
             locCounter = 1;
         } else if (waveVal == Wave::leftToRight || waveVal == Wave::rightToLeft) {
@@ -351,22 +351,22 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
 
             // leftToRight, rightToLeft
             for(int m = 0; m < capacity; m++) {
-                file << metadata->burstStartFrame + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
+                file << metadata.burstStartFrame + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
             }
-            file << metadata->maxSpikesFrame + SYS_START_BUFFER + WINDOW;
+            file << metadata.maxSpikesFrame + SYS_START_BUFFER + WINDOW;
 
             file << endl;
             
             for(int m = 0; m < capacity; m++) {
                 file << locs[m] << ", ";
             }
-            file << metadata->maxSpikesLoc << ", ";
+            file << metadata.maxSpikesLoc << ", ";
 
             file << loc_string << endl;
             for(int m = 0; m < capacity; m++) {
                 file << burstSpikeCounts[m] << ", ";
             }
-            file << metadata->maxSpikes;
+            file << metadata.maxSpikes;
             
             file << endl;       
 
