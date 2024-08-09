@@ -55,7 +55,7 @@ if __name__ == '__main__':
     mx.offset()
 
     # loop
-    for i in range(2):
+    for i in range(24):
         recording_file = f"{experiment_name}_{i}"
         
         s = mx.Saving()
