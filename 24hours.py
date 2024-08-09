@@ -8,6 +8,7 @@ import json
 import sys
 import subprocess
 import os
+import datetime
 
 
 
@@ -31,8 +32,6 @@ config = "config"
 if __name__ == '__main__':
 
     trial_path = hal.make_trial_folders_raw()
-        
-
 
     mx.clear_events() 
     
@@ -48,7 +47,7 @@ if __name__ == '__main__':
     array.reset()
     array.clear_selected_electrodes()
     
-    array.select_config()
+    array.load_config()
     
     array.route()
 
@@ -61,24 +60,31 @@ if __name__ == '__main__':
     mx.offset()
 
     # loop
-    hour = 0
-    recording_file = f"{EXPERIMENT_NAME}_{hour}"
-    
-    s = mx.Saving()
-    s.open_directory(recording_dir)
-    s.start_file()
+    for i in range(24):
+        recording_file = f"{EXPERIMENT_NAME}_{i}"
+        
+        s = mx.Saving()
+        s.open_directory(recording_dir)
+        s.start_file()
 
-    #Write metadata
-    hal.write_exp_description(s, "")
+        #Write metadata
+        now = datetime.datetime.now()
+        hal.write_exp_description(s, f"Hour {i}, recorded at {now.time()}")
 
-    s.group_delete_all()
-    
-    s.group_define(0, f"all_channels_{0}", list(range(1024)))
+        s.group_delete_all()
+        
+        s.group_define(0, f"all_channels_{0}", list(range(1024)))
 
-    print("recording... 0 " + str(0))
-    s.start_recording([0])
+        
+        print(f"Hour {i} ({now.time()}): recording")
+        s.start_recording([0])
+        
+        time.sleep(900)
 
-    s.stop_recording()
-    s.stop_file()
-    s.group_delete_all()
-    print("finished recording")
+        s.stop_recording()
+        s.stop_file()
+        s.group_delete_all()
+
+        now = datetime.datetime.now()
+        print(f"Hour {i} ({now.time()}): sleeping")
+        time.sleep(2700)
