@@ -3,7 +3,6 @@
 #include <iostream>
 #include <unistd.h>
 #include <algorithm>
-// #include "maxlab.h"
 #include <signal.h>
 #include <vector>
 #include <unistd.h>
@@ -83,7 +82,7 @@ struct args {
     float pulse_duration;
     float stim_rate;
     float threshold;
-    int minutes;
+    float minutes;
     int well;
     string path;
 };
@@ -137,16 +136,13 @@ struct args getArgs(int argc, char *argv[]) {
     }
 
     if (checkOption("--minutes", argc, argv)) {
-        ret.minutes = getIntArg("--minutes", argc, argv);
+        ret.minutes = getFloatArg("--minutes", argc, argv);
     } else {
         ret.minutes = MINUTES_DEFAULT;
     }
 
     return ret; 
 }
-
-
-
 
 /* signal_interrupt_handler
  * 
@@ -161,27 +157,13 @@ void signal_interrupt_handler(int sig) {
 
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
-    // default process 1200000 frames (1 minute)
-    // sleep(600+15);
     srand(1);    
-    // for (int i = 0; i < stimVector.size(); i++){
-    //     cout << stimVector[i];
-    // }
-    // cout << endl;
-
-    // stimVector = generateRandomStim(2500, 200);
-    
-    // for (int i = 0; i < stimVector.size(); i++){
-    //     cout << stimVector[i];
-    // }
-    // cout << endl;
 
     struct args params = getArgs(argc, argv);
     cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.minutes << " minutes..." << endl;
     cout << "Config: " << params.config_path << endl;
     cout << "Threshold: " << params.threshold << endl;
     cout << "Well: " << params.well << endl;
-    // exit(1);
     ElectrodeMap emap = ElectrodeMap(params.config_path.c_str());
     int well = params.well;
     
@@ -303,19 +285,19 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         int spikeCount = window->totalSpikeCount();
 
         if (i == 0){
-            maxlab::verifyStatus(maxlab::sendSequence("before-training"));
+            maxlab::verifyStatus(maxlab::sendSequence("before-training" + to_string(well).c_str()));
             cout << i << ": before training" << endl;
             training = false;
 
         }
         else if (i == (int)((float)(frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("training"));
+            maxlab::verifyStatus(maxlab::sendSequence("training" + to_string(well).c_str()));
             cout << i << ": training" << endl;
             training = true;
             stimVector = generateRandomStim(num_polling_windows, num_stims);
         }
         else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence("after-training"));
+            maxlab::verifyStatus(maxlab::sendSequence("after-training" + to_string(well).c_str()));
             cout << i << ": after training" << endl;
             training = false;
         }
