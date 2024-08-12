@@ -174,6 +174,7 @@ if __name__ == '__main__':
             print(err)
 
         #running this for 60 mins
+        #CHECK (TODO): blocking?
         time.sleep(60 * 60)
 
         mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
