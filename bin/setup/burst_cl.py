@@ -145,8 +145,8 @@ if __name__ == '__main__':
         ##############################################################################
 
         stim = Stimulation(token="stim", dac_source=0, amplitude=600, phase=400, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
-        stim_eq = stim.build_sequence()
-        print(stim_eq.get_duration())
+        stim_seq = stim.build_sequence()
+        print(stim.get_duration())
 
         program_args = ["./bin/build/burst_cl", "--folder", directory_name]
         for i in range(len(all_configs)):
