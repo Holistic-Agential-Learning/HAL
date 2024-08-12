@@ -59,8 +59,6 @@ void signal_interrupt_handler(int sig) {
 */
 
 
-//TODO: real time trackinng the frequency
-
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
     bool maxtwo = checkOption("--maxtwo", argc, argv);
@@ -98,8 +96,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     int windowLength = 200;
 
     std::fstream data;
+    std::fstream stim_tracker;
     data.open(path + "/store" + to_string(well) + ".csv", std::fstream::out);
     data << "frame number,button,fano,value A,avg A,SD A,value B,avg B,SD B" << endl;
+    stim_tracker.open(path + "/stim" + to_string(well) + ".csv", std::fstream::out);
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -150,6 +150,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     for (int i = 0; i < frames; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        
 
         // If no data was read in, try again (happens when loop finishes before 
         // the machine takes another sample)
@@ -158,6 +159,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             continue;
         }
 
+
         controller.shift(frameData);
         if (blanking > 0) {
             blanking--;
@@ -165,6 +167,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 continue;
             }
         }
+
+        stim_tracker << stim_type << endl;
 
         //TODO: check this
         if (winA->pastWindowsReady() && winB->pastWindowsReady()) {
@@ -280,6 +284,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     data.close();
+    stim_tracker.close();
 
 } 
 
