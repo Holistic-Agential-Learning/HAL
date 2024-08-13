@@ -144,7 +144,7 @@ if __name__ == '__main__':
 
         ##############################################################################
 
-        stim = Stimulation(token="stim", dac_source=0, amplitude=600, phase=400, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
+        stim = Stimulation(token="stim", dac_source=0, amplitude=600, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
         stim_seq = stim.build_sequence()
         print(stim.get_duration())
 
@@ -154,6 +154,8 @@ if __name__ == '__main__':
             program_args.append(all_configs[i])
         program_args.append("--well")
         program_args.append(str(well))
+        program_args.append("--minutes")
+        program_args.append(60)
 
         s = mx.Saving()
         s.open_directory(directory_name)
@@ -173,9 +175,6 @@ if __name__ == '__main__':
         except Exception as err:
             print(err)
 
-        #running this for 60 mins
-        #CHECK (TODO): blocking?
-        time.sleep(60 * 60)
 
         mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
 
