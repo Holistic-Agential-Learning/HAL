@@ -32,8 +32,8 @@ if __name__ == '__main__':
     exp_args = {}
     exp_args['FOLDER'] = "/home/mxwbio/Desktop/HAL/data/burst_cl/13635" #TODO
     exp_args['NAME'] = "burst_cl"
-    exp_args['WELLS'] = [0] #TODO
-    exp_args['-MAXTWO-'] = False
+    exp_args['WELLS'] = [1] #TODO
+    exp_args['-MAXTWO-'] = True
     trial_path = hal.make_trial_folders(exp_args)
         
     if exp_args['-MAXTWO-']:
