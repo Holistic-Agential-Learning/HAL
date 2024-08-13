@@ -9,7 +9,8 @@ WaveDetector::WaveDetector() {
 }
 
 WaveDetector::WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz, float firstBurstThreshold, float burstDoneThreshold) {
-    ChannelWindow *window = new ChannelWindow(windowLength, configPath);
+    window = new ChannelWindow(windowLength, configPath);
+
     window->init();
 
     ElectrodeMap emap = window->electrodeMap();
@@ -24,7 +25,7 @@ WaveDetector::WaveDetector(int windowLength, const char *configPath, float thres
     metadata = (WaveMetadata *)calloc(1, sizeof(WaveMetadata));
 
     if (metadata == NULL) {
-        cerr << "metadata memory allocation failed." << endl;
+        cerr << __FILE__ << " line " << __LINE__ << ": metadata memory allocation failed." << endl;
         exit(1);
     }
 }
@@ -53,12 +54,14 @@ int WaveDetector::checkBurst(int frameNo) {
     int ret = Wave::noBurst;
     int spikeCount = window->totalSpikeCount();
 
+
     // spike in activity
     if  (spikeCount > threshold * totalElectrodes) { 
         ret = Wave::bursting;
 
         // NOTE: needs more logic here
         if (!metadata->bursting) {
+    
             // burst started
             metadata->bursting = true;
 
@@ -68,6 +71,8 @@ int WaveDetector::checkBurst(int frameNo) {
 
             ret = Wave::burstStart;
         }
+
+
 
         // TODO: add variable for 0.005
         if (!metadata->firstBurstDone && spikeCount > metadata->maxSpikes && frameNo % (int)(framesPerSec * 0.005) == 0){
@@ -118,6 +123,10 @@ int WaveDetector::checkBurst(int frameNo) {
 }
 
 int WaveDetector::processFrame(maxlab::FilteredFrameData frame, int frameNo) {
+    if (window == NULL) {
+        cerr << __FILE__ << " line " << __LINE__ << ": window is NULL" << endl;
+        exit(1);
+    }
     window->shift(frame);
 
     return checkBurst(frameNo);

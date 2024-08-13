@@ -8,8 +8,7 @@ import json
 import sys
 import subprocess
 import os
-
-
+import time
 
 import maxlab as mx
 
@@ -19,7 +18,6 @@ sys.path.append(top_level_dir)
 import bin.gui.GUI as GUI
 from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
-
 
 # STIM_ELECTRODES = {
 #     0: [2907,4365,22677,23713],
@@ -100,6 +98,8 @@ if __name__ == '__main__':
         well_data[well]["ARGS"] = program_args
 
         #############################################################################
+
+    #time.sleep(3600)
 
     for well in wells:
         mx.activate([well])

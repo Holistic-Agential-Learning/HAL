@@ -43,13 +43,13 @@ file_name = "single_unit_stimulation"
 # @edit
 #
 # directory to store recording file
-recording_dir = "/home/mxwbio/Desktop/HAL/data/testing/"
+recording_dir = "/home/mxwbio/Desktop/HAL/data/single_unit/"
 
 
 # @edit
 #
 # wells to record from (just use 0 if using the MaxOne)
-wells = [0] #, 1, 2, 3, 4, 5] 
+wells = range(6) #, 1, 2, 3, 4, 5] 
 
 
 # @edit
@@ -58,7 +58,12 @@ wells = [0] #, 1, 2, 3, 4, 5]
 # first element of the list if using the MaxOne
 
 configs = [
-    ""
+    "/home/mxwbio/configs/240813/13h46m02s.cfg",
+    "/home/mxwbio/configs/240813/13h46m05s.cfg",
+    "/home/mxwbio/configs/240813/13h46m08s.cfg",
+    "/home/mxwbio/configs/240813/13h46m13s.cfg",
+    "/home/mxwbio/configs/240813/13h46m16s.cfg",
+    "/home/mxwbio/configs/240813/13h46m21s.cfg"
 ]
 
 
@@ -70,7 +75,7 @@ configs = [
 #
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
-stimulation_electrodes = [[13310]] # well 1 stimulation electrodes
+stimulation_electrodes = [18714, 7192, 4815, 10138, 11267, 9057] # well 1 stimulation electrodes
 #     [13310], # well 2 stimulation electrodes
 #     [13310], # well 3 stimulation electrodes 
 #     [13310], # well 4 stimulation electrodes
@@ -171,6 +176,8 @@ if __name__ == "__main__":
         # Note: stimulation electrodes must also be recording electrodes
         #array.reset()
         array.clear_selected_electrodes( )
+        for row in range(stim_elecs[0] - 220 * 10, stim_elecs[0] + 220 * 11, 220):
+            array.select_electrodes(range(row - 10, row + 11), 2)
         array.select_electrodes(recording_electrodes)
         array.select_stimulation_electrodes(stim_elecs)
         array.route()
@@ -213,8 +220,8 @@ if __name__ == "__main__":
     pulse_seq_dict = dict()
     combined_seq_dict = dict()
     for amp in [160, 200, 240]:
-        pulse_dict[amp] = Stimulation(f"pulse_{amp}", 0, amp, 150, 1, 1, 1, 1)
-        inverse_pulse_dict[amp] = Stimulation(f"inverse_pulse_{amp}", 1, amp, 150, 1, 1, 1, 1)
+        pulse_dict[amp] = Stimulation(f"pulse_{amp}", 0, amp, 200, 1, 1, 1, 1)
+        inverse_pulse_dict[amp] = Stimulation(f"inverse_pulse_{amp}", 1, -1 * amp, 200, 1, 1, 1, 1)
 
         combined_dict[amp] = Stimulation.combine_stimuli(pulse_dict[amp], inverse_pulse_dict[amp], f"combined_{amp}")
 
@@ -230,6 +237,7 @@ if __name__ == "__main__":
 
     for well in wells:
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
+        s.write_assay_property(f"stim_elecs_{well}", ", ".join(str(x) for x in [stimulation_electrodes[well], stimulation_electrodes[well] + 1]))
 
     s.start_recording(wells)
 
@@ -243,14 +251,14 @@ if __name__ == "__main__":
     sleep(5)
 
     for amp in [160, 200, 240]:
-        print("individual pulses: amp = " + amp)
-        for i in range(10):
+        print("individual pulses: amp = " + str(amp))
+        for i in range(30):
             pulse_seq_dict[amp].send()
-            sleep(10)
-        print("negated pulses: amp = " + amp)
-        for i in range(10):
+            sleep(4)
+        print("negated pulses: amp = " + str(amp))
+        for i in range(30):
             combined_seq_dict[amp].send()
-            sleep(10)
+            sleep(4)
 
     # end of recording
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

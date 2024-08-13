@@ -334,9 +334,8 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
             locCounter++;
         }
 
-        if (waveVal == Wave::burstStart) {
-            cout << "burst started" << endl;
 
+        if (waveVal == Wave::burstStart) {
             locs[0] = window->getAvgX(); // starting location
             burstSpikeCounts[0] = spikeCount;
             locCounter = 1;
