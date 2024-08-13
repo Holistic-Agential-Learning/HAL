@@ -10,8 +10,6 @@ import subprocess
 import os
 import datetime
 
-
-
 import maxlab as mx
 
 import bin.gui.GUI as GUI
@@ -19,12 +17,37 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
 parent_path = "/home/mxwbio/Desktop/HAL/data/24-hour-recordings"
-experiment_name = "test"
-chip_id = 123456
-notes = ""
-config_path = "/home/mxwbio/Desktop/HAL/test_config_2.cfg"
+experiment_name = "NeuroDev_Test1"
+chip_id = 25269
+notes = "Syd plated this one. We're testing to see if we can see the development over time. DIV0 to DIV10"
+config_path = "/home/mxwbio/Desktop/HAL/SparseFull.cfg"
 
+# function for reading in electrode numbers from a config
+def get_config_electrodes(config_file):
+    file = open(config_file, "r")
+    contents = file.read()
+    electrode_nums = []
+    curr_word = ''
 
+    for char in contents:
+        # character before electrode number
+        if (char == '('):
+            curr_word = ''
+
+        # character after electrode number
+        elif (char == ')'):
+            electrode_nums.append(int(curr_word))
+            curr_word = ''
+        
+        # all electrodes have been processed
+        elif (char == 'H'):
+            break
+        else:                                                                       
+            curr_word = curr_word + char
+    
+    file.close()
+    
+    return electrode_nums
 
 
 if __name__ == '__main__':
@@ -32,18 +55,19 @@ if __name__ == '__main__':
     trial_path = hal.make_trial_folders_raw(parent_path, experiment_name, chip_id, [0])
 
     mx.clear_events() 
-    
-    mx.activate([0])
 
     mx.initialize()
-    mx.send(mx.Core().enable_stimulation_power(True))
+
+    mx.activate([0])
     
     array = mx.Array(f"recording")
     array.reset()
     array.clear_selected_electrodes()
     
-    array.load_config(config_path)
-    
+    # array.load_config(config_path)
+    recording_electrodes = get_config_electrodes(config_path)
+    array.select_electrodes(recording_electrodes)
+
     array.route()
 
     array.download([0])

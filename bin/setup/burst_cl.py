@@ -14,9 +14,9 @@ import bin.lib.py_src.hal as hal
 rec_electrodes = []
 
 all_configs = [
-    "/home/mxwbio/configs/240723/slow.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240723/fast.cfg", #fast button #TODO
-    "/home/mxwbio/configs/240724/full.cfg" #full (slow + fast + stim + read) #TODO
+    "/home/mxwbio/configs/240805/configC.cfg", #slow button  #TODO
+    "/home/mxwbio/configs/240805/configD.cfg", #fast button #TODO
+    "/home/mxwbio/configs/240813/small_rec.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
 def merge_configs(configs):
@@ -30,10 +30,10 @@ def merge_configs(configs):
 
 if __name__ == '__main__':
     exp_args = {}
-    exp_args['FOLDER'] = "/home/mxwbio/Desktop/HAL/data/burst_cl/{CHIPID}" #TODO
+    exp_args['FOLDER'] = "/home/mxwbio/Desktop/HAL/data/burst_cl/13635" #TODO
     exp_args['NAME'] = "burst_cl"
-    exp_args['WELLS'] = [4] #TODO
-    exp_args['-MAXTWO-'] = True
+    exp_args['WELLS'] = [0] #TODO
+    exp_args['-MAXTWO-'] = False
     trial_path = hal.make_trial_folders(exp_args)
         
     if exp_args['-MAXTWO-']:
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well]) 
         mx.set_primary_well(well)
-        stim_electrodes = [13117,17437] #TODO
+        stim_electrodes = [5322,5357,5397,5447] #TODO
         rec_electrodes = merge_configs(all_configs)
         does_stimulations = True
 
@@ -155,7 +155,7 @@ if __name__ == '__main__':
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(60)
+        program_args.append(str(3))
 
         s = mx.Saving()
         s.open_directory(directory_name)
