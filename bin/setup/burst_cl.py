@@ -14,8 +14,8 @@ import bin.lib.py_src.hal as hal
 rec_electrodes = []
 
 all_configs = [
-    "/home/mxwbio/configs/240813/A.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240813/B.cfg", #fast button #TODO
+    "/home/mxwbio/configs/240813/B.cfg", #slow button  #TODO
+    "/home/mxwbio/configs/240813/A.cfg", #fast button #TODO
     "/home/mxwbio/configs/240813/all.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
