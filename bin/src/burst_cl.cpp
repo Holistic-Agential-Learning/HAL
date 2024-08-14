@@ -187,8 +187,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateB = winB->firingRate();
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
+
             // Button A was pressed !withinSD(3, firingRateAvgA, sdA, firingRateA)
-            if ((firingRateAvgA != 0) && (firingRateA > 0.5) && (fano > 0.5) && (zScore(firingRateA, firingRateAvgA, sdA) > 20)) {
+            if ((firingRateAvgA != 0) && (firingRateA > 0.3) && (fano > 0.5) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
 
                 printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stim_type > 0){

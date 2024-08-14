@@ -145,7 +145,53 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     ChannelWindow *winA = controller.getButtonWindow("A");
     ChannelWindow *winB = controller.getButtonWindow("B");
 
+    vector<float> ratios;
 
+    /*
+        Calibrate ratio thresholds
+    */
+    for (int i = 0; i < 20000 * 5 * 60; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        
+
+        // If no data was read in, try again (happens when loop finishes before 
+        // the machine takes another sample)
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }        
+        controller.shift(frameData);
+
+
+        //TODO: check this
+        if (winA->pastWindowsReady() && winB->pastWindowsReady()) {
+            float firingRateAvgA = winA->avgPastWindows();
+            float firingRateAvgB = winB->avgPastWindows();
+            float sdA = winA->firingRateSD();
+            float sdB = winB->firingRateSD();
+            float firingRateA = winA->firingRate();
+            float firingRateB = winB->firingRate();
+            float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
+
+            if (firingRateA > 1 || firingRateB > 1) {
+                ratios.push_back(fano);
+            }
+        }
+    }
+
+    sort(ratios.begin(), ratios.end());
+
+    int numRatios = ratios.size() - 1;
+
+    int aRatio = ratios[(int) (0.9 * numRatios)];
+    int bRatio = ratios[(int) (0.1 * numRatios)];
+
+    data << "aRatioThreshold," << aRatio << endl;
+    data << "BRatioThreshold," << aRatio << endl;
+
+    cout << "A Ratio Threshold: " << aRatio << endl;
+    cout << "B Ratio Threshold: " << bRatio << endl;
 
     for (int i = 0; i < frames; i++) {
         maxlab::FilteredFrameData frameData;
@@ -182,7 +228,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateB = winB->firingRate();
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
-            data << firingRateA << ", " << firingRateB << ", " << ratio << endl;
+            data << firingRateA << ", " << firingRateB << ", " << fano << endl;
         }
     }
 

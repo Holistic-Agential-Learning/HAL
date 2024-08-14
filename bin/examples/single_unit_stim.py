@@ -37,7 +37,7 @@ from bin.lib.py_src.stimulation import Stimulation
 # @edit
 #
 # file name of the h5 file where the recording data is stored
-file_name = "single_unit_stimulation_high_amp" 
+file_name = "single_unit_stimulation_high_amp_low_phase" 
 
 
 # @edit
@@ -221,8 +221,8 @@ if __name__ == "__main__":
     combined_seq_dict = dict()
     all_amps = [280, 320, 360]
     for amp in all_amps:
-        pulse_dict[amp] = Stimulation(f"pulse_{amp}", 0, amp, 200, 1, 1, 1, 1)
-        inverse_pulse_dict[amp] = Stimulation(f"inverse_pulse_{amp}", 1, -1 * amp, 200, 1, 1, 1, 1)
+        pulse_dict[amp] = Stimulation(f"pulse_{amp}", 0, amp, 100, 1, 1, 1, 1)
+        inverse_pulse_dict[amp] = Stimulation(f"inverse_pulse_{amp}", 1, -1 * amp, 100, 1, 1, 1, 1)
 
         combined_dict[amp] = Stimulation.combine_stimuli(pulse_dict[amp], inverse_pulse_dict[amp], f"combined_{amp}")
 
