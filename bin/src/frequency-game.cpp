@@ -35,7 +35,7 @@ int FRAMES_PER_SEC = 20000;
 
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
-void runExperiment(string path, string config0, string config1, int frames, int well);
+void runExperiment(string path, string config0, string config1, int frames, int well, bool guidance);
 int get_max_element(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
@@ -157,7 +157,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     /*
         Calibrate ratio thresholds
     */
-    for (int i = 0; i < 20000 * 5 * 60; i++) {
+    for (int i = 0; i < 10000 * 5 * 60; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         
@@ -191,14 +191,21 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int numRatios = ratios.size() - 1;
 
-    int aRatio = ratios[(int) (0.9 * numRatios)];
-    int bRatio = ratios[(int) (0.1 * numRatios)];
+    int aRatioIndex = 0.9 * numRatios;
+    int bRatioIndex = 0.1 * numRatios;
+
+    float aRatio = ratios[aRatioIndex];
+    float bRatio = ratios[bRatioIndex];
 
     data << "aRatioThreshold," << aRatio << endl;
     data << "BRatioThreshold," << aRatio << endl;
 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
+
+    cout << "A Ratio Index: " << aRatioIndex << endl;
+    cout << "B Ratio Index: " << bRatioIndex << endl;
+
 
 
     /*
@@ -223,14 +230,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         if (blanking > 0) {
             blanking--;
-            if (blanking != 0) {
-                continue;
-            }
         }
 
 
         //TODO: check this
-        if (winA->pastWindowsReady() && winB->pastWindowsReady() && (guidance == false)) {
+        if (winA->pastWindowsReady() && winB->pastWindowsReady() && (guidance == false) && !blanking) {
             float firingRateAvgA = winA->avgPastWindows();
             float firingRateAvgB = winB->avgPastWindows();
             float sdA = winA->firingRateSD();
@@ -241,7 +245,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
 
             // Button A was pressed !withinSD(3, firingRateAvgA, sdA, firingRateA)
-            if ((firingRateAvgA != 0) && (firingRateA > 0.3) && (fano > 0.5) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
+            if ((firingRateAvgA != 0) && (firingRateA > 0.5) && (fano > aRatio) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
 
                 printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stim_type > 0){
@@ -252,7 +256,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 
 
             // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
-            } else if ((firingRateAvgB != 0 )&& (firingRateB > 0.5) && (fano < -0.5) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
+            } else if ((firingRateAvgB != 0 )&& (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
                 
                 printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stim_type < 10){
@@ -267,13 +271,15 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         //TODO: get guidance
         if(guidance){
+            if (i % 10000 == 0) {
+                cout << i << endl;
+            }
             //starts at the very firts frame and inc every 10 sec
             if ((i == 0) || (i == 100000) || (i == 200000) || (i == 300000) || (i == 400000) || (i == 500000) || (i == 600000) || (i == 700000) || (i == 800000) || (i == 900000) ){
                 if (stim_type < 10){
                     stim_type++;
-                    cout << "Speed increased by guidance" << endl;
+                    cout << i << ": Speed increased by guidance" << endl;
                     maxlab::verifyStatus(maxlab::sendSequence("inc_guidance"));
-                    blanking=200;
                 }
             }
 
@@ -282,12 +288,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     stim_type--;
                     cout << "Speed decreased by guidance" << endl;
                     maxlab::verifyStatus(maxlab::sendSequence("dec_guidance"));
-                    blanking=200;
                 }
             }
 
             if ((i >= 1900000)){
-                guidance == false;
+                guidance = false;
             }
         }
 

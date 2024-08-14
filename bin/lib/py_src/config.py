@@ -2,12 +2,18 @@ import re
 import os
 
 def get_buttons(full_config, buttons, save_path):
+    print(full_config)
+    print(buttons)
+    print(save_path)
     full_config_map = read_config_electrode_to_channel(full_config)
     buttons_data = [read_config(b) for b in buttons]
 
     for button in buttons_data:
         for data in button:
-            data[0] = full_config_map[data[1]]
+            try:
+                data[0] = full_config_map[data[1]]
+            except Exception as err:
+                print(f"{data[1]} not routed")
 
     new_buttons = []
 

@@ -10,12 +10,13 @@ import maxlab as mx
 import bin.gui.GUI as GUI
 from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
+import bin.lib.py_src.config as cfg
 
 rec_electrodes = []
 
 all_configs = [
-    "/home/mxwbio/configs/240813/B.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240813/A.cfg", #fast button #TODO
+    "/home/mxwbio/configs/240813/A.cfg", #slow button  #TODO
+    "/home/mxwbio/configs/240813/B.cfg", #fast button #TODO
     "/home/mxwbio/configs/240813/all.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
@@ -31,17 +32,11 @@ def merge_configs(configs):
     return list(s)
 
 if __name__ == '__main__':
-    exp_args = {}
-    exp_args['FOLDER'] = "/home/mxwbio/Desktop/HAL/data/burst_cl/13635" #TODO
-    exp_args['NAME'] = "burst_cl"
-    exp_args['WELLS'] = [1] #TODO
-    exp_args['-MAXTWO-'] = True
-    trial_path = hal.make_trial_folders(exp_args)
-        
-    if exp_args['-MAXTWO-']:
-        wells = exp_args['WELLS']
-    else:
-        wells = [0]
+
+    wells = [1] # TODO
+    experiment_name = "testing" #TODO
+    chip_id = "M07458" # TODO
+    trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
 
@@ -49,9 +44,9 @@ if __name__ == '__main__':
         mx.activate([well]) 
         mx.set_primary_well(well)
         freq_electrodes = [5322,5357,5397,5447] #TODO
-        dec_guidance_electrodes = [] #TODO
-        inc_guidance_electrodes = [] #TODO
-        #stim_electrodes = freq_units + dec_guidance_electrodes + inc_guidance_electrodes
+        dec_guidance_electrodes = [17638, 19412, 21170, 21190] #TODO
+        inc_guidance_electrodes = [17991, 18017, 21073, 21537] #TODO
+        stim_electrodes = freq_electrodes + dec_guidance_electrodes + inc_guidance_electrodes
         rec_electrodes = merge_configs(all_configs)
         does_stimulations = True
 
@@ -132,10 +127,12 @@ if __name__ == '__main__':
 
 
         directory_name = f"{trial_path}/well{well}"
-        file_name = exp_args["NAME"]
+        file_name = experiment_name
         config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
         print(config_file_name)
         array.save_config(config_file_name)
+
+        new_buttons = cfg.get_buttons(config_file_name, [all_configs[0], all_configs[1]], directory_name)
         
         array.download([well]) 
         mx.offset() 
@@ -211,14 +208,14 @@ if __name__ == '__main__':
         # TODO CHECK:
         #Setup stims with three difference DAC sources
 
-        program_args = ["./bin/build/burst_cl", "--folder", directory_name]
-        for i in range(len(all_configs)):
+        program_args = ["./bin/build/frequency-game", "--folder", directory_name]
+        for i in range(len(new_buttons)):
             program_args.append(f"--config{i}")
-            program_args.append(all_configs[i])
+            program_args.append(new_buttons[i])
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(str(3))
+        program_args.append(str(6)) # TODO set the number of minutes for the game
         if guidance:
             program_args.append("--guidance")
 

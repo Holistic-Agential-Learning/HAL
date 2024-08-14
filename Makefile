@@ -15,7 +15,8 @@ HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 # all .o files in hal lib
 HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(basename $(cpp)).o)
 
-PROGRAMS = train-wave-direction mouse_1d closed_loop_rp rp_stim_removal controller-test new-train-wave burst_cl print-button-ratios
+PROGRAMS = train-wave-direction mouse_1d closed_loop_rp rp_stim_removal controller-test new-train-wave burst_cl print-button-ratios frequency-game
+
 
 all : dir $(PROGRAMS)
 
