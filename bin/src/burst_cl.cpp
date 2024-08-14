@@ -187,7 +187,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 //if both A & B are pressed, ignore both
             } else {
                 // Button A was pressed !withinSD(3, firingRateAvgA, sdA, firingRateA)
-                if ( zScore(firingRateA, firingRateAvgA, sdA) > 2) {
+                if (firingRateAvgA != 0 && firingRateA > 0.5 && fano > 0.5 && zScore(firingRateA, firingRateAvgA, sdA) > 2) {
 
                     printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                     if (stim_type > 0){
@@ -198,7 +198,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     
     
                 // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
-                } else if ( zScore(firingRateB, firingRateAvgB, sdB) > 2) {
+                } else if (firingRateAvgB != 0 && firingRateB > 0.5 && fano < -0.5 && zScore(firingRateB, firingRateAvgB, sdB) > 2) {
                     
                     printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                     if (stim_type < 10){
