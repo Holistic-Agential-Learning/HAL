@@ -34,7 +34,7 @@ def merge_configs(configs):
 if __name__ == '__main__':
 
     wells = [1] # TODO
-    experiment_name = "testing" #TODO
+    experiment_name = "no-guidance-60" #TODO
     chip_id = "M07458" # TODO
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
@@ -215,7 +215,7 @@ if __name__ == '__main__':
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(str(6)) # TODO set the number of minutes for the game
+        program_args.append(str(60)) # TODO set the number of minutes for the game
         if guidance:
             program_args.append("--guidance")
 
@@ -247,3 +247,6 @@ if __name__ == '__main__':
         s.stop_file()
         s.group_delete_all()
         print("finished recording")
+
+    subprocess.run(["./mail.sh"])
+
