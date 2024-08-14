@@ -219,6 +219,8 @@ if __name__ == '__main__':
         program_args.append(str(well))
         program_args.append("--minutes")
         program_args.append(str(3))
+        if guidance:
+            program_args.append("--guidance")
 
         s = mx.Saving()
         s.open_directory(directory_name)
