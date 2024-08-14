@@ -12,6 +12,7 @@
 #include <string>
 #include "hal.h"
 #include <map>
+#include <algorithm>
 
 using namespace std;
 using namespace maxlab;
@@ -150,7 +151,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     /*
         Calibrate ratio thresholds
     */
-    for (int i = 0; i < 20000 * 5 * 60; i++) {
+    for (int i = 0; i < 10000 * 5 * 60; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         
@@ -175,6 +176,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
             if (firingRateA > 1 || firingRateB > 1) {
+                cout << fano << endl;
                 ratios.push_back(fano);
             }
         }
@@ -184,14 +186,20 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int numRatios = ratios.size() - 1;
 
-    int aRatio = ratios[(int) (0.9 * numRatios)];
-    int bRatio = ratios[(int) (0.1 * numRatios)];
+    int aRatioIndex = 0.9 * numRatios;
+    int bRatioIndex = 0.1 * numRatios;
+
+    float aRatio = ratios[aRatioIndex];
+    float bRatio = ratios[bRatioIndex];
 
     data << "aRatioThreshold," << aRatio << endl;
     data << "BRatioThreshold," << aRatio << endl;
 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
+
+    cout << "A Ratio Index: " << aRatioIndex << endl;
+    cout << "B Ratio Index: " << bRatioIndex << endl;
 
     for (int i = 0; i < frames; i++) {
         maxlab::FilteredFrameData frameData;
