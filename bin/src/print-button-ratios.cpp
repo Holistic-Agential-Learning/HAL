@@ -182,7 +182,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateB = winB->firingRate();
             float fano = fanoFactor(firingRateAvgA, firingRateAvgB);
 
-            data << firingRateA << ", " << firingRateB << ", " << ratio << endl;
+            data << firingRateA << ", " << firingRateB << ", " << fano << endl;
         }
     }
 

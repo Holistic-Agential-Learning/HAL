@@ -148,14 +148,14 @@ if __name__ == '__main__':
         stim_seq = stim.build_sequence()
         print(stim.get_duration())
 
-        program_args = ["./bin/build/burst_cl", "--folder", directory_name]
+        program_args = ["./bin/build/print-button-ratios", "--folder", directory_name]
         for i in range(len(all_configs)):
             program_args.append(f"--config{i}")
             program_args.append(all_configs[i])
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(str(3))
+        program_args.append(str(5))
 
         s = mx.Saving()
         s.open_directory(directory_name)
