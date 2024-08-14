@@ -68,8 +68,13 @@ int main(int argc, char * argv[]) {
 
     float minutes = getFloatArgSecure("--minutes", 0.5, argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
+    bool guidance = checkOption("--guidance", argc, argv);
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << " for " << minutes << " minutes..." << endl;
     cout << "Well: " << well << endl;
+
+    if (guidance){
+        cout << "running with guidance" << endl;
+    }
         
     if (maxtwo) {
         FRAMES_PER_SEC = 10000;
@@ -78,7 +83,7 @@ int main(int argc, char * argv[]) {
     int frames = minutes*60*FRAMES_PER_SEC;
 
     try {
-        runExperiment(path, config0, config1, frames, well);
+        runExperiment(path, config0, config1, frames, well, guidance);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -88,7 +93,7 @@ int main(int argc, char * argv[]) {
     return 0;
 }
 
-void runExperiment(string path, string config0, string config1, int frames, int well) {
+void runExperiment(string path, string config0, string config1, int frames, int well, bool guidance) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     int stim_type = 0;
@@ -173,7 +178,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
 
         //TODO: check this
-        if (winA->pastWindowsReady() && winB->pastWindowsReady()) {
+        if (winA->pastWindowsReady() && winB->pastWindowsReady() && (guidance == false)) {
             float firingRateAvgA = winA->avgPastWindows();
             float firingRateAvgB = winB->avgPastWindows();
             float sdA = winA->firingRateSD();
@@ -209,6 +214,32 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         float numSeconds = (float) i / FRAMES_PER_SEC;
+
+        //TODO: get guidance
+        if(guidance){
+            //starts at the very firts frame and inc every 10 sec
+            if ((i == 0) || (i == 100000) || (i == 200000) || (i == 300000) || (i == 400000) || (i == 500000) || (i == 600000) || (i == 700000) || (i == 800000) || (i == 900000) ){
+                if (stim_type < 10){
+                    stim_type++;
+                    cout << "Speed increased by guidance" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("inc_guidance"));
+                    blanking=200;
+                }
+            }
+
+            if ((i == 1000000) || (i == 1100000) || (i == 1200000) || (i == 1300000) || (i ==  1400000) || (i == 1500000) || (i == 1600000) || (i == 1700000) || (i == 1800000) || (i == 1900000) ){
+                if (stim_type > 0){
+                    stim_type--;
+                    cout << "Speed decreased by guidance" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("dec_guidance"));
+                    blanking=200;
+                }
+            }
+
+            if ((i >= 1900000)){
+                guidance == false;
+            }
+        }
 
          switch(stim_type) {
             case 0:
