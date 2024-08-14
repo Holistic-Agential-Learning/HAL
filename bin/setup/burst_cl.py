@@ -196,7 +196,7 @@ if __name__ == '__main__':
 
         ##############################################################################
 
-        stim = Stimulation(token="stim", dac_source=0, amplitude=600, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
+        stim = Stimulation(token="stim", dac_source=0, amplitude=300, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
         stim_seq = stim.build_sequence()
         print(stim.get_duration())
 
