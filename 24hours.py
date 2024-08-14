@@ -82,29 +82,38 @@ if __name__ == '__main__':
     for i in range(24):
         recording_file = f"{experiment_name}_{i}"
         
+
         s = mx.Saving()
         s.open_directory(recording_dir)
-        s.start_file(recording_file)
 
-        #Write metadata
-        now = datetime.datetime.now()
-        hal.write_exp_description(s, f"Hour {i}, recorded at {now.time()}")
-        s.write_assay_property("Notes", notes)
+        try:
+            s.start_file(recording_file)
 
-        s.group_delete_all()
-        
-        s.group_define(0, f"all_channels_{0}", list(range(1024)))
+            #Write metadata
+            now = datetime.datetime.now()
+            hal.write_exp_description(s, f"Hour {i}, recorded at {now.time()}")
+            s.write_assay_property("Notes", notes)
 
-        
-        print(f"Hour {i} ({now.time()}): recording")
-        s.start_recording([0])
-        
-        time.sleep(900)
+            s.group_delete_all()
+            
+            s.group_define(0, f"all_channels_{0}", list(range(1024)))
+
+            
+            print(f"Hour {i} ({now.time()}): recording")
+            s.start_recording([0])
+            
+            time.sleep(900)
+
+            
+        except KeyboardInterrupt:
+            print("^C signalled")
+            s.stop_recording()
+            s.stop_file()
+            s.group_delete_all()
 
         s.stop_recording()
         s.stop_file()
         s.group_delete_all()
-
         now = datetime.datetime.now()
         print(f"Hour {i} ({now.time()}): sleeping")
         time.sleep(2700)
