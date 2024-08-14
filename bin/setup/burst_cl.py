@@ -14,9 +14,9 @@ import bin.lib.py_src.hal as hal
 rec_electrodes = []
 
 all_configs = [
-    "/home/mxwbio/configs/240805/configC.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240805/configD.cfg", #fast button #TODO
-    "/home/mxwbio/configs/240813/small_rec.cfg" #full (slow + fast + stim + read) #TODO
+    "/home/mxwbio/configs/240813/A.cfg", #slow button  #TODO
+    "/home/mxwbio/configs/240813/B.cfg", #fast button #TODO
+    "/home/mxwbio/configs/240813/all.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
 def merge_configs(configs):

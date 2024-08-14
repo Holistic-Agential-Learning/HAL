@@ -37,7 +37,7 @@ from bin.lib.py_src.stimulation import Stimulation
 # @edit
 #
 # file name of the h5 file where the recording data is stored
-file_name = "single_unit_stimulation" 
+file_name = "single_unit_stimulation_high_amp" 
 
 
 # @edit
@@ -219,7 +219,8 @@ if __name__ == "__main__":
 
     pulse_seq_dict = dict()
     combined_seq_dict = dict()
-    for amp in [160, 200, 240]:
+    all_amps = [280, 320, 360]
+    for amp in all_amps:
         pulse_dict[amp] = Stimulation(f"pulse_{amp}", 0, amp, 200, 1, 1, 1, 1)
         inverse_pulse_dict[amp] = Stimulation(f"inverse_pulse_{amp}", 1, -1 * amp, 200, 1, 1, 1, 1)
 
@@ -250,7 +251,7 @@ if __name__ == "__main__":
     print("Starting recording...")
     sleep(5)
 
-    for amp in [160, 200, 240]:
+    for amp in all_amps:
         print("individual pulses: amp = " + str(amp))
         for i in range(30):
             pulse_seq_dict[amp].send()
