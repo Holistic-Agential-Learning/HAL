@@ -19,6 +19,8 @@ all_configs = [
     "/home/mxwbio/configs/240813/all.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
+guidance = False #TODO Setup guidance here
+
 def merge_configs(configs):
     s = set()
     for config in configs:
@@ -46,7 +48,10 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well]) 
         mx.set_primary_well(well)
-        stim_electrodes = [5322,5357,5397,5447] #TODO
+        freq_electrodes = [5322,5357,5397,5447] #TODO
+        dec_guidance_electrodes = [] #TODO
+        inc_guidance_electrodes = [] #TODO
+        #stim_electrodes = freq_units + dec_guidance_electrodes + inc_guidance_electrodes
         rec_electrodes = merge_configs(all_configs)
         does_stimulations = True
 
@@ -65,8 +70,11 @@ if __name__ == '__main__':
 
         # stimulation setup here 
         if does_stimulations:
-            stimulation_units = []
-            for stim_el in stim_electrodes:
+            freq_units = []
+            inc_units = []
+            dec_units = []
+
+            for stim_el in freq_electrodes:
                 array.connect_electrode_to_stimulation(stim_el)
                 stim = array.query_stimulation_at_electrode(stim_el)
                 if len(stim) == 0:
@@ -75,14 +83,52 @@ if __name__ == '__main__':
                             {str(stim_el)}"
                     )
                 stim_unit_int = int(stim)
-                if stim_unit_int in stimulation_units:
+                if stim_unit_int in freq_units:
                     raise RuntimeError(
                         f"Two electrodes connected to the same stim unit.\
                                     This is not allowed. Please Select a \
                                         neighboring electrode of {stim_el}!"
                     )
                 else:
-                    stimulation_units.append(stim_unit_int)
+                    freq_units.append(stim_unit_int)
+
+            for stim_el in inc_guidance_electrodes:
+                array.connect_electrode_to_stimulation(stim_el)
+                stim = array.query_stimulation_at_electrode(stim_el)
+                if len(stim) == 0:
+                    raise RuntimeError(
+                        f"No stimulation channel can connect to electrode: \
+                            {str(stim_el)}"
+                    )
+                stim_unit_int = int(stim)
+                if stim_unit_int in inc_units:
+                    raise RuntimeError(
+                        f"Two electrodes connected to the same stim unit.\
+                                    This is not allowed. Please Select a \
+                                        neighboring electrode of {stim_el}!"
+                    )
+                else:
+                    inc_units.append(stim_unit_int)
+
+            for stim_el in dec_guidance_electrodes:
+                array.connect_electrode_to_stimulation(stim_el)
+                stim = array.query_stimulation_at_electrode(stim_el)
+                if len(stim) == 0:
+                    raise RuntimeError(
+                        f"No stimulation channel can connect to electrode: \
+                            {str(stim_el)}"
+                    )
+                stim_unit_int = int(stim)
+                if stim_unit_int in dec_units:
+                    raise RuntimeError(
+                        f"Two electrodes connected to the same stim unit.\
+                                    This is not allowed. Please Select a \
+                                        neighboring electrode of {stim_el}!"
+                    )
+                else:
+                    dec_units.append(stim_unit_int)
+
+
 
 
         directory_name = f"{trial_path}/well{well}"
@@ -96,8 +142,14 @@ if __name__ == '__main__':
         mx.clear_events() 
 
         if does_stimulations:
-            for stimulation_unit in stimulation_units:
+            for stimulation_unit in freq_units:
                 stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(0)
+                mx.send(stimulation)
+            for stimulation_unit in inc_units:
+                stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(1)
+                mx.send(stimulation)
+            for stimulation_unit in dec_units:
+                stimulation = mx.StimulationUnit(stimulation_unit).power_up(True).connect(True).set_voltage_mode().dac_source(2)
                 mx.send(stimulation)
 
         ##############################################################################
@@ -147,6 +199,17 @@ if __name__ == '__main__':
         stim = Stimulation(token="stim", dac_source=0, amplitude=600, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
         stim_seq = stim.build_sequence()
         print(stim.get_duration())
+
+        inc_stim = Stimulation(token="inc_guidance", dac_source=1, amplitude=100, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
+        inc_stim_seq = inc_stim.build_sequence()
+        print(inc_stim.get_duration())
+
+        dec_stim = Stimulation(token="dec_guidance", dac_source=2, amplitude=100, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
+        dec_stim_seq = dec_stim.build_sequence()
+        print(dec_stim.get_duration())
+
+        # TODO CHECK:
+        #Setup stims with three difference DAC sources
 
         program_args = ["./bin/build/burst_cl", "--folder", directory_name]
         for i in range(len(all_configs)):
