@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+#Controlling bursting in cortical cultures with closed-loop multi-electrode stimulation - Potter
+#Change all TODO s before every run
+
 import maxlab as mx
 from typing import List
 from time import sleep
