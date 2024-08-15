@@ -241,6 +241,7 @@ if __name__ == "__main__":
 
             stim_unit = all_arrays[well].query_stimulation_at_electrode(stim_elec)
             # power up stimulation units
+            mx.activate([well])
             mx.send(
                 mx.StimulationUnit(stim_unit)
                 .power_up(True)
@@ -249,18 +250,18 @@ if __name__ == "__main__":
                 .dac_source(0)
             )
 
+        mx.activate(wells)
         for i in range(30):
             pulse_seq.send()
             sleep(4)
 
 
         #power off
-        for well in wells:
-            for stim_unit in range(0, 32):
-                mx.send(
-                    mx.StimulationUnit(stim_unit)
-                    .power_up(False)
-                )
+        for stim_unit in range(0, 32):
+            mx.send(
+                mx.StimulationUnit(stim_unit)
+                .power_up(False)
+            )
 
     
 
