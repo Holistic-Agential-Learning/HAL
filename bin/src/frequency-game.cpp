@@ -32,6 +32,8 @@ Options:\n\
 #define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;
+float rates[11] = {0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 8, 9, 10};
+
 
 float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
@@ -298,8 +300,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 guidance = false;
             }
         }
-
-        float rates[11] = {0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 8, 9, 10};
 
         if (stim_type <= 10 && stim_type >= 0 && i % int(FRAMES_PER_SEC * 1/rates[stim_type]) == 0) {
             data << i << ": Pressing stim..." << endl;
