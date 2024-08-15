@@ -1,6 +1,8 @@
 #include <iostream>
 #include <ncurses.h>
 #include <unistd.h>
+#include "hal.h"
+
 using namespace std;
 
 void printBarRaw(char bar[]) {
@@ -14,19 +16,14 @@ void printBarRaw(char bar[]) {
 
 int main()
 {
-    char bar[50];
+    ProgressBar bar = ProgressBar("Experiment Progress");
+    string end = string(65, ' ');
 
     for (int i = 0; i < 50; i++) {
-        bar[i] = '.';
-    }  
-
-    printBarRaw(bar);
-
-    for (int i = 0; i < 50; i++) {
-        bar[i] = '#';
+        bar.increment();
         usleep(100000);
-        // cout << '\r' << flush;
-        printBarRaw(bar);
+        cout << "\r" << "something " << i << end << endl;
+        bar.print();
     }
 
     cout << endl;
