@@ -17,7 +17,7 @@ rec_electrodes = []
 all_configs = [
     "/home/mxwbio/configs/240813/A.cfg", #slow button  #TODO
     "/home/mxwbio/configs/240813/B.cfg", #fast button #TODO
-    "/home/mxwbio/configs/240813/all.cfg" #full (slow + fast + stim + read) #TODO
+    "/home/mxwbio/configs/240814/M07458_DIV42.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
 guidance = False #TODO Setup guidance here
@@ -43,11 +43,12 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well]) 
         mx.set_primary_well(well)
-        freq_electrodes = [5322,5357,5397,5447] #TODO
+        freq_electrodes = [6001,6473,6959,6991] #TODO
         dec_guidance_electrodes = [17638, 19412, 21170, 21190] #TODO
         inc_guidance_electrodes = [17991, 18017, 21073, 21537] #TODO
-        stim_electrodes = freq_electrodes + dec_guidance_electrodes + inc_guidance_electrodes
-        rec_electrodes = merge_configs(all_configs)
+        stim_electrodes = freq_electrodes # + dec_guidance_electrodes + inc_guidance_electrodes
+        rec_electrodes = freq_electrodes + merge_configs(all_configs)
+        print(len(rec_electrodes))
         does_stimulations = True
 
         time.sleep(5)
