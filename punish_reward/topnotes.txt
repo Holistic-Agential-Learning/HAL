@@ -1,2 +1,14 @@
 macro_reward is cathodic biphasic
 macro_punish is monophasic
+
+# DEVICE = "MAXONE"
+# if DEVICE == "MAXONE":
+#     STABLE_PULSEWIDTH_LLIMIT: int = 2 #100 uS (i.e 50us * 2)
+#     STABLE_PULSEWIDTH_ULIMIT: int = 20 #1000 uS (i.e 50us * 20)
+#     STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 20 #1mS (i.e 50us * 20) #TODO: I think this limit is arbitrary, try settimg this to zero
+#     STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 2000 #100mS (i.e 50us * 2000)
+# elif DEVICE == "MAXTWO":
+#     STABLE_PULSEWIDTH_LLIMIT: int = 1 #100 uS (i.e 100us * 1)
+#     STABLE_PULSEWIDTH_ULIMIT: int = 10 #1000 uS (i.e 100us * 10)
+#     STABLE_INTER_PULSE_INTERVAL_LLIMIT: int = 10 #1mS (i.e 100us * 10)
+#     STABLE_INTER_PULSE_INTERVAL_ULIMIT: int = 1000 #100mS (i.e 100us * 1000)
