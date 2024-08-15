@@ -12,3 +12,6 @@ data/*
 guitest
 ERR_LOG
 
+.vscode 
+.ipynb_checkpoints
+
