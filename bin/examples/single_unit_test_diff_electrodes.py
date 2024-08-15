@@ -143,60 +143,6 @@ if __name__ == "__main__":
         raise RuntimeError("The system didn't initialize correctly.")
     sleep(mx.Timing.waitInit)
 
-    print("Initializing wells...")
-
-    all_arrays = [0] * 6
-
-    # sets up recording and stimulation electrodes for each well
-    for well in wells:
-
-        print(f"Setting up well {well}...")
-
-        # activate the current well
-        mx.activate([well])
-        mx.set_primary_well(well)
-
-        # get config file and recording electrode numbers
-        config_file = configs[well]
-        config_file = configs[well]
-        recording_electrodes = get_config_electrodes(config_file)
-        #recording_electrodes = configs[well] 
-
-        # grab the stimulation electrodes
-        stim_elecs = all_stim_electrodes[well]
-
-        print(f"Stimulation electrodes: {stim_elecs}")
-
-        array = mx.chip.Array(f"stimulation{well}")
-
-        # set recording and stimulation electrodes
-        #
-        # Note: stimulation electrodes must also be recording electrodes
-        #array.reset()
-        array.clear_selected_electrodes( )
-        #for row in range(stim_elecs[0] - 220 * 10, stim_elecs[0] + 220 * 11, 220):
-        #    array.select_electrodes(range(row - 10, row + 11), 2)
-        
-        array.select_stimulation_electrodes(stim_elecs)
-        array.select_electrodes(recording_electrodes)
-        array.route()
-
-        # connect stimulation units
-        stimulation_units = hal.connect_stim_units_to_stim_electrodes(
-            stim_elecs, array
-        )
-
-        # download data to the well
-        array.download([well])
-        all_arrays[well] = array
-
-    mx.activate(wells)
-
-    print("Offsetting...")
-    sleep(mx.Timing.waitAfterDownload)
-    mx.offset()
-    sleep(15)
-
     mx.clear_events()
 
     print("Making stimulations...")
@@ -208,60 +154,43 @@ if __name__ == "__main__":
     pulse_seq = pulse.build_sequence()
     ############################################################################
     # RUN EXPERIMENT
-
-    s = mx.Saving()
-    s.open_directory(recording_dir)
-    s.start_file(file_name)
-
-    for well in wells:
-        s.group_define(well, f"all_channels_{well}", list(range(1024)))
-
-        stim_elecs = all_stim_electrodes[well]
-
-        s.write_assay_property(f"stim_elecs_{well}", ", ".join(str(x) for x in stim_elecs))
-
-    s.start_recording(wells)
-
-    
-    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    # @edit
-    #
-    # Send stimulations and configure experiment timings here
-
-    print("Starting recording...")
-    sleep(5)
-
-
     for stim_elec_no in range(9):
         #power on appropriate stim unit
         print("Stim electrode no " + str(stim_elec_no))
-        mx.send(mx.Event(0, 1, stim_elec_no + 10, f"stim_elec_no {stim_elec_no}"))
-        for well in wells:
-            stim_elec = all_stim_electrodes[well][stim_elec_no]
 
-            stim_unit = all_arrays[well].query_stimulation_at_electrode(stim_elec)
-            # power up stimulation units
-            mx.activate([well])
-            mx.send(
-                mx.StimulationUnit(stim_unit)
-                .power_up(True)
-                .connect(True)
-                .set_voltage_mode()
-                .dac_source(0)
-            )
+        for well in wells:
+            hal.init_well(well, get_config_electrodes(configs[well]), list(all_stim_electrodes[well][stim_elec_no]), connect = True, power_up = True)
+
+        sleep(mx.Timing.waitAfterDownload)
 
         mx.activate(wells)
+        mx.offset()
+        sleep(15)
+
+
+
+
+
+
+        s = mx.Saving()
+        s.open_directory(recording_dir)
+        s.start_file(file_name + f"_stim_elec_{stim_elec_no}")
+
+        for well in wells:
+            s.group_define(well, f"all_channels_{well}", list(range(1024)))
+
+            stim_elecs = list(all_stim_electrodes[well][stim_elec_no])
+
+            s.write_assay_property(f"stim_elecs_{well}", ", ".join(str(x) for x in stim_elecs))
+        
+        s.start_recording(wells)
+
         for i in range(30):
             pulse_seq.send()
             sleep(4)
+        
 
 
-        #power off
-        for stim_unit in range(0, 32):
-            mx.send(
-                mx.StimulationUnit(stim_unit)
-                .power_up(False)
-            )
 
     
 
