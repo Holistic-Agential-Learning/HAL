@@ -239,7 +239,7 @@ if __name__ == "__main__":
         for well in wells:
             stim_elec = all_stim_electrodes[well][stim_elec_no]
 
-            stim_unit = array[well].query_stimulation_at_electrode(stim_elec)
+            stim_unit = all_arrays[well].query_stimulation_at_electrode(stim_elec)
             # power up stimulation units
             mx.send(
                 mx.StimulationUnit(stim_unit)
