@@ -154,36 +154,10 @@ if __name__ == "__main__":
     pulse_seq = pulse.build_sequence()
     ############################################################################
     # RUN EXPERIMENT
-
-    s = mx.Saving()
-    s.open_directory(recording_dir)
-    s.start_file(file_name)
-
-    for well in wells:
-        s.group_define(well, f"all_channels_{well}", list(range(1024)))
-
-        stim_elecs = all_stim_electrodes[well]
-
-        s.write_assay_property(f"stim_elecs_{well}", ", ".join(str(x) for x in stim_elecs))
-
-    s.start_recording(wells)
-
-    
-    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    # @edit
-    #
-    # Send stimulations and configure experiment timings here
-
-    print("Starting recording...")
-    sleep(5)
-
-
     for stim_elec_no in range(9):
         #power on appropriate stim unit
         print("Stim electrode no " + str(stim_elec_no))
-        mx.send(mx.Event(0, 1, stim_elec_no + 10, f"stim_elec_no {stim_elec_no}"))
 
-        
         for well in wells:
             hal.init_well(well, get_config_electrodes(configs[well]), list(all_stim_electrodes[well][stim_elec_no]), connect = True, power_up = True)
 
@@ -193,17 +167,30 @@ if __name__ == "__main__":
         mx.offset()
         sleep(15)
 
+
+
+
+
+
+        s = mx.Saving()
+        s.open_directory(recording_dir)
+        s.start_file(file_name + f"_stim_elec_{stim_elec_no}")
+
+        for well in wells:
+            s.group_define(well, f"all_channels_{well}", list(range(1024)))
+
+            stim_elecs = list(all_stim_electrodes[well][stim_elec_no])
+
+            s.write_assay_property(f"stim_elecs_{well}", ", ".join(str(x) for x in stim_elecs))
+        
+        s.start_recording(wells)
+
         for i in range(30):
             pulse_seq.send()
             sleep(4)
+        
 
 
-        #power off
-        for stim_unit in range(0, 32):
-            mx.send(
-                mx.StimulationUnit(stim_unit)
-                .power_up(False)
-            )
 
     
 
