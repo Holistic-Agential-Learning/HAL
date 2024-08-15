@@ -226,10 +226,14 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         stim_tracker << stim_type << endl;
         
-        controller.shift(frameData);
+        
 
         if (blanking > 0) {
             blanking--;
+        }
+
+        if (!blanking){
+            controller.shift(frameData);
         }
 
 
