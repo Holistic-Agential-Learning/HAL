@@ -207,6 +207,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "A Ratio Index: " << aRatioIndex << endl;
     cout << "B Ratio Index: " << bRatioIndex << endl;
 
+    int framesPerMin = FRAMES_PER_SEC * 60;
 
 
     /*
@@ -215,6 +216,26 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     for (int i = 0; i < frames; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+
+
+        // every minute
+        if (i % framesPerMin == 0) {
+            sort(ratios.begin(), ratios.end());
+
+            numRatios = ratios.size() - 1;
+
+            aRatioIndex = 0.9 * numRatios;
+            bRatioIndex = 0.1 * numRatios;
+
+            aRatio = ratios[aRatioIndex];
+            bRatio = ratios[bRatioIndex];
+
+            data << "aRatioThreshold," << aRatio << endl;
+            data << "BRatioThreshold," << aRatio << endl;
+
+            cout << "New A Ratio Threshold: " << aRatio << endl;
+            cout << "New B Ratio Threshold: " << bRatio << endl;
+        }
         
 
         // If no data was read in, try again (happens when loop finishes before 
@@ -269,7 +290,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 }
 
                 cout << "btnB pressed" << endl;
-            }    
+            }
+
+            if (firingRateA > 1 || firingRateB > 1) {
+                ratios.push_back(fano);
+            } 
         }
 
         float numSeconds = (float) i / FRAMES_PER_SEC;
