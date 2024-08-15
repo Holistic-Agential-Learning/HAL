@@ -34,8 +34,8 @@ def merge_configs(configs):
 if __name__ == '__main__':
 
     wells = [1] # TODO
-    experiment_name = "no-guidance-60" #TODO
-    chip_id = "M07458" # TODO
+    experiment_name = "test-dynamic-threshold" #TODO
+    chip_id = "M07475" # TODO
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
@@ -216,7 +216,7 @@ if __name__ == '__main__':
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(str(60)) # TODO set the number of minutes for the game
+        program_args.append(str(5)) # TODO set the number of minutes for the game
         program_args.append("--maxtwo")
         if guidance:
             program_args.append("--guidance")

@@ -328,7 +328,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         if (stim_type <= 10 && stim_type >= 0 && i % int(FRAMES_PER_SEC * 1/rates[stim_type]) == 0) {
             data << i << ": Pressing stim..." << endl;
-            cout << "Pressing stim" << endl;
+            // cout << "Pressing stim" << endl;
             maxlab::verifyStatus(maxlab::sendSequence("stim"));
             blanking=200;
         }
