@@ -217,6 +217,7 @@ if __name__ == '__main__':
         program_args.append(str(well))
         program_args.append("--minutes")
         program_args.append(str(60)) # TODO set the number of minutes for the game
+        program_args.append("--maxtwo")
         if guidance:
             program_args.append("--guidance")
 
