@@ -207,7 +207,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "A Ratio Index: " << aRatioIndex << endl;
     cout << "B Ratio Index: " << bRatioIndex << endl;
 
-    int framesPerMin = FRAMES_PER_SEC * 60
+    int framesPerMin = FRAMES_PER_SEC * 60;
 
 
     /*
