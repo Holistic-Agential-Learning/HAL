@@ -64,7 +64,7 @@ with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_10138.txt", 
 
 
 # Define stimulation electrodes 
-stimulation_electrode = [10138]
+stimulation_electrode = [10138] - 220 * 2
 
 ################################################################################
 # HELPER FUNCTIONS
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         mx.set_primary_well(well)
 
         # get config file and recording electrode numbers
-        recording_electrodes = config #get_config_electrodes(config_file)
+        recording_electrodes = np.array(config) - 220 * 2 #get_config_electrodes(config_file)
 
         # grab the stimulation electrodes
         stim_elecs = stimulation_electrode
