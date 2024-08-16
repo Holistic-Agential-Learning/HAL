@@ -33,6 +33,8 @@ Options:\n\
 
 int FRAMES_PER_SEC = 20000;
 float rates[11] = {0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 8, 9, 10};
+std::vector<int> inc_idx = {0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000};
+std::vector<int> dec_idx = {1000000, 1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000};
 
 
 float get_avg_side(ChannelWindow window);
@@ -305,7 +307,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 cout << i << endl;
             }
             //starts at the very firts frame and inc every 10 sec
-            if ((i == 0) || (i == 100000) || (i == 200000) || (i == 300000) || (i == 400000) || (i == 500000) || (i == 600000) || (i == 700000) || (i == 800000) || (i == 900000) ){
+            if (std::find(inc_indices.begin(), inc_indices.end(), i) != inc_indices.end() ){
                 if (stim_type < 10){
                     stim_type++;
                     cout << i << ": Speed increased by guidance" << endl;
@@ -313,7 +315,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 }
             }
 
-            if ((i == 1000000) || (i == 1100000) || (i == 1200000) || (i == 1300000) || (i ==  1400000) || (i == 1500000) || (i == 1600000) || (i == 1700000) || (i == 1800000) || (i == 1900000) ){
+            if (std::find(dec_indices.begin(), dec_indices.end(), i) != dec_indices.end()){
                 if (stim_type > 0){
                     stim_type--;
                     cout << "Speed decreased by guidance" << endl;
