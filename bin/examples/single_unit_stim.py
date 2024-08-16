@@ -1,19 +1,5 @@
 #!/usr/bin/env python
 
-# m2_stimulation_assay_example
-#
-# This is an open loop testing script that should stimulate all 6 wells at various frequencies, 
-# at varying amplitudes on a blank chip, to get a baseline level of stimulation artifact. 
-# Chips should not have water in them, but CMM. 
-#
-# Run with:
-#
-#       ./m2_stim_artifact_testing.py
-#
-# Written by Wesley P. Clawson
-# August 5, 2024
-
-# This was copied from 'other files - I think should let me use HAL.py'
 
 import maxlab as mx
 
@@ -161,6 +147,7 @@ if __name__ == "__main__":
         mx.set_primary_well(well)
 
         # get config file and recording electrode numbers
+        config_file = configs[well]
         config_file = configs[well]
         recording_electrodes = get_config_electrodes(config_file)
         #recording_electrodes = configs[well] 

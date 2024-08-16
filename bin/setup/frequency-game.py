@@ -33,9 +33,9 @@ def merge_configs(configs):
 
 if __name__ == '__main__':
 
-    wells = [1] # TODO
-    experiment_name = "no-guidance-60" #TODO
-    chip_id = "M07458" # TODO
+    wells = [0] # TODO
+    experiment_name = "test-progress" #TODO
+    chip_id = "M07472" # TODO
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
@@ -216,7 +216,7 @@ if __name__ == '__main__':
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(str(60)) # TODO set the number of minutes for the game
+        program_args.append(str(5)) # TODO set the number of minutes for the game
         program_args.append("--maxtwo")
         if guidance:
             program_args.append("--guidance")
@@ -224,6 +224,9 @@ if __name__ == '__main__':
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name + "_well_" + str(well))
+        hal.write_closed_loop_args(s, program_args)
+        hal.write_stim_electrodes(s, stim_electrodes)
+
         s.group_delete_all()
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
         print("recording... well " + str(well))
@@ -250,5 +253,5 @@ if __name__ == '__main__':
         s.group_delete_all()
         print("finished recording")
 
-    subprocess.run(["./mail.sh"])
+    # subprocess.run(["./mail.sh"])
 
