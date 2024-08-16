@@ -20,7 +20,7 @@ parent_path = "/home/mxwbio/Desktop/HAL/data/24-hour-recordings"
 experiment_name = "NeuroDev_Test1"
 chip_id = 25269
 notes = "Syd plated this one. We're testing to see if we can see the development over time. DIV0 to DIV10"
-config_path = "/home/mxwbio/Desktop/HAL/SparseFull.cfg"
+config_path = "/home/mxwbio/configs/240815/25269D6.cfg"
 
 # function for reading in electrode numbers from a config
 def get_config_electrodes(config_file):
