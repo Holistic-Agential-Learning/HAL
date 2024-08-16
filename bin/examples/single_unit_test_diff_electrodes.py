@@ -28,7 +28,7 @@ file_name = "single_unit_stimulation_different_electrodes"
 # @edit
 #
 # directory to store recording file
-recording_dir = "/home/mxwbio/Desktop/HAL/data/single_unit/"
+recording_dir = "/home/mxwbio/Desktop/HAL/data/single_unit/different_electrodes/"
 
 
 # @edit
@@ -72,8 +72,8 @@ stimulation_electrodes = [18714, 7192, 4815, 10138, 11267, 9057] # well 1 stimul
 all_stim_electrodes = list()
 for center_stim_elec in stimulation_electrodes:
     well_stim_elecs = list()
-    for i in range(center_stim_elec - 220 * 3, center_stim_elec + 220 * 4, 220):
-            for j in range(i - 3, i + 4):
+    for i in range(center_stim_elec - 220 * 2, center_stim_elec + 220 * 3, 220 * 2):
+            for j in range(i - 2, i + 3, 2):
                 well_stim_elecs.append(j)
     
     all_stim_electrodes.append(well_stim_elecs)
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         print("Stim electrode no " + str(stim_elec_no))
 
         for well in wells:
-            hal.init_well(well, get_config_electrodes(configs[well]), list(all_stim_electrodes[well][stim_elec_no]), connect = True, power_up = True)
+            hal.init_well(well, get_config_electrodes(configs[well]), [all_stim_electrodes[well][stim_elec_no]], connect = True, power_up = True)
 
         sleep(mx.Timing.waitAfterDownload)
 
@@ -179,27 +179,25 @@ if __name__ == "__main__":
         for well in wells:
             s.group_define(well, f"all_channels_{well}", list(range(1024)))
 
-            stim_elecs = list(all_stim_electrodes[well][stim_elec_no])
+            stim_elecs = [all_stim_electrodes[well][stim_elec_no]]
 
             s.write_assay_property(f"stim_elecs_{well}", ", ".join(str(x) for x in stim_elecs))
         
         s.start_recording(wells)
 
+        sleep(20)
+
         for i in range(30):
+            print("Pulse no " + str(i))
             pulse_seq.send()
             sleep(4)
         
-
-
-
-    
-
-    # end of recording
-    #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    
-    # stop recording
-    s.stop_recording()
-    sleep(mx.Timing.waitAfterRecording)
-    s.stop_file()
-    s.group_delete_all()
+        # end of recording
+        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        
+        # stop recording
+        s.stop_recording()
+        sleep(mx.Timing.waitAfterRecording)
+        s.stop_file()
+        s.group_delete_all()
     
