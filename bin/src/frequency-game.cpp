@@ -33,6 +33,8 @@ Options:\n\
 
 int FRAMES_PER_SEC = 20000;
 float rates[11] = {0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 8, 9, 10};
+std::vector<int> inc_idx = {0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000};
+std::vector<int> dec_idx = {1000000, 1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000};
 
 
 float get_avg_side(ChannelWindow window);
@@ -130,10 +132,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     controller.addButton("A", windowLength, config0.c_str(), 9); //slow button
     controller.addButton("B", windowLength, config1.c_str(), 9); //fast button
-
-    cout << "Finished buffer, looking for spikes..." << endl;
     
-    cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with" << endl;
+    cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity" << endl;
+
+    ProgressBar controllerProgress = ProgressBar(windowLength, "Initializing controller...");
 
     // initialize the vector with 200 frames
     for (int i = 0; i < windowLength; i++) {
@@ -146,19 +148,21 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         controller.add(frameData);
+        controllerProgress.increment();
     }
-
-    cout << "Finished controller initialization" << endl;
+    cout << endl;
 
     ChannelWindow *winA = controller.getButtonWindow("A");
     ChannelWindow *winB = controller.getButtonWindow("B");
 
     vector<float> ratios;
+    int numRatioFrames = FRAMES_PER_SEC * 5 * 60 ;
+    ProgressBar ratioProgress = ProgressBar(numRatioFrames, "Calculating ratio thresholds...");
 
     /*
         Calibrate ratio thresholds
     */
-    for (int i = 0; i < 10000 * 5 * 60; i++) {
+    for (int i = 0; i < numRatioFrames; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         
@@ -170,6 +174,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             continue;
         }        
         controller.shift(frameData);
+        ratioProgress.increment();
 
 
         //TODO: check this
@@ -195,11 +200,18 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     int aRatioIndex = 0.9 * numRatios;
     int bRatioIndex = 0.1 * numRatios;
 
+    // float aRatio = 0.5;
+    // float bRatio = -0.5;
+
     float aRatio = ratios[aRatioIndex];
     float bRatio = ratios[bRatioIndex];
 
+    data << "A Ratio Index: " << aRatioIndex << endl;
+    data << "B Ratio Index: " << bRatioIndex << endl;
+
+
     data << "aRatioThreshold," << aRatio << endl;
-    data << "BRatioThreshold," << aRatio << endl;
+    data << "BRatioThreshold," << bRatio << endl;
 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
@@ -208,6 +220,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "B Ratio Index: " << bRatioIndex << endl;
 
     int framesPerMin = FRAMES_PER_SEC * 60;
+
+    ProgressBar expBar = ProgressBar(frames, "Frequency game running...", true);
 
 
     /*
@@ -229,12 +243,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
             aRatio = ratios[aRatioIndex];
             bRatio = ratios[bRatioIndex];
-
+            expBar.clear();
             data << "aRatioThreshold," << aRatio << endl;
             data << "BRatioThreshold," << aRatio << endl;
-
-            cout << "New A Ratio Threshold: " << aRatio << endl;
-            cout << "New B Ratio Threshold: " << bRatio << endl;
+            expBar.print();
         }
         
 
@@ -244,6 +256,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             i--;
             continue;
         }
+
+        expBar.increment();
 
 
         stim_tracker << stim_type << endl;
@@ -278,7 +292,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     stim_type--;
                 }
 
-                cout << "btnA pressed" << endl;
+                expBar.clear();
+                cout << "button A pressed " << stim_type << endl;
+                expBar.print();
+               
                 
 
             // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
@@ -289,7 +306,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     stim_type++;
                 }
 
-                cout << "btnB pressed" << endl;
+                expBar.clear();
+                cout << "button B pressed " << stim_type << endl;
+                expBar.print();
             }
 
             if (firingRateA > 1 || firingRateB > 1) {
@@ -305,7 +324,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 cout << i << endl;
             }
             //starts at the very firts frame and inc every 10 sec
-            if ((i == 0) || (i == 100000) || (i == 200000) || (i == 300000) || (i == 400000) || (i == 500000) || (i == 600000) || (i == 700000) || (i == 800000) || (i == 900000) ){
+            if (std::find(inc_indices.begin(), inc_indices.end(), i) != inc_indices.end() ){
                 if (stim_type < 10){
                     stim_type++;
                     cout << i << ": Speed increased by guidance" << endl;
@@ -313,7 +332,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 }
             }
 
-            if ((i == 1000000) || (i == 1100000) || (i == 1200000) || (i == 1300000) || (i ==  1400000) || (i == 1500000) || (i == 1600000) || (i == 1700000) || (i == 1800000) || (i == 1900000) ){
+            if (std::find(dec_indices.begin(), dec_indices.end(), i) != dec_indices.end()){
                 if (stim_type > 0){
                     stim_type--;
                     cout << "Speed decreased by guidance" << endl;
@@ -326,12 +345,114 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
 
-        if (stim_type <= 10 && stim_type >= 0 && i % int(FRAMES_PER_SEC * 1/rates[stim_type]) == 0) {
-            data << i << ": Pressing stim..." << endl;
-            // cout << "Pressing stim" << endl;
-            maxlab::verifyStatus(maxlab::sendSequence("stim"));
-            blanking=200;
-        }
+        // if (stim_type <= 10 && stim_type >= 0 && i % int(FRAMES_PER_SEC * 1/rates[stim_type]) == 0) {
+        //     // data << i << ": Pressing stim..." << endl;
+        //     // expBar.clear();
+        //     cout << "Pressing stim :" << int(FRAMES_PER_SEC * 1/rates[stim_type]) << endl;
+        //     // expBar.print();
+        //     maxlab::verifyStatus(maxlab::sendSequence("stim"));
+        //     blanking=200;
+        // }
+
+        switch(stim_type) {
+            case 0:
+                if (i % int(FRAMES_PER_SEC * 1/0.1) == 0) {
+                    data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+               
+                break;
+            case 1:
+                if (i % int(FRAMES_PER_SEC * 1/0.2) == 0) {
+                   data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                break;
+            case 2:
+                if (i % int(FRAMES_PER_SEC * 1/0.4) == 0) {
+                  data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                 
+                break;
+            case 3:
+               if (i % int(FRAMES_PER_SEC * 1/0.8) == 0) {
+                  data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                 
+                break;
+            case 4:
+                if (i % int(FRAMES_PER_SEC * 1/1.6) == 0) {
+                     data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                 
+                break;
+            case 5:
+                if (i % int(FRAMES_PER_SEC * 1/3.2) == 0) {
+                    data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                 
+                break;
+            case 6:
+                if (i % int(FRAMES_PER_SEC * 1/6.4) == 0) {
+                   data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                 
+                break;
+            case 7:
+               if (i % int(FRAMES_PER_SEC * 1/7) == 0) {
+                   data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                
+                break;
+            case 8:
+                if (i % int(FRAMES_PER_SEC * 1/8) == 0) {
+                   data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                break;
+            case 9:
+                if (i % int(FRAMES_PER_SEC * 1/9) == 0) {
+                    data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                break;
+            case 10:
+                if (i % int(FRAMES_PER_SEC * 1/10) == 0) {
+                   data << i << ": Pressing stim..." << endl;
+                    cout << "Pressing stim" << endl;
+                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
+                    blanking=200;
+                }
+                break;
+            default:
+                cout << "incorrect stim type, nothing delivered";
+            }
                
               
     }

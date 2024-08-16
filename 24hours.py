@@ -20,7 +20,7 @@ parent_path = "/home/mxwbio/Desktop/HAL/data/24-hour-recordings"
 experiment_name = "NeuroDev_Test1"
 chip_id = 25269
 notes = "Syd plated this one. We're testing to see if we can see the development over time. DIV0 to DIV10"
-config_path = "/home/mxwbio/Desktop/HAL/SparseFull.cfg"
+config_path = "/home/mxwbio/configs/240815/25269D6.cfg"
 
 # function for reading in electrode numbers from a config
 def get_config_electrodes(config_file):
@@ -51,6 +51,7 @@ def get_config_electrodes(config_file):
 
 
 if __name__ == '__main__':
+    num_hours = 24
 
     trial_path = hal.make_trial_folders_raw(parent_path, experiment_name, chip_id, [0])
 
@@ -79,7 +80,7 @@ if __name__ == '__main__':
     mx.offset()
 
     # loop
-    for i in range(24):
+    for i in range(num_hours):
         recording_file = f"{experiment_name}_{i}"
         
 
@@ -99,7 +100,7 @@ if __name__ == '__main__':
             s.group_define(0, f"all_channels_{0}", list(range(1024)))
 
             
-            print(f"Hour {i} ({now.time()}): recording")
+            print(f"Hour {i} ({now.time()}): recording; {num_hours - i} hours remaining")
             s.start_recording([0])
             
             time.sleep(900)
@@ -115,7 +116,7 @@ if __name__ == '__main__':
         s.stop_file()
         s.group_delete_all()
         now = datetime.datetime.now()
-        print(f"Hour {i} ({now.time()}): sleeping")
+        print(f"Hour {i} ({now.time()}): sleeping; {num_hours - i - 0.25} hours remaining")
         time.sleep(2700)
 
     subprocess.run(["./mail.sh"])

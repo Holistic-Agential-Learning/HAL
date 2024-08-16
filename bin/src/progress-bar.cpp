@@ -1,18 +1,29 @@
 #include <iostream>
-#include <ncurses.h>
 #include <unistd.h>
+#include "hal.h"
+
 using namespace std;
+
+void printBarRaw(char bar[]) {
+    cout << "\r[";
+    for (int i = 0; i < 50; i++) {
+        cout << bar[i];
+    }
+
+     cout << "]";
+}
 
 int main()
 {
-    initscr();
+    int numTasks = 5 * 10000 * 60;
+    ProgressBar bar = ProgressBar(numTasks, "Experiment Progress");
+    string end = string(65, ' ');
 
-    for (int n = 0; n < 10; n++)
-    {
-        mvaddch(0,n,'#');
-        refresh();
-        usleep(10000);
+    for (int i = 0; i < numTasks; i++) {
+        bar.increment();
+        usleep(1);
     }
-    getch();
-    endwin();
+
+    cout << endl;
 }
+
