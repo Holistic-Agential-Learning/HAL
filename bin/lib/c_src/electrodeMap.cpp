@@ -18,9 +18,7 @@ ElectrodeMap::ElectrodeMap(const char *config_path) {
     }
     // assert(file != NULL);
 
-    cout << "about to read config" << endl;
     readConfig(file);
-    cout << "finished reading config" << endl;
 
     fclose(file);
 }

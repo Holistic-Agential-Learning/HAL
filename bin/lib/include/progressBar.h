@@ -12,7 +12,7 @@ class ProgressBar {
     public:
         ProgressBar();
 
-        ProgressBar(int numTasks, string description);
+        ProgressBar(int numTasks, string description, bool debug=false);
 
         void increment();
 
@@ -27,11 +27,12 @@ class ProgressBar {
         int tasksComplete;
         float progress;
         int numCharacters;
+        bool printBar;
         
         vector<char> bar;
         string desc;
 
-        void initVars(int numTasks, string description);
+        void initVars(int numTasks, string description,  bool debug=false);
         int countDigits(int number);
 
 

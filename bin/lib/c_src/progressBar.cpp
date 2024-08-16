@@ -6,8 +6,8 @@ ProgressBar::ProgressBar() {
     initVars(50, "");
 }
 
-ProgressBar::ProgressBar(int numTasks, string description) {
-    initVars(numTasks, description);
+ProgressBar::ProgressBar(int numTasks, string description, bool debug) {
+    initVars(numTasks, description, debug);
 }
 
 
@@ -19,32 +19,41 @@ void ProgressBar::increment() {
     if (progress > tickRatio) {
         bar[currentTick] = '#';
         currentTick++;
+        if (printBar) {
+            clear();
+            print();
+        }
+        
     }
-    clear();
-    print();
     
 }
 
 void ProgressBar::print() {
-    cout << "[";
-    for (int i = 0; i < 50; i++) {
-        cout << bar[i] << flush;
+    if (printBar) {
+        cout << "[";
+        for (int i = 0; i < 50; i++) {
+            cout << bar[i] << flush;
+        }
+
+        int percent = progress * 100;
+
+        // 5 represents brackets, 2 spaces, and percent sign
+        numCharacters = totalTicks + 5 + countDigits(percent) + desc.length();
+
+        cout << "] " << percent << "% " << desc << flush;
     }
-
-    int percent = progress * 100;
-
-    // 5 represents brackets, 2 spaces, and percent sign
-    numCharacters = totalTicks + 5 + countDigits(percent) + desc.length();
-
-    cout << "] " << percent << "% " << desc << flush;
+    
 
 }
 
 void ProgressBar::clear() {
-    cout << "\r" << string(numCharacters, ' ') << "\r" << flush;
+    if (printBar) {
+        cout << "\r" << string(numCharacters, ' ') << "\r" << flush;
+    }
+    
 }
 
-void ProgressBar::initVars(int numTasks, string description) {
+void ProgressBar::initVars(int numTasks, string description, bool debug) {
     for (int i = 0; i < 50; i++) {
         bar.push_back('.');
     }
@@ -55,6 +64,7 @@ void ProgressBar::initVars(int numTasks, string description) {
     progress = 0;
     totalTasks = numTasks;
     tasksComplete = 0;
+    printBar = !debug;
 
     numCharacters = totalTicks + 5 + desc.length();
 }

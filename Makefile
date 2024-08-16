@@ -3,7 +3,7 @@ CXX = g++-11
 MAXLAB_PATH = /home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab
 
 INCLUDE_PATH = -I$(MAXLAB_PATH)/include/maxlab -I./bin/lib/include
-LIBS = -L$(MAXLAB_PATH)/lib -lmaxlab -lpthread -lncurses
+LIBS = -L$(MAXLAB_PATH)/lib -lmaxlab -lpthread 
 BUILD = ./bin/build
 EXAMPLE_PATH = ./examples
 SRC = ./bin/src

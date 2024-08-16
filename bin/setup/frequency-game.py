@@ -33,9 +33,9 @@ def merge_configs(configs):
 
 if __name__ == '__main__':
 
-    wells = [1] # TODO
-    experiment_name = "test-dynamic-threshold" #TODO
-    chip_id = "M07470" # TODO
+    wells = [0] # TODO
+    experiment_name = "test-progress" #TODO
+    chip_id = "M07472" # TODO
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
@@ -253,5 +253,5 @@ if __name__ == '__main__':
         s.group_delete_all()
         print("finished recording")
 
-    subprocess.run(["./mail.sh"])
+    # subprocess.run(["./mail.sh"])
 
