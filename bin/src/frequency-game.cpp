@@ -154,11 +154,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     ChannelWindow *winB = controller.getButtonWindow("B");
 
     vector<float> ratios;
+    int numRatioFrames = FRAMES_PER_SEC * 5 * 60;
+    ProgressBar ratioProgress = ProgressBar(numRatioFrames, "Calculating ratio thresholds...");
 
     /*
         Calibrate ratio thresholds
     */
-    for (int i = 0; i < 10000 * 5 * 60; i++) {
+    for (int i = 0; i < numRatioFrames; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         
@@ -170,6 +172,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             continue;
         }        
         controller.shift(frameData);
+        ratioProgress.increment();
 
 
         //TODO: check this
