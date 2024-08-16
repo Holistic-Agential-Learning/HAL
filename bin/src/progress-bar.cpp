@@ -16,13 +16,15 @@ void printBarRaw(char bar[]) {
 
 int main()
 {
-    ProgressBar bar = ProgressBar("Experiment Progress");
+    int numTasks = 500;
+    ProgressBar bar = ProgressBar(numTasks, "Experiment Progress");
     string end = string(65, ' ');
 
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < numTasks; i++) {
         bar.increment();
         usleep(100000);
-        cout << "\r" << "something " << i << end << endl;
+        bar.clear();
+        cout << "something " << i << endl;
         bar.print();
     }
 

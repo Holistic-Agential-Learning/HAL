@@ -12,16 +12,27 @@ class ProgressBar {
     public:
         ProgressBar();
 
-        ProgressBar(string description);
+        ProgressBar(int numTasks, string description);
 
         void increment();
 
         void print();
 
+        void clear();
+
     private:
-        int current;
+        int totalTicks;
+        int currentTick;
+        int totalTasks;
+        int tasksComplete;
+        float progress;
+        int numCharacters;
+        
         vector<char> bar;
         string desc;
+
+        void initVars(int numTasks, string description);
+        int countDigits(int number);
 
 
 };
