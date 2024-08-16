@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     wells = [1] # TODO
     experiment_name = "test-dynamic-threshold" #TODO
-    chip_id = "M07475" # TODO
+    chip_id = "M07470" # TODO
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
@@ -224,6 +224,9 @@ if __name__ == '__main__':
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name + "_well_" + str(well))
+        hal.write_closed_loop_args(s, program_args)
+        hal.write_stim_electrodes(s, stim_electrodes)
+
         s.group_delete_all()
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
         print("recording... well " + str(well))

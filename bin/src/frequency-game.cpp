@@ -198,8 +198,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     float aRatio = ratios[aRatioIndex];
     float bRatio = ratios[bRatioIndex];
 
+    data << "A Ratio Index: " << aRatioIndex << endl;
+    data << "B Ratio Index: " << bRatioIndex << endl;
+
+
     data << "aRatioThreshold," << aRatio << endl;
-    data << "BRatioThreshold," << aRatio << endl;
+    data << "BRatioThreshold," << bRatio << endl;
 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
