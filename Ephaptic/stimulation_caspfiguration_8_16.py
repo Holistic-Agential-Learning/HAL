@@ -43,7 +43,7 @@ date_string = t.strftime('%y%m%d')
 # @edit
 #
 # file name of the h5 file where the recording data is stored
-file_name = "ephaptic_stimulation_caspfiguration" 
+file_name = "ephaptic_stimulation_caspfiguration_specific_electrode" 
 
 # @edit
 #
@@ -64,7 +64,7 @@ with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_10138.txt", 
 
 
 # Define stimulation electrodes 
-stimulation_electrode = [10138] - 220 * 2
+stimulation_electrode = [10138 - 220 * 2]
 
 ################################################################################
 # HELPER FUNCTIONS
@@ -135,8 +135,8 @@ if __name__ == "__main__":
         mx.set_primary_well(well)
 
         # get config file and recording electrode numbers
-        recording_electrodes = np.array(config) - 220 * 2 #get_config_electrodes(config_file)
-
+        recording_electrodes = (np.array(config) - 220 * 2) % 26400 #get_config_electrodes(config_file)
+        print(recording_electrodes)
         # grab the stimulation electrodes
         stim_elecs = stimulation_electrode
 
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     fifty_Hz_sequence = mx.Sequence("50_Hz_stimulation")
 
     # add event to indicate the start of the stimulation
-    fifty_Hz_sequence.append(mx.Event(wells[2], 1, event_id, 
+    fifty_Hz_sequence.append(mx.Event(wells[0], 1, event_id, 
                                 "before_stim 50hz"))
     event_id += 1 # make sure that the event ID is always unique
     
@@ -204,7 +204,7 @@ if __name__ == "__main__":
     for _ in range(number_pulse_trains):
         for _ in range(number_pulses_per_train):
             pulse_num += 1
-            fifty_Hz_sequence.append(mx.Event(wells[2], 1, event_id, 
+            fifty_Hz_sequence.append(mx.Event(wells[0], 1, event_id, 
                                     f"pulse_start {pulse_num} freq 50hz"))
             event_id += 1
             # amplitude
@@ -216,7 +216,7 @@ if __name__ == "__main__":
             fifty_Hz_sequence.append(mx.DelaySamples(2))
             fifty_Hz_sequence.append(mx.DAC(0, 512))
 
-            fifty_Hz_sequence.append(mx.Event(wells[2], 1, event_id, 
+            fifty_Hz_sequence.append(mx.Event(wells[0], 1, event_id, 
                                     f"pulse_end {pulse_num} freq 50hz"))
             event_id += 1
 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
     
     # add event to indicate the end of the stimulation
-    fifty_Hz_sequence.append(mx.Event(wells[2], 1, event_id, 
+    fifty_Hz_sequence.append(mx.Event(wells[0], 1, event_id, 
                                 "after_stim 50hz"))
 
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -249,7 +249,7 @@ if __name__ == "__main__":
     hundred_Hz_sequence = mx.Sequence("100_Hz_stimulation")
 
     # add event to indicate the start of the stimulation
-    hundred_Hz_sequence.append(mx.Event(wells[4], 1, event_id, 
+    hundred_Hz_sequence.append(mx.Event(wells[0], 1, event_id, 
                                 "before_stim 100hz"))
     event_id += 1 # make sure that the event ID is always unique
 
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     for _ in range(number_pulse_trains):
         for _ in range(number_pulses_per_train):
             pulse_num += 1
-            hundred_Hz_sequence.append(mx.Event(wells[4], 1, event_id, 
+            hundred_Hz_sequence.append(mx.Event(wells[0], 1, event_id, 
                                     f"pulse_start {pulse_num} freq 100hz"))
             event_id += 1
             # amplitude
@@ -269,7 +269,7 @@ if __name__ == "__main__":
             hundred_Hz_sequence.append(mx.DelaySamples(2))
             hundred_Hz_sequence.append(mx.DAC(0, 512))
 
-            hundred_Hz_sequence.append(mx.Event(wells[4], 1, event_id, 
+            hundred_Hz_sequence.append(mx.Event(wells[0], 1, event_id, 
                         f"pulse_end {pulse_num} freq 100hz"))
             event_id += 1
 
@@ -281,7 +281,7 @@ if __name__ == "__main__":
 
     
     # add event to indicate the end of the stimulation
-    hundred_Hz_sequence.append(mx.Event(wells[4], 1, event_id, 
+    hundred_Hz_sequence.append(mx.Event(wells[0], 1, event_id, 
                                 "after_stim 100hz"))
 
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
