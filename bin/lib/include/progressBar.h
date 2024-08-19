@@ -20,6 +20,10 @@ class ProgressBar {
 
         void clear();
 
+        int numTasksComplete();
+
+        float getProgress();
+
     private:
         int totalTicks;
         int currentTick;

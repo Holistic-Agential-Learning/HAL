@@ -15,9 +15,9 @@ import bin.lib.py_src.config as cfg
 rec_electrodes = []
 
 all_configs = [
-    "/home/mxwbio/configs/240813/A.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240813/B.cfg", #fast button #TODO
-    "/home/mxwbio/configs/240814/M07458_DIV42.cfg" #full (slow + fast + stim + read) #TODO
+    "/home/mxwbio/configs/240819/buttonB_well5.cfg", #slow button  #TODO
+    "/home/mxwbio/configs/240819/buttonA_well5.cfg", #fast button #TODO
+    "/home/mxwbio/configs/240819/well5.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
 guidance = False #TODO Setup guidance here
@@ -33,9 +33,9 @@ def merge_configs(configs):
 
 if __name__ == '__main__':
 
-    wells = [0] # TODO
+    wells = [4] # TODO
     experiment_name = "test-progress" #TODO
-    chip_id = "M07472" # TODO
+    chip_id = "M07475" # TODO
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
@@ -43,9 +43,9 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well]) 
         mx.set_primary_well(well)
-        freq_electrodes = [6001,6473,6959,6991] #TODO
-        dec_guidance_electrodes = [17638, 19412, 21170, 21190] #TODO
-        inc_guidance_electrodes = [17991, 18017, 21073, 21537] #TODO
+        freq_electrodes = [8769, 18889, 5961, 16959] #TODO
+        dec_guidance_electrodes = [] #TODO
+        inc_guidance_electrodes = [] #TODO
         stim_electrodes = freq_electrodes # + dec_guidance_electrodes + inc_guidance_electrodes
         rec_electrodes = freq_electrodes + merge_configs(all_configs)
         print(len(rec_electrodes))

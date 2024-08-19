@@ -32,7 +32,7 @@ Options:\n\
 #define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;
-float rates[11] = {0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 8, 9, 10};
+float rates[11] = {0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 7, 8, 9, 10};
 std::vector<int> inc_idx = {0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000};
 std::vector<int> dec_idx = {1000000, 1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000};
 
@@ -43,7 +43,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 int get_max_element(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
-void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
+void printValues(fstream *data, string ab, int frameNo, float aRatioThreshold, float bRatioThreshold, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
 float fanoFactor(float A, float B);
 bool withinSD(float levels, float avg, float sd, float value);
 float zScore(float value, float avg, float sd);
@@ -109,7 +109,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     std::fstream data;
     std::fstream stim_tracker;
     data.open(path + "/store" + to_string(well) + ".csv", std::fstream::out);
-    data << "frame number,button,fano,value A,avg A,SD A,value B,avg B,SD B" << endl;
+    data << "frame number,button pressed,A ratio threshold,B ratio threshold,fano,value A,avg A,SD A,value B,avg B,SD B" << endl;
     stim_tracker.open(path + "/stim" + to_string(well) + ".csv", std::fstream::out);
 
     // activate interrupt handler
@@ -192,6 +192,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
     }
+    cout << endl;
 
     sort(ratios.begin(), ratios.end());
 
@@ -206,13 +207,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     float aRatio = ratios[aRatioIndex];
     float bRatio = ratios[bRatioIndex];
 
-    data << "A Ratio Index: " << aRatioIndex << endl;
-    data << "B Ratio Index: " << bRatioIndex << endl;
-
-
-    data << "aRatioThreshold," << aRatio << endl;
-    data << "BRatioThreshold," << bRatio << endl;
-
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
 
@@ -221,7 +215,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int framesPerMin = FRAMES_PER_SEC * 60;
 
-    ProgressBar expBar = ProgressBar(frames, "Frequency game running...", true);
+    ProgressBar expBar = ProgressBar(frames, "Frequency game running...");
 
 
     /*
@@ -243,9 +237,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
             aRatio = ratios[aRatioIndex];
             bRatio = ratios[bRatioIndex];
+            
             expBar.clear();
-            data << "aRatioThreshold," << aRatio << endl;
-            data << "BRatioThreshold," << aRatio << endl;
+            cout << "New A Threshold: " << aRatio << endl;
+            cout << "New B Threshold: " << bRatio << endl;
             expBar.print();
         }
         
@@ -257,11 +252,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             continue;
         }
 
-        expBar.increment();
-
-
-        stim_tracker << stim_type << endl;
-        
+        expBar.increment();        
         
 
         if (blanking > 0) {
@@ -287,13 +278,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             // Button A was pressed !withinSD(3, firingRateAvgA, sdA, firingRateA)
             if ((firingRateAvgA != 0) && (firingRateA > 0.5) && (fano > aRatio) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
 
-                printValues(&data, "A", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                printValues(&data, "A", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stim_type > 0){
                     stim_type--;
                 }
 
                 expBar.clear();
-                cout << "button A pressed " << stim_type << endl;
+                cout << i << ": button A pressed " << stim_type << " " << int(FRAMES_PER_SEC * 2/rates[stim_type]) << endl;
                 expBar.print();
                
                 
@@ -301,13 +292,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
             } else if ((firingRateAvgB != 0 )&& (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
                 
-                printValues(&data, "B", i, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                printValues(&data, "B", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stim_type < 10){
                     stim_type++;
                 }
 
                 expBar.clear();
-                cout << "button B pressed " << stim_type << endl;
+                cout << i << ": button B pressed " << stim_type << " " << int(FRAMES_PER_SEC * 2/rates[stim_type])<< endl;
                 expBar.print();
             }
 
@@ -324,7 +315,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 cout << i << endl;
             }
             //starts at the very firts frame and inc every 10 sec
-            if (std::find(inc_indices.begin(), inc_indices.end(), i) != inc_indices.end() ){
+            if (std::find(inc_idx.begin(), inc_idx.end(), i) != inc_idx.end() ){
                 if (stim_type < 10){
                     stim_type++;
                     cout << i << ": Speed increased by guidance" << endl;
@@ -332,7 +323,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 }
             }
 
-            if (std::find(dec_indices.begin(), dec_indices.end(), i) != dec_indices.end()){
+            if (std::find(dec_idx.begin(), dec_idx.end(), i) != dec_idx.end()){
                 if (stim_type > 0){
                     stim_type--;
                     cout << "Speed decreased by guidance" << endl;
@@ -345,115 +336,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
 
-        // if (stim_type <= 10 && stim_type >= 0 && i % int(FRAMES_PER_SEC * 1/rates[stim_type]) == 0) {
-        //     // data << i << ": Pressing stim..." << endl;
-        //     // expBar.clear();
-        //     cout << "Pressing stim :" << int(FRAMES_PER_SEC * 1/rates[stim_type]) << endl;
-        //     // expBar.print();
-        //     maxlab::verifyStatus(maxlab::sendSequence("stim"));
-        //     blanking=200;
-        // }
-
-        switch(stim_type) {
-            case 0:
-                if (i % int(FRAMES_PER_SEC * 1/0.1) == 0) {
-                    data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-               
-                break;
-            case 1:
-                if (i % int(FRAMES_PER_SEC * 1/0.2) == 0) {
-                   data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                break;
-            case 2:
-                if (i % int(FRAMES_PER_SEC * 1/0.4) == 0) {
-                  data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                 
-                break;
-            case 3:
-               if (i % int(FRAMES_PER_SEC * 1/0.8) == 0) {
-                  data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                 
-                break;
-            case 4:
-                if (i % int(FRAMES_PER_SEC * 1/1.6) == 0) {
-                     data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                 
-                break;
-            case 5:
-                if (i % int(FRAMES_PER_SEC * 1/3.2) == 0) {
-                    data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                 
-                break;
-            case 6:
-                if (i % int(FRAMES_PER_SEC * 1/6.4) == 0) {
-                   data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                 
-                break;
-            case 7:
-               if (i % int(FRAMES_PER_SEC * 1/7) == 0) {
-                   data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                
-                break;
-            case 8:
-                if (i % int(FRAMES_PER_SEC * 1/8) == 0) {
-                   data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                break;
-            case 9:
-                if (i % int(FRAMES_PER_SEC * 1/9) == 0) {
-                    data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                break;
-            case 10:
-                if (i % int(FRAMES_PER_SEC * 1/10) == 0) {
-                   data << i << ": Pressing stim..." << endl;
-                    cout << "Pressing stim" << endl;
-                    maxlab::verifyStatus(maxlab::sendSequence("stim"));
-                    blanking=200;
-                }
-                break;
-            default:
-                cout << "incorrect stim type, nothing delivered";
-            }
-               
+        if (stim_type <= 10 && stim_type >= 0 && i % int(FRAMES_PER_SEC * 2/rates[stim_type]) == 0) {
+            // data << i << ": Pressing stim..." << endl;
+            // cout << "Pressing stim :" << int(FRAMES_PER_SEC * 1/rates[stim_type]) << endl;
+            maxlab::verifyStatus(maxlab::sendSequence("stim"));
+            blanking=200;
+        }      
               
     }
 
@@ -483,8 +371,8 @@ bool withinSD(float levels, float avg, float sd, float value) {
     return (value <= upper);
 }
 
-void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
-    *data << frameNo << "," << ab << ", " << ratio << ",";
+void printValues(fstream *data, string ab, int frameNo, float aRatioThreshold, float bRatioThreshold,  float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
+    *data << frameNo << "," << ab << ", " << aRatioThreshold << ", " << bRatioThreshold << ", " << ratio << ",";
     *data << valA << "," << avgA << "," << sdA << ",";
     *data << valB << "," << avgB << "," << sdB << endl;
 }

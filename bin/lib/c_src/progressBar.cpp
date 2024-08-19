@@ -15,8 +15,8 @@ ProgressBar::ProgressBar(int numTasks, string description, bool debug) {
 void ProgressBar::increment() {
     tasksComplete++;
     progress = tasksComplete / (float) totalTasks;
-    float tickRatio = currentTick / (float) totalTicks;
-    if (progress > tickRatio) {
+    float tickRatio = (currentTick + 1) / (float) totalTicks;
+    if (progress >= tickRatio) {
         bar[currentTick] = '#';
         currentTick++;
         if (printBar) {
@@ -51,6 +51,14 @@ void ProgressBar::clear() {
         cout << "\r" << string(numCharacters, ' ') << "\r" << flush;
     }
     
+}
+
+int ProgressBar::numTasksComplete() {
+    return tasksComplete;
+}
+
+float ProgressBar::getProgress() {
+    return progress;
 }
 
 void ProgressBar::initVars(int numTasks, string description, bool debug) {
