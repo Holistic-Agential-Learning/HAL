@@ -220,8 +220,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     bool aReleased = true;
     bool bReleased = true;
 
-    float stimRate = 0.1;
+    int minStimRate = 200000; 
+    int maxStimRate = 2250;
 
+    int stimAcc = 19775; // how much the stim rate changes, in frames
+
+    // how often the culture is stimulated, in frames
+    int stimRate = minStimRate; 
 
     /*
         Run Experiment
@@ -284,8 +289,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             if (aReleased && (firingRateAvgA != 0) && (firingRateA > 0.5) && (fano > aRatio) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
 
                 printValues(&data, "A", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                if (stimRate > 0.1){
-                    stimRate -= 0.89;
+                if (stimRate > minStimRate) {
+                    stimRate -= stimAcc;
                 }
 
                 expBar.clear();
@@ -298,8 +303,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             } else if (bReleased && (firingRateAvgB != 0 )&& (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
                 
                 printValues(&data, "B", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                if (stimRate < 9){
-                    stimRate += 0.89;
+                if (stimRate < maxStimRate) {
+                    stimRate += stimAcc;
                 }
 
                 expBar.clear();
@@ -346,9 +351,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
 
-        if (i % int(FRAMES_PER_SEC * 2/stimRate) == 0) {
-            // data << i << ": Pressing stim..." << endl;
-            // cout << "Pressing stim :" << int(FRAMES_PER_SEC * 1/rates[stim_type]) << endl;
+        if (i % stimRate == 0) {
             maxlab::verifyStatus(maxlab::sendSequence("stim"));
             blanking=200;
         }      
