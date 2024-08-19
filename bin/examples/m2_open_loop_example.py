@@ -1,4 +1,24 @@
 #!/usr/bin/env python
+
+# m2_stimulation_assay_example
+#
+# This is a basic example for running custom stimulations on the MaxOne/Two 
+# using the HAL helper library.
+#  
+# Intruction comments for creating your own experiments are dispersed 
+# throughout the file and are tagged with '@edit'. Large chunks of code to edit
+# begin with a line of '<' characters and end with a line of '>' characters.
+#
+# Long lines of '#' characters divide major sections of the program
+#
+# Run with:
+#
+#       ./m2_stimulation_assay_example.py
+#
+# Written by Trevor M. Sullivan
+# August 19, 2024
+
+
 from typing import List
 
 import random
@@ -23,50 +43,78 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 import bin.lib.py_src.config as cfg
 
-rec_electrodes = []
-a_and_b = [
-    "/home/mxwbio/configs/240805/configA.cfg",
-    "/home/mxwbio/configs/240805/configD.cfg"
+# @edit
+#
+# file name of the h5 file where the recording data is stored
+file_name = "stimulation_example" 
+
+
+# @edit
+#
+# directory to store recording file
+recording_dir = "/home/mxwbio/Desktop/HAL/data/stimulation_assay_example"
+
+
+# @edit
+#
+# wells to record from (just use 0 if using the MaxOne)
+wells = [0] 
+
+
+# @edit
+#
+# Modify this to contain the FULL PATH of configs for each well. Just use the 
+# first element of the list if using the MaxOne
+configs = [
+    "/home/mxwbio/Desktop/HAL/test_config_2.cfg", # well 0 config
+    "/home/mxwbio/Desktop/HAL/test_config_2.cfg", # well 1 config
+    "", # ...
+    "",
+    "",
+    ""
 ]
 
-def merge_configs(configs):
-    s = set()
-    for config in configs:
-        ret = GUI.read_config(config, False)
-        elec_nums = ret[1]
-        for n in elec_nums:
-            s.add(n)
 
-    return list(s)
+# @edit
+#
+# Modify this to contain the stimulation electrodes for each well. Note that 
+# these are electrode numbers (0-26399). Just use the first element of the list 
+# if using the MaxOne.
+#
+# Important note: stimulation electrodes MUST come from the set of recording 
+# electrodes defined above. 
+stimulation_electrodes = [
+    [14915, 14551, 20550], # well 0 stimulation electrodes
+    [20590], # well 1 stimulation electrodes
+    [], # ... 
+    [],
+    [],
+    []
+]
 
 if __name__ == '__main__':
-    # configs = [sys.argv[i] for i in range(1, len(sys.argv))]
 
     wells = [0]
     file_name = "open-loop-example"
     chip_id = 16365
 
-    stim_electrodes = [6630]
-
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/open-loop", file_name, chip_id, wells)
+
+    stim_electrodes = [6630]
     
     for well in wells:
         mx.activate([well])
         mx.set_primary_well(well)
-
-        # stim_electrodes = exp_args["E_SELECTED"]
-        rec_electrodes = merge_configs(a_and_b)
         
         mx.initialize()
         mx.send(mx.Core().enable_stimulation_power(True))
-
-        # stimulation electrodes for configs/newconfig.cfg
         
         array = mx.Array("stimulation")
         array.reset()
         array.clear_selected_electrodes()
 
-        #NOTE: stim_electrodes can include electrodes that aren't in rec_electrodes. In the future, maybe throw a warning if this is the case
+        rec_electrodes = cfg.read_config(configs[well])
+
         array.select_electrodes(stim_electrodes + rec_electrodes)
         
         array.route()
@@ -78,11 +126,8 @@ if __name__ == '__main__':
 
         config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
 
-        print(config_file_name)
         #save the config prior to running the code
         array.save_config(config_file_name)
-
-        new_buttons = cfg.get_buttons(config_file_name, a_and_b, directory_name)
 
         array.download([well]) 
 
@@ -95,44 +140,8 @@ if __name__ == '__main__':
         stimA = Stimulation("A", 1, 10, 500, 10, 1, 1, 1, well = well) 
         stimA.build_sequence()
 
-        #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
-        start_seq = mx.Sequence("before-training", persistent = False)
-        del start_seq
-        start_seq = mx.Sequence("before-training", persistent = True)
-        start_seq.append(mx.Event(well, 1, 2, "before_training 1"))
-
-        train_seq = mx.Sequence("training", persistent = False)
-        del train_seq
-        train_seq = mx.Sequence("training", persistent = True)
-        train_seq.append(mx.Event(well, 1, 3, "training 1"))
-
-        end_seq = mx.Sequence("after-training", persistent = False)
-        del end_seq
-        end_seq = mx.Sequence("after-training", persistent = True)
-        end_seq.append(mx.Event(well, 1, 4, "after_training 1"))
-
-        a_pressed = mx.Sequence("A-pressed", persistent=False)
-        del a_pressed
-        a_pressed = mx.Sequence("A-pressed", persistent=True)
-        a_pressed.append(mx.Event(well, 1, 5, "A pressed"))
-
-        b_pressed = mx.Sequence("B-pressed", persistent=False)
-        del b_pressed
-        b_pressed = mx.Sequence("B-pressed", persistent=True)
-        b_pressed.append(mx.Event(well, 1, 6, "B pressed"))
-
 
         ##############################################################################
-
-        program_args = ["./bin/build/controller-test", "--folder", directory_name]
-
-        for i in range(len(new_buttons)):
-            program_args.append(f"--config{i}")
-            program_args.append(a_and_b[i])
-
-        program_args.append("--well")
-
-        program_args.append(str(well))
 
 
         s = mx.Saving()
@@ -140,32 +149,12 @@ if __name__ == '__main__':
         s.start_file(file_name + "_well_" + str(well))
         s.group_delete_all()
 
-        hal.write_exp_description(s, "This program alternates stimulating A and B in order to test the controller class")
-        s.write_assay_property("fano", "0.5")
-        s.write_assay_property("z_score", "2")
-        s.write_assay_property("firing_rate_threshold", "0.5")
-        
+        hal.write_exp_description(s, "This is an open-loop example using HAL")
+        s.write_assay_property("no_spaces_allowed", "spaces allowed")
+
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
-        # s.group_define(0, "smiley", list(range(1024)))
-        print("recording... well " + str(well))
+
         s.start_recording([well])
-        
-        ############################################################################
-        
-        print("calling c++ script... well" + str(well))
-        # This is the command to run (will last as long as the cpp files lasts)
-        mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
-        try:
-            subprocess.run(program_args)
-        except KeyboardInterrupt:
-            print("start-maxlab.py: ^C signalled")
-        except Exception as err:
-            print(err)
-
-        mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
-
-        print("c++ script over...")
-        ############################################################################
 
         s.stop_recording()
         s.stop_file()
