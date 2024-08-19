@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-labMembers=("trevor.sullivan@tufts.edu" "nathan.wu.nhw5@yale.edu" "virajcz@ucla.edu" "wesley.clawson@tufts.edu")
+labMembers=("trevor.sullivan@tufts.edu" "wesley.clawson@tufts.edu")
 
 for email in ${labMembers[@]}; do
     # echo $email

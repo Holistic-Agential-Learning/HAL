@@ -279,7 +279,7 @@ if __name__ == "__main__":
     s.start_file(file_name)
 
     for well in wells:
-        s.group_define(well, "all_channels", list(range(1024)))
+        s.group_define(well, f"all_channels{well}", list(range(1024)))
 
     s.start_recording(wells)
 
