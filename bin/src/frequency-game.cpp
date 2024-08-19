@@ -217,6 +217,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     ProgressBar expBar = ProgressBar(frames, "Frequency game running...");
 
+    bool aReleased = true;
+    bool bReleased = true;
+
+    float stimRate = 0.1;
+
 
     /*
         Run Experiment
@@ -276,30 +281,35 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
 
             // Button A was pressed !withinSD(3, firingRateAvgA, sdA, firingRateA)
-            if ((firingRateAvgA != 0) && (firingRateA > 0.5) && (fano > aRatio) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
+            if (aReleased && (firingRateAvgA != 0) && (firingRateA > 0.5) && (fano > aRatio) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
 
                 printValues(&data, "A", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                if (stim_type > 0){
-                    stim_type--;
+                if (stimRate > 0.1){
+                    stimRate -= 0.89;
                 }
 
                 expBar.clear();
                 cout << i << ": button A pressed " << stim_type << " " << int(FRAMES_PER_SEC * 2/rates[stim_type]) << endl;
                 expBar.print();
                
-                
+                aReleased = false;
 
             // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
-            } else if ((firingRateAvgB != 0 )&& (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
+            } else if (bReleased && (firingRateAvgB != 0 )&& (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
                 
                 printValues(&data, "B", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                if (stim_type < 10){
-                    stim_type++;
+                if (stimRate < 9){
+                    stimRate += 0.89;
                 }
 
                 expBar.clear();
                 cout << i << ": button B pressed " << stim_type << " " << int(FRAMES_PER_SEC * 2/rates[stim_type])<< endl;
                 expBar.print();
+
+                bReleased = false;
+            } else {
+                aReleased = true;
+                bReleased = true;
             }
 
             if (firingRateA > 1 || firingRateB > 1) {
@@ -336,7 +346,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
 
-        if (stim_type <= 10 && stim_type >= 0 && i % int(FRAMES_PER_SEC * 2/rates[stim_type]) == 0) {
+        if (i % int(FRAMES_PER_SEC * 2/stimRate) == 0) {
             // data << i << ": Pressing stim..." << endl;
             // cout << "Pressing stim :" << int(FRAMES_PER_SEC * 1/rates[stim_type]) << endl;
             maxlab::verifyStatus(maxlab::sendSequence("stim"));
