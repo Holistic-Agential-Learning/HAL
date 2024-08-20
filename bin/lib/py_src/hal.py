@@ -2,7 +2,45 @@ import os
 import datetime
 import shutil
 from typing import List
-import maxlab as mx
+# import maxlab as mx
+
+def get_electrode_square(center, radius, step=1):
+    chip_width = 220
+    chip_height = 120
+
+    top_left = center
+
+    width = radius
+    height = radius
+
+    center_coord = [center % chip_width, center // chip_height]
+    print(center_coord)
+
+    top_left = [center_coord[0] - radius * step, center_coord[1] - radius * step]
+    # top_left = [center_coord[0] + radius * step, center_coord[1] + radius * step]
+
+    coords = [top_left]
+    left = top_left
+    for row in range(radius * 2 + 1):
+        left = [left[0] + step, left[1]]
+        curr = left
+        for col in range(radius * 2 + 1):
+            curr = [curr[0], curr[1] + step]
+            coords.append(curr)
+
+    print(coords)
+
+    return [coord_to_elec(c) for c in coords if in_bounds(c)]
+
+
+def in_bounds(coord):
+    return coord[0] >= 0 and coord[0] < 220 and coord[1] >= 0 and coord[1] < 120
+
+def coord_to_elec(coord):
+    return coord[1] * 120 + coord[0]
+            
+
+    
 
 def get_file_names(well_no: int, experiment_name: str, trial_path: str):
     """_summary_
