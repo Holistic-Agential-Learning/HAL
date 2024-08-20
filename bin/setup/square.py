@@ -37,8 +37,8 @@ if __name__ == '__main__':
     array.reset()
     array.clear_selected_electrodes()
 
-    rec_electrodes1 = hal.get_electrode_square(19832, 1, 1)
-    rec_electrodes2 = hal.get_electrode_square(19740, 1, 1)
+    rec_electrodes1 = hal.get_electrode_square(10000, 5, 2)
+    rec_electrodes2 = hal.get_electrode_square(5000, 6, 1)
 
     array.select_electrodes(rec_electrodes1 + rec_electrodes2)
     
