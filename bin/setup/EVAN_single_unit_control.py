@@ -63,7 +63,7 @@ chip_id = 7480
 # Modify this to contain the FULL PATH of configs for each well. Just use the 
 # first element of the list if using the MaxOne
 configs = [
-    "/home/mxwbio/Desktop/HAL/test_config_2.cfg", # well 0 config
+    "/home/mxwbio/configs/240820/M07480_DIV47.cfg", # well 0 config
     "", # well 1 config
     "", # ...
     "",
@@ -83,8 +83,8 @@ configs = [
 
 # GOAL - LOOP OVER EVERY ELECTRODE WE WANT TO EXAMINE
 
-stim_excitatory = [21533, 22415, 25899]   # TODO
-stim_inhibitory = [7455, 6385, 20975]   # TODO
+stim_excitatory = [21531, 22855, 25903]   # TODO
+stim_inhibitory = [7455, 6385, 21415]   # TODO
 total_electrode_list = stim_excitatory + stim_inhibitory
 
 for electrode in total_electrode_list:
@@ -92,13 +92,29 @@ for electrode in total_electrode_list:
         trial_path = hal.make_trial_folders_raw(parent_dir, experiment_name, chip_id, wells)
         
         for well in wells:
-            config_elecs = cfg.read_config(configs[well])
+            config_elecs = GUI.read_config(configs[well], False)[1]
 
             stim_square = hal.get_electrode_square(electrode, 4, 1)  # TODO
 
             rec_elecs = stim_square + config_elecs
             
-            array = hal.init_well(well, rec_elecs, electrode, False, False)
+            # array = hal.init_well(well, rec_elecs, [electrode], False, False)
+
+            mx.activate([well])
+            mx.set_primary_well(well)
+
+            mx.initialize()
+            mx.send(mx.Core().enable_stimulation_power(True))
+            
+            array = mx.Array(f"stimulation{well}")
+            array.reset()
+            array.clear_selected_electrodes()
+            
+            array.select_electrodes([electrode] + rec_elecs)
+            
+            array.select_stimulation_electrodes([electrode])
+            
+            array.route()
 
             stim_units_0 = hal.connect_stim_units_to_stim_electrodes([electrode],  array)    # TODO
 
@@ -118,11 +134,11 @@ for electrode in total_electrode_list:
 
             
             # TODO - dac source must match the dac from power_up_stim_units
-            stimA = Stimulation("A", dac_source=0, amplitude=250, phase=200, 
-                                pulses_per_train=10, num_trains=1, pulse_interval=1, 
-                                pulse_train_interval=1, well=well) 
-            stim_duration = stimA.duration
-            stimA.build_sequence()
+            stim = Stimulation("A", dac_source=0, amplitude=250, phase=200, 
+                                pulses_per_train=10, num_trains=1, pulse_interval=1000, 
+                                pulse_train_interval=5, well=well) 
+            stim_duration = stim.duration
+            stim_seq = stim.build_sequence()
 
             ########################################################################
 
@@ -133,8 +149,8 @@ for electrode in total_electrode_list:
 
             # these functions write data directly to the h5 file, found under the
             # "assay" section
-            hal.write_exp_description(s, "This is an open-loop example using HAL")  # TODO
-            hal.write_stim_electrodes(s, electrode)
+            hal.write_exp_description(s, "First trial of Evan's single unit control. first place here we come.")  # TODO
+            hal.write_stim_electrodes(s, [electrode])
             s.write_assay_property("no_spaces_allowed", "spaces allowed")
             s.write_assay_property("what_i_had_for_lunch", "thai food")
 
@@ -144,16 +160,20 @@ for electrode in total_electrode_list:
 
             time.sleep(5)
             
+            print("Ready to rumble")
             # TODO
-            stimA.send()
+            time.sleep(60)  # Pre stim test
+            print("Sending first sequence to: " + str(electrode))
+            stim_seq.send()
             time.sleep(stim_duration)
+            time.sleep(60)  # post stim test
+            
 
-            time.sleep(60)
-
-            stimA.send()
+            time.sleep(60)  # Pre stim test
+            print("Sending second sequence to: " + str(electrode))
+            stim_seq.send()
             time.sleep(stim_duration)
-
-            time.sleep(60)
+            time.sleep(60)  # Pre stim test
 
             s.stop_recording()
             s.stop_file()
