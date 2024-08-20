@@ -80,18 +80,10 @@ configs = [
 #
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
-stim_elecs = [
-    [5000, 10000], # well 0 stimulation electrodes
-    [], # well 1 stimulation electrodes
-    [], # ... 
-    [],
-    [],
-    []
-]
 
 # GOAL - LOOP OVER EVERY ELECTRODE WE WANT TO EXAMINE
 
-stim_excitatory = [21533, 22415, 25899]   # TODO  SHOULD BE LIST OF ELECTRODES
+stim_excitatory = [21533, 22415, 25899]   # TODO
 stim_inhibitory = [7455, 6385, 20975]   # TODO
 total_electrode_list = stim_excitatory + stim_inhibitory
 
@@ -102,11 +94,11 @@ for electrode in total_electrode_list:
         for well in wells:
             config_elecs = cfg.read_config(configs[well])
 
-            stim_square = hal.get_electrode_square(electrode, 3, 1)  # TODO
+            stim_square = hal.get_electrode_square(electrode, 4, 1)  # TODO
 
             rec_elecs = stim_square + config_elecs
             
-            array = hal.init_well(well, rec_elecs, stim_elecs, False, False)
+            array = hal.init_well(well, rec_elecs, electrode, False, False)
 
             stim_units_0 = hal.connect_stim_units_to_stim_electrodes([electrode],  array)    # TODO
 
@@ -142,7 +134,7 @@ for electrode in total_electrode_list:
             # these functions write data directly to the h5 file, found under the
             # "assay" section
             hal.write_exp_description(s, "This is an open-loop example using HAL")  # TODO
-            hal.write_stim_electrodes(s, stim_elecs[well])
+            hal.write_stim_electrodes(s, electrode)
             s.write_assay_property("no_spaces_allowed", "spaces allowed")
             s.write_assay_property("what_i_had_for_lunch", "thai food")
 
