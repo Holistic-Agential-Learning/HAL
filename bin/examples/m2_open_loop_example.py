@@ -43,31 +43,36 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 import bin.lib.py_src.config as cfg
 
-# @edit
+# TODO
 #
-# file name of the h5 file where the recording data is stored
-file_name = "stimulation_example" 
+# experiment name
+experiment_name = "open-loop-example"
 
 
-# @edit
+# TODO
 #
-# directory to store recording file
-recording_dir = "/home/mxwbio/Desktop/HAL/data/stimulation_assay_example"
+# directory to store the experiment data
+parent_dir = "/home/mxwbio/Desktop/HAL/data/open-loop"
 
 
-# @edit
+# TODO
 #
 # wells to record from (just use 0 if using the MaxOne)
 wells = [0] 
 
+# TODO
+#
+# chip ID
+chip_id = 16365
 
-# @edit
+
+# TODO
 #
 # Modify this to contain the FULL PATH of configs for each well. Just use the 
 # first element of the list if using the MaxOne
 configs = [
     "/home/mxwbio/Desktop/HAL/test_config_2.cfg", # well 0 config
-    "/home/mxwbio/Desktop/HAL/test_config_2.cfg", # well 1 config
+    "", # well 1 config
     "", # ...
     "",
     "",
@@ -75,7 +80,7 @@ configs = [
 ]
 
 
-# @edit
+# TODO
 #
 # Modify this to contain the stimulation electrodes for each well. Note that 
 # these are electrode numbers (0-26399). Just use the first element of the list 
@@ -83,9 +88,9 @@ configs = [
 #
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
-stimulation_electrodes = [
-    [14915, 14551, 20550], # well 0 stimulation electrodes
-    [20590], # well 1 stimulation electrodes
+stim_elecs = [
+    [5000, 10000], # well 0 stimulation electrodes
+    [], # well 1 stimulation electrodes
     [], # ... 
     [],
     [],
@@ -93,68 +98,81 @@ stimulation_electrodes = [
 ]
 
 if __name__ == '__main__':
-
-    wells = [0]
-    file_name = "open-loop-example"
-    chip_id = 16365
-
-    trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/open-loop", file_name, chip_id, wells)
-
-    stim_electrodes = [6630]
+    trial_path = hal.make_trial_folders_raw(parent_dir, experiment_name, chip_id, wells)
     
     for well in wells:
-        mx.activate([well])
-        mx.set_primary_well(well)
+        config_elecs = cfg.read_config(configs[well])
+
+        sq0 = hal.get_electrode_square(5000, 6, 1)
+        sq1 = hal.get_electrode_square(10000, 5, 2)
+
+        rec_elecs = sq0 + sq1 + config_elecs
         
-        mx.initialize()
-        mx.send(mx.Core().enable_stimulation_power(True))
-        
-        array = mx.Array("stimulation")
-        array.reset()
-        array.clear_selected_electrodes()
+        array = hal.init_well(well, rec_elecs, stim_elecs, False, False)
 
-        rec_electrodes = cfg.read_config(configs[well])
+        stim_units_0 = hal.connect_stim_units_to_stim_electrodes([5000],  array)
+        stim_units_1 = hal.connect_stim_units_to_stim_electrodes([10000],  array)
 
-        array.select_electrodes(stim_electrodes + rec_electrodes)
-        
-        array.route()
+        # init_well automatically does this--this is only needed when 
+        # manually connecting stimulation units, as shown above
+        array.download()
+        mx.offset()
 
-        # stimulation setup here 
-        stimulation_units = hal.connect_stim_units_to_stim_electrodes(stim_electrodes, array)
+        # power up each set of stimulation units separately, choosing a 
+        # different DAC channel for each
+        hal.power_up_stim_units(stim_units_0, dac=0)
+        hal.power_up_stim_units(stim_units_1, dac=1)
 
-        directory_name = f"{trial_path}/well{well}"
-
-        config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
+        rec_dir, h5_name, config = hal.get_file_names(well, experiment_name, trial_path)
 
         #save the config prior to running the code
-        array.save_config(config_file_name)
+        array.save_config(config)
 
-        array.download([well]) 
+        
 
-        mx.offset() 
-
-        mx.clear_events() 
-
-        hal.power_up_stim_units(stimulation_units, 1)
-
-        stimA = Stimulation("A", 1, 10, 500, 10, 1, 1, 1, well = well) 
+        stimA = Stimulation("A", dac_source=0, amplitude=10, phase=500, 
+                            pulses_per_train=10, num_trains=1, pulse_interval=1, 
+                            pulse_train_interval=1, well=well) 
         stimA.build_sequence()
 
+        stimB = Stimulation("B", dac_source=1, amplitude=10, phase=500, 
+                            pulses_per_train=10, num_trains=1, pulse_interval=1, 
+                            pulse_train_interval=1, well=well) 
+        stimB.build_sequence()
 
-        ##############################################################################
+
+        ########################################################################
 
 
         s = mx.Saving()
-        s.open_directory(directory_name)
-        s.start_file(file_name + "_well_" + str(well))
+        s.open_directory(rec_dir)
+        s.start_file(h5_name)
         s.group_delete_all()
 
+        # these functions write data directly to the h5 file, found under the
+        # "assay" section
         hal.write_exp_description(s, "This is an open-loop example using HAL")
+        hal.write_stim_electrodes(s, stim_elecs[well])
         s.write_assay_property("no_spaces_allowed", "spaces allowed")
 
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
 
         s.start_recording([well])
+
+        time.sleep(5)
+
+        stimA.send()
+
+        time.sleep(5)
+
+        stimB.send()
+
+        time.sleep(5)
+
+        stimA.send()
+        stimB.send()
+
+        time.sleep(5)
 
         s.stop_recording()
         s.stop_file()

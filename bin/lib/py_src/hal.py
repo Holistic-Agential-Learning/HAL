@@ -43,19 +43,24 @@ def coord_to_elec(coord):
     
 
 def get_file_names(well_no: int, experiment_name: str, trial_path: str):
-    """_summary_
+    """Returns names and paths for recording directory, config, and 
+    h5 file.
 
-    :param well_no: _description_
+    :param well_no: well number
     :type well_no: int
-    :param experiment_name: _description_
+    :param experiment_name: name of the experiment
     :type experiment_name: str
-    :param trial_path: _description_
+    :param trial_path: full path of the trial
     :type trial_path: str
+
+    :return: tuple of recording directory, experiment name, and config, 
+    respectively
+    :rtype: ``List[str]``
     """
-    ret = {}
-    ret["REC_DIR"] = f"{trial_path}/well{well_no}"
-    ret["CFG"] = f"{ret['REC_DIR']}/{experiment_name}_well_{well_no}_config.cfg"
-    ret["REC_FILE"] = f"{experiment_name}_well_{str(well_no)}"
+    recording_dir = f"{trial_path}/well{well_no}"
+    ret = (recording_dir,
+           f"{experiment_name}_well_{str(well_no)}",
+           f"{recording_dir}/{experiment_name}_well_{well_no}_config.cfg")
 
     return ret
 
@@ -87,14 +92,20 @@ def build_training_sequences(well_no: int):
 def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
     """ Initilizes the well recording electrodes and stimulation electrodes. 
     By default, it will connect the stimulation units and power them, but this 
-    can be overridden. The stimulation electrodes will also be selected for 
-    recording, so they don't need to be in the recording electrodes list.
+    can be overridden by setting the last two arguments to False or by passing
+    an empty list for ``stim_elecs``. This can be useful for setting 
+    stimulations to different DAC channels, since this function sets all 
+    stimulation electrodes to DAC 0 automatically. The stimulation electrodes 
+    will also be selected for recording, so they don't need to be in the 
+    recording electrodes list.
 
     :param well_no: Well number
     :type well_no: ``int``
     :param rec_elecs: Recording electrodes, as a list of electrode numbers
     :type rec_elecs: ``List[int]``
-    :param stim_elecs: Stimulation electrodes, as a list of electrode numbers
+    :param stim_elecs: Stimulation electrodes, as a list of electrode numbers. 
+                       If empty, connecting and powering up will not be 
+                       attempted.
     :type stim_elecs: ``List[int]``
     :param connect: Indicates if the stimulation units should be connected, 
                     defaults to True
@@ -105,13 +116,14 @@ def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect
     :return: a maxlab array with the configured electrodes
     :rtype: ``mx.Array``
     """
+    if stim_elecs == []:
+        connect = False
+        power_up = False
     mx.activate([well_no])
     mx.set_primary_well(well_no)
 
     mx.initialize()
     mx.send(mx.Core().enable_stimulation_power(True))
-
-    # stimulation electrodes for configs/newconfig.cfg
     
     array = mx.Array(f"stimulation{well_no}")
     array.reset()
@@ -127,9 +139,12 @@ def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect
         stimulation_units = connect_stim_units_to_stim_electrodes(stim_elecs, array)
     
     array.download([well_no])
+    mx.offset()
 
     if power_up:
         power_up_stim_units(stimulation_units)
+
+    mx.clear_events() 
 
     return array
 
