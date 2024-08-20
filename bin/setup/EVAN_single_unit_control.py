@@ -91,23 +91,24 @@ stim_elecs = [
 
 # GOAL - LOOP OVER EVERY ELECTRODE WE WANT TO EXAMINE
 
-stim_excitatory = [ ]   # TODO  SHOULD BE LIST OF ELECTRODES
-stim_inhibitory = [ ]   # TODO
+stim_excitatory = [21533, 22415, 25899]   # TODO  SHOULD BE LIST OF ELECTRODES
+stim_inhibitory = [7455, 6385, 20975]   # TODO
+total_electrode_list = stim_excitatory + stim_inhibitory
 
-for ELECTRODE in oawnefoiajfeoie:
+for electrode in total_electrode_list:
     if __name__ == '__main__':
         trial_path = hal.make_trial_folders_raw(parent_dir, experiment_name, chip_id, wells)
         
         for well in wells:
             config_elecs = cfg.read_config(configs[well])
 
-            stim_square = hal.get_electrode_square(ELECTRODE, 3, 1)  # TODO
+            stim_square = hal.get_electrode_square(electrode, 3, 1)  # TODO
 
             rec_elecs = stim_square + config_elecs
             
             array = hal.init_well(well, rec_elecs, stim_elecs, False, False)
 
-            stim_units_0 = hal.connect_stim_units_to_stim_electrodes([ELECTRODE],  array)    # TODO
+            stim_units_0 = hal.connect_stim_units_to_stim_electrodes([electrode],  array)    # TODO
 
             # init_well automatically does this--this is only needed when 
             # manually connecting stimulation units, as shown above
