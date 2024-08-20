@@ -2,7 +2,7 @@ import os
 import datetime
 import shutil
 from typing import List
-# import maxlab as mx
+import maxlab as mx
 
 def get_electrode_square(center, radius, step=1):
     chip_width = 220
@@ -13,22 +13,17 @@ def get_electrode_square(center, radius, step=1):
     width = radius
     height = radius
 
-    center_coord = [center % chip_width, center // chip_height]
-    print(center_coord)
+    center_coord = [center % chip_width, center // chip_width]
 
     top_left = [center_coord[0] - radius * step, center_coord[1] - radius * step]
     # top_left = [center_coord[0] + radius * step, center_coord[1] + radius * step]
 
     coords = [top_left]
-    left = top_left
     for row in range(radius * 2 + 1):
-        left = [left[0] + step, left[1]]
-        curr = left
+        left = [top_left[0] + step * row, top_left[1]]
         for col in range(radius * 2 + 1):
-            curr = [curr[0], curr[1] + step]
+            curr = [left[0], left[1] + step * col]
             coords.append(curr)
-
-    print(coords)
 
     return [coord_to_elec(c) for c in coords if in_bounds(c)]
 
@@ -37,7 +32,7 @@ def in_bounds(coord):
     return coord[0] >= 0 and coord[0] < 220 and coord[1] >= 0 and coord[1] < 120
 
 def coord_to_elec(coord):
-    return coord[1] * 120 + coord[0]
+    return coord[1] * 220 + coord[0]
             
 
     
