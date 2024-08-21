@@ -50,8 +50,8 @@ int main()
     const std::string stop{"stop"};
 
     
-    int stim_level = 0;
-    for (auto time = 0; time < 10; ++time) 
+    int stim_level = 5;
+    for (auto time = 0; time < 100; ++time) 
     {
         int aOrB = rand() % 2;
         string ab = aOrB ? "A" : "B";
