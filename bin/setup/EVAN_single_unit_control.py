@@ -98,23 +98,23 @@ for electrode in total_electrode_list:
 
             rec_elecs = stim_square + config_elecs
             
-            # array = hal.init_well(well, rec_elecs, [electrode], False, False)
+            array = hal.init_well(well, rec_elecs, [electrode], False, False)
 
-            mx.activate([well])
-            mx.set_primary_well(well)
+            # mx.activate([well])
+            # mx.set_primary_well(well)
 
-            mx.initialize()
-            mx.send(mx.Core().enable_stimulation_power(True))
+            # mx.initialize()
+            # mx.send(mx.Core().enable_stimulation_power(True))
             
-            array = mx.Array(f"stimulation{well}")
-            array.reset()
-            array.clear_selected_electrodes()
+            # array = mx.Array(f"stimulation{well}")
+            # array.reset()
+            # array.clear_selected_electrodes()
             
-            array.select_electrodes([electrode] + rec_elecs)
+            # array.select_electrodes([electrode] + rec_elecs)
             
-            array.select_stimulation_electrodes([electrode])
+            # array.select_stimulation_electrodes([electrode])
             
-            array.route()
+            # array.route()
 
             stim_units_0 = hal.connect_stim_units_to_stim_electrodes([electrode],  array)    # TODO
 
@@ -167,7 +167,7 @@ for electrode in total_electrode_list:
             stim_seq.send()
             time.sleep(stim_duration)
             time.sleep(60)  # post stim test
-            
+            print("End of post, beginning the next pretest...")
 
             time.sleep(60)  # Pre stim test
             print("Sending second sequence to: " + str(electrode))
