@@ -98,8 +98,7 @@ if __name__ == '__main__':
     trial_path = hal.make_trial_folders_raw(parent_dir, experiment_name, chip_id, wells)
     
     for well in wells:
-        config_elecs = hal.read_config_elecs(configs[well])
-
+        config_elecs = cfg.read_config_elecs(configs[well])
         sq0 = hal.get_electrode_square(5000, 6, 1)
         sq1 = hal.get_electrode_square(10000, 5, 2)
 
@@ -109,7 +108,7 @@ if __name__ == '__main__':
         # automatically connect and power up the stimulation units on DAC 0. 
         # If you need to have stimulations on different DAC channels, it's 
         # better to manually do it yourself. 
-        array = hal.init_well(well, rec_elecs, stim_elecs, False, False)
+        array = hal.init_well(well, rec_elecs, stim_elecs[well], False, False)
 
         stim_units_0 = hal.connect_stim_units_to_stim_electrodes([5000],  array)
         stim_units_1 = hal.connect_stim_units_to_stim_electrodes([10000],  array)
@@ -130,15 +129,15 @@ if __name__ == '__main__':
         array.save_config(config)
 
 
-        stimA = Stimulation("A", dac_source=0, amplitude=10, phase=500, 
+        stim_a_obj = Stimulation("A", dac_source=0, amplitude=10, phase=500, 
                             pulses_per_train=10, num_trains=1, pulse_interval=1, 
                             pulse_train_interval=1, well=well)
-        stimA.build_sequence()
+        stim_a = stim_a_obj.build_sequence()
 
-        stimB = Stimulation("B", dac_source=1, amplitude=10, phase=500, 
+        stim_b_obj = Stimulation("B", dac_source=1, amplitude=10, phase=500, 
                             pulses_per_train=10, num_trains=1, pulse_interval=1, 
                             pulse_train_interval=1, well=well)
-        stimB.build_sequence()
+        stim_b = stim_b_obj.build_sequence()
 
 
         ########################################################################
@@ -161,16 +160,16 @@ if __name__ == '__main__':
 
         time.sleep(5)
 
-        stimA.send()
+        stim_a.send()
 
         time.sleep(5)
 
-        stimB.send()
+        stim_b.send()
 
         time.sleep(5)
 
-        stimA.send()
-        stimB.send()
+        stim_a.send()
+        stim_b.send()
 
         time.sleep(5)
 

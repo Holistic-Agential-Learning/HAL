@@ -44,7 +44,7 @@ def make_config(data, file_name):
 def read_config_elecs(file):
     data = read_config(file)
 
-    elecs = [e[1] for e in data]
+    elecs = [int(e[1]) for e in data]
 
     return elecs
 
