@@ -52,7 +52,7 @@ float fanoFactor(float A, float B);
 bool withinSD(float levels, float avg, float sd, float value);
 float zScore(float value, float avg, float sd);
 
-int sync() {
+void sync() {
     // initialize the zmq context with a single IO thread
     zmq::context_t context{1};
 
@@ -73,8 +73,6 @@ int sync() {
 
     std::cout << "Received " << reply.to_string(); 
     std::cout << std::endl;
-
-    return 0;
 }
 
 /* signal_interrupt_handler
@@ -185,7 +183,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     ChannelWindow *winB = controller.getButtonWindow("B");
 
     vector<float> ratios;
-    int numRatioFrames = FRAMES_PER_SEC * 5 * 60 ;
+    int numRatioFrames = FRAMES_PER_SEC * 1 * 60 ;
     ProgressBar ratioProgress = ProgressBar(numRatioFrames, "Calculating ratio thresholds...");
 
     /*
@@ -334,8 +332,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             if (aReleased && (firingRateAvgA != 0) && (firingRateA > 0.5) && (fano > aRatio) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
 
                 printValues(&data, "A", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                if (stimRate > minStimRate) {
-                    stimRate -= stimAcc;
+                if (stimRate < minStimRate) {
+                    stimRate += stimAcc;
+                    stim_type--;
                 }
 
                 expBar.clear();
@@ -344,7 +343,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                
                 aReleased = false;
 
-                string data = "A;" + to_string(stim_type) + ";" + to_string(i);
+                string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type);
                 // send the request message
                 socket.send(zmq::buffer(data));
 
@@ -352,8 +351,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             } else if (bReleased && (firingRateAvgB != 0 )&& (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
                 
                 printValues(&data, "B", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                if (stimRate < maxStimRate) {
-                    stimRate += stimAcc;
+                if (stimRate > maxStimRate) {
+                    stimRate -= stimAcc;
+                    stim_type++;
                 }
 
                 expBar.clear();
@@ -362,7 +362,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
                 bReleased = false;
 
-                string data = "B;" + to_string(stim_type) + ";" + to_string(i);
+                string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type);
                 // send the request message
                 socket.send(zmq::buffer(data));
             } else {

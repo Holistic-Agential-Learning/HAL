@@ -18,9 +18,9 @@ import matplotlib.pyplot as plt
 rec_electrodes = []
 
 all_configs = [
-    "/home/mxwbio/configs/240819/buttonB_well5.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240819/buttonA_well5.cfg", #fast button #TODO
-    "/home/mxwbio/configs/240819/well5.cfg" #full (slow + fast + stim + read) #TODO
+    "/home/mxwbio/configs/240821/buttonB.cfg", #slow button  #TODO
+    "/home/mxwbio/configs/240821/buttonA.cfg", #fast button #TODO
+    "/home/mxwbio/configs/240821/well0.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
 guidance = False #TODO Setup guidance here
@@ -29,7 +29,10 @@ def sync():
     context = zmq.Context()
     socket = context.socket(zmq.REP)
     socket.bind("tcp://*:5556")
-    message = socket.recv()
+    try:
+        message = socket.recv()
+    except KeyboardInterrupt:
+        return
 
     #  Send reply back to client
     socket.send(b"sync")
@@ -49,6 +52,9 @@ def plot():
     fig = plt.gcf()
     fig.show()
     fig.canvas.draw()
+    plt.title("Frequency Game Stimulation Level")
+    plt.ylabel("Stimulation Level")
+    plt.xlabel("Time (s)")
     plt.ylim(-1,11)
     plt.pause(1)
 
@@ -64,11 +70,12 @@ def plot():
 
         b,t,s = message.decode("utf-8").split(";")
 
-        times.append(int(t))
+        times.append(float(t))
         stim_levels.append(int(s))
         buttons.append(b)
-
-        plt.plot(stim_levels, times, color = 'g', marker = 'o')
+        
+        # g, cause i'm a G
+        plt.plot(times, stim_levels, color = 'g', marker = 'o')
         plt.pause(0.01)
         fig.canvas.draw()
 
@@ -91,9 +98,9 @@ def merge_configs(configs):
 
 if __name__ == '__main__':
 
-    wells = [4] # TODO
-    experiment_name = "test-progress" #TODO
-    chip_id = "M07475" # TODO
+    wells = [0] # TODO
+    experiment_name = "test-plot" #TODO
+    chip_id = "M07470" # TODO
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
@@ -101,7 +108,7 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well]) 
         mx.set_primary_well(well)
-        freq_electrodes = [8769, 18889, 5961, 16959] #TODO
+        freq_electrodes = [4211, 8321, 4681, 8285] #TODO
         dec_guidance_electrodes = [] #TODO
         inc_guidance_electrodes = [] #TODO
         stim_electrodes = freq_electrodes # + dec_guidance_electrodes + inc_guidance_electrodes
@@ -158,7 +165,7 @@ if __name__ == '__main__':
         # TODO CHECK:
         #Setup stims with three difference DAC sources
 
-        program_args = ["./bin/build/frequency-game", "--folder", directory_name]
+        program_args = ["./bin/build/plot-frequency-game", "--folder", directory_name]
         for i in range(len(new_buttons)):
             program_args.append(f"--config{i}")
             program_args.append(new_buttons[i])
