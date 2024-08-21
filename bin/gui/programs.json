@@ -1,0 +1,29 @@
+{
+"Train Waves": {
+    "exec": "train-wave-direction",
+    "stim_names": ["Left-to-Right", "Right-to-Left"],
+    "parameters": {
+        "Threshold": {"arg": "--threshold", "type": "float"},
+        "Minutes": {"arg": "--minutes", "type": "int"}
+    }
+},
+"Punish Reward": {
+    "exec": "reward-punish",
+    "stim_names": [],
+    "parameters": {
+        "Threshold": {"arg": "--threshold", "type": "float"},
+        "Minutes": {"arg": "--minutes", "type": "int"}
+    }
+},
+"Raw Data Test": {
+    "exec": "raw-data-test",
+    "stim_names": [],
+    "parameters": {
+    }
+},
+"Switch Wells": {
+    "exec": "switch-wells",
+    "stim_names": ["Switch-Well"],
+    "parameters": {}
+}
+}
