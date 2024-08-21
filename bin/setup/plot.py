@@ -40,8 +40,6 @@ def thread_cpp():
 def plot():
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
-    
-    # socket.subscribe("")
     socket.connect("tcp://localhost:5555")
     socket.setsockopt(zmq.SUBSCRIBE, b"")
 
@@ -54,57 +52,28 @@ def plot():
     fig = plt.gcf()
     fig.show()
     fig.canvas.draw()
-    # graph = plt.plot([0],[0])[0]
     plt.ylim(-1,11)
     plt.pause(1)
 
     while True:
         #  Wait for next request from client
         try:
-            # print("waiting for message")
             message = socket.recv()
         except KeyboardInterrupt:
             break
-        # print(f"Received request: {message}")
 
         if (message == b"stop"):
             break
 
         b,t,s = message.decode("utf-8").split(";")
-        # print(f"{b},{t},{s}")
 
         times.append(int(t))
         stim_levels.append(int(s))
-        # print(times)
-        # print(stim_levels)
-
-        # graph.remove()
-
-        # print("plotting...")
+        buttons.append(b)
 
         plt.plot(stim_levels, times, color = 'g', marker = 'o')
-        # plt.xlim(times[0], times[-1])
         plt.pause(0.01)
         fig.canvas.draw()
-
-        # graph = plt.plot(stim_levels, times, color = 'g')
-        # plt.xlim(times[0], times[-1])
-
-        # graph.set_xdata(times)
-        # graph.set_ydata(stim_levels)
-        # plt.draw()
-        
-        # graph = plt.plot(stim_levels, time,  color="g")[0]
-        # plt.xlim(times[0], times[-1])
-        
-        # plt.scatter(stim_levels, times, 10, color="blue", label="Stimulation levels over time")
-        # plt.show()
-        # print("done plotting")
-
-        #  Do some 'work'
-
-        #  Send reply back to client
-        # socket.send(b"World")
 
 
 # ready = False

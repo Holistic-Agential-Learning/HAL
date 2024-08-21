@@ -33,6 +33,7 @@ int sync() {
 
     return 0;
 }
+
 int main()
 {
     // initialize the zmq context with a single IO thread
