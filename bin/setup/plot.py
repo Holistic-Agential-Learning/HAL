@@ -51,8 +51,9 @@ def plot():
     times = []
     stim_levels = []
 
-    graph, = plt.plot([],[])
+    graph, = plt.plot([0],[0])[0]
     plt.ylim(0,10)
+    plt.pause(1)
 
     while True:
         #  Wait for next request from client
@@ -74,9 +75,14 @@ def plot():
         print(times)
         print(stim_levels)
 
-        graph.set_xdata(times)
-        graph.set_ydata(stim_levels)
-        plt.draw()
+        graph.remove()
+
+        graph = plt.plot(stim_levels, times, color = 'g')
+        plt.xlim(times[0], times[-1])
+
+        # graph.set_xdata(times)
+        # graph.set_ydata(stim_levels)
+        # plt.draw()
         print("plotting...")
         # graph = plt.plot(stim_levels, time,  color="g")[0]
         # plt.xlim(times[0], times[-1])
