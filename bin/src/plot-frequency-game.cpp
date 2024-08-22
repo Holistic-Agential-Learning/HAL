@@ -242,7 +242,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int framesPerMin = FRAMES_PER_SEC * 60;
 
-    ProgressBar expBar = ProgressBar(frames, "Frequency game running...");
+    ProgressBar expBar = ProgressBar(frames, "Frequency game running...", true);
 
     bool aReleased = true;
     bool bReleased = true;

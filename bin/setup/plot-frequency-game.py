@@ -45,17 +45,30 @@ def plot():
 
     sync()
 
-    buttons = []
+    buttons = ["A", "B"]
+    bar_colors = ["red", "blue"]
+    button_counts = [0, 0]
     times = []
     stim_levels = []
 
     fig = plt.gcf()
     fig.show()
-    fig.canvas.draw()
-    plt.title("Frequency Game Stimulation Level")
-    plt.ylabel("Stimulation Level")
+
+    stim_level = plt.subplot(211)
+    
+    
+    plt.title("Stimulation Frequency")
+    plt.ylabel("Frequency Level")
     plt.xlabel("Time (s)")
     plt.ylim(-1,11)
+
+    count = plt.subplot(212)
+    plt.title("Total Button Presses")
+    plt.ylabel("Count")
+    plt.xlabel("Buttons")
+    plt.tight_layout()
+
+    fig.canvas.draw()
     plt.pause(1)
 
     while True:
@@ -70,14 +83,30 @@ def plot():
 
         b,t,s = message.decode("utf-8").split(";")
 
+        print(f"{b};{t};{s}")
+
+        if (b == "A"):
+            button_counts[0] = button_counts[0] + 1
+        if (b == "B"):
+            button_counts[1] = button_counts[1] + 1  
+
         times.append(float(t))
         stim_levels.append(int(s))
-        buttons.append(b)
+
+        plt.subplot(211)
+
+
         
         # g, cause i'm a G
         plt.plot(times, stim_levels, color = 'g', marker = 'o')
-        plt.pause(0.01)
+
+        plt.subplot(212)
+        plt.bar(buttons, button_counts, color=bar_colors)
+
+        plt.tight_layout()
+        
         fig.canvas.draw()
+        plt.pause(0.01)
 
 def thread_cpp(program_args):
     try:
@@ -98,9 +127,9 @@ def merge_configs(configs):
 
 if __name__ == '__main__':
 
-    wells = [0] # TODO
+    wells = [1] # TODO
     experiment_name = "test-plot" #TODO
-    chip_id = "M07470" # TODO
+    chip_id = "M07458" # TODO
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
