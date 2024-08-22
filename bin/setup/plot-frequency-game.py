@@ -54,33 +54,35 @@ def plot():
     fig = plt.gcf()
     fig.show()
 
-    plt.subplot(211)
-    
-    plt.title("Stimulation Frequency")
-    plt.ylabel("Stimulations per Second")
-    plt.xlabel("Time (s)")
-    plt.ylim(-1,11)
+    freqpath = plt.subplot(211)
+    freqpath.set_title("Stimulation Frequency")
+    freqpath.set_ylabel("Stimulations per Second")
+    freqpath.set_xlabel("Time (s)")
+    freqpath.set_ylim(0,5)
 
     count = plt.subplot(223)
-    plt.title("Total Button Presses")
-    plt.ylabel("Count")
-    plt.xlabel("Buttons")
+    count.set_title("Total Button Presses")
+    count.set_ylabel("Count")
+    count.set_xlabel("Buttons")
     
 
     space = plt.subplot(224)
-    plt.title("Frequency World")
-    plt.ylabel("Stimulations per Second")
-    plt.xlabel("Space")
-    plt.ylim(0, 5)
-    plt.xlim(0, 11)
+    space.set_title("Frequency World")
+    space.set_ylabel("Stimulations per Second")
+    space.set_xlabel("Space")
+    space.set_ylim(0, 5)
+    space.set_xlim(0, 11)
 
-    plt.tight_layout()
+    fig.tight_layout()
     fig.canvas.draw()
     plt.pause(1)
+
+    print("plot initialized")
 
     while True:
         #  Wait for next request from client
         try:
+            print("waiting for message")
             message = socket.recv()
         except KeyboardInterrupt:
             break
@@ -98,20 +100,22 @@ def plot():
             button_counts[1] = button_counts[1] + 1  
 
         times.append(float(t))
-        stim_levels.append(int(s))
+        stim_levels.append(float(r))
 
         # stimulation frequency
-        plt.subplot(211)
-
-        plt.plot(times, stim_levels, color = 'g', marker = 'o')
+        # plt.subplot(211)
+        freqpath.plot(times, stim_levels, color = 'g', marker = 'o')
 
         # Total Button Presses
-        plt.subplot(223)
-        plt.bar(buttons, button_counts, color=bar_colors)
+        # plt.subplot(223)
+        count.bar(buttons, button_counts, color=bar_colors)
 
         # Frequency World
-        plt.subplot(224)
-        plt.plot([s], [r], color = 'purple', marker = 'o')
+        # plt.subplot(224)
+        # space.clear()
+        space.scatter([s], [r], color = 'purple', marker = 'o')
+        # space.set_ylim([0, 5])
+        # space.set_xlim([0, 11])
 
         plt.tight_layout()
         

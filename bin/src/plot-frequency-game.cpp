@@ -344,7 +344,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 aReleased = false;
                 float stimulationRate = FRAMES_PER_SEC / (float) stimRate;
 
-                string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + stimulationRate;
+                string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimulationRate);
                 // send the request message
                 socket.send(zmq::buffer(data));
 
@@ -365,7 +365,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
                 bReleased = false;
 
-                string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + stimulationRate;
+                string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimulationRate);
                 // send the request message
                 socket.send(zmq::buffer(data));
             } else {
