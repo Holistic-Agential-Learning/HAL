@@ -247,29 +247,33 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     bool aReleased = true;
     bool bReleased = true;
 
-    int minStimRate = 200000; 
-    int maxStimRate = 2250;
+    int maxFramesPerStim = 200000; 
+    int minFramesPerStim = 2250;
 
-    int stimAcc = 19775; // how much the stim rate changes, in frames
+    float minStimRate = FRAMES_PER_SEC / maxFramesPerStim;
+    float maxStimRate = FRAMES_PER_SEC / minFramesPerStim;
+
+    int numValues = 10;
+
+    float acc = (maxStimRate - minStimRate) / numValues;
 
     // how often the culture is stimulated, in frames
-    int stimRate = minStimRate; 
+    float stimRate = maxFramesPerStim; 
 
-    // initialize the zmq context with a single IO thread
     zmq::context_t context{1};
 
-    // construct a REQ (request) socket and connect to interface
     zmq::socket_t socket{context, ZMQ_PUB};
     cout << "connecting..." << endl;
     socket.bind("tcp://*:5555");
     
-    // set up some static data to send
     sync();
 
     cout << "Sockets initialized and synced" << endl;
     // const std::string data{"Hello"};
 
     const std::string stop{"stop"};
+
+    int framesPerStim = 200000;
 
     /*
         Run Experiment
@@ -332,9 +336,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             if (aReleased && (firingRateAvgA != 0) && (firingRateA > 0.5) && (fano > aRatio) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
 
                 printValues(&data, "A", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                if (stimRate < minStimRate) {
-                    stimRate += stimAcc;
+                if (stimRate > minStimRate) {
+                    stimRate -= stimAcc;
                     stim_type--;
+                    framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                 }
 
                 expBar.clear();
@@ -344,7 +349,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 aReleased = false;
                 float stimulationRate = FRAMES_PER_SEC / (float) stimRate;
 
-                string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimulationRate);
+                string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimRate);
                 // send the request message
                 socket.send(zmq::buffer(data));
 
@@ -352,20 +357,19 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             } else if (bReleased && (firingRateAvgB != 0) && (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
                 
                 printValues(&data, "B", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-                if (stimRate > maxStimRate) {
-                    stimRate -= stimAcc;
+                if (stimRate < maxStimRate) {
+                    stimRate += stimAcc;
                     stim_type++;
+                    framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                 }
 
                 expBar.clear();
                 cout << i << ": button B pressed " << stim_type << " " << int(FRAMES_PER_SEC * 2/rates[stim_type])<< endl;
                 expBar.print();
 
-                float stimulationRate = FRAMES_PER_SEC / (float) stimRate;
-
                 bReleased = false;
 
-                string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimulationRate);
+                string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimRate);
                 // send the request message
                 socket.send(zmq::buffer(data));
             } else {
@@ -407,7 +411,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
 
-        if (i % stimRate == 0) {
+        if (i % framesPerStim) {
             maxlab::verifyStatus(maxlab::sendSequence("stim"));
             blanking=200;
         }      
