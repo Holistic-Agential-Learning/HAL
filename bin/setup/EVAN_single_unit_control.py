@@ -71,7 +71,6 @@ configs = [
     ""
 ]
 
-
 # TODO
 #
 # Modify this to contain the stimulation electrodes for each well. Note that 
@@ -87,8 +86,8 @@ stim_excitatory = [21531, 22855, 25903]   # TODO
 stim_inhibitory = [7455, 6385, 21415]   # TODO
 total_electrode_list = stim_excitatory + stim_inhibitory
 
-for electrode in total_electrode_list:
-    if __name__ == '__main__':
+if __name__ == '__main__':
+    for electrode in total_electrode_list:
         trial_path = hal.make_trial_folders_raw(parent_dir, experiment_name, chip_id, wells)
         
         for well in wells:
