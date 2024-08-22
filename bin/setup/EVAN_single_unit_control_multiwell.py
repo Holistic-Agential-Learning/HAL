@@ -57,18 +57,17 @@ wells = [0, 1, 2, 3, 4, 5]
 # chip ID
 chip_id = 7480
 
-
 # TODO - WES
 #
 # Modify this to contain the FULL PATH of configs for each well. Just use the 
 # first element of the list if using the MaxOne
 configs = [
-    "/home/mxwbio/configs/240820/M07480_DIV47.cfg", # well 0 config
-    "", # well 1 config
-    "", # ...
-    "",
-    "",
-    ""
+    "/home/mxwbio/configs/240822/12h48m32s.cfg", # well 0 config
+    "/home/mxwbio/configs/240822/12h48m36s.cfg", # well 1 config
+    "/home/mxwbio/configs/240822/12h48m39s.cfg", # ...
+    "/home/mxwbio/configs/240822/12h48m42s.cfg",
+    "/home/mxwbio/configs/240822/12h48m45s.cfg",
+    "/home/mxwbio/configs/240822/12h48m47s.cfg"
 ]
 
 # TODO
@@ -148,28 +147,34 @@ if __name__ == '__main__':
         hal.write_exp_description(s, "Running single unit stim in parallel for 3 excite and 3 inhib.")  # TODO
         hal.write_stim_electrodes(s, [elecs[stim_idx] for elecs in total_electrode_list])
 
-        s.group_define(wells, f"all_channels_{well}", list(range(1024)))
+        for well in wells:
+            s.group_define(well, f"all_channels_{well}", list(range(1024)))
 
         s.start_recording(wells)
+        try:
 
-        time.sleep(5)
-        
-        mx.activate(wells)
+            time.sleep(5)
+            
+            mx.activate(wells)
 
-        print("Ready to rumble")
-        # TODO
-        time.sleep(60)  # Pre stim test
-        print("Sending first sequence")
-        stim_seq.send()
-        time.sleep(stim_duration)
-        time.sleep(60)  # post stim test
-        print("End of post, beginning the next pretest...")
+            print("Ready to rumble")
+            # TODO
+            time.sleep(60)  # Pre stim test
+            print("Sending first sequence")
+            stim_seq.send()
+            time.sleep(stim_duration)
+            time.sleep(60)  # post stim test
+            print("End of post, beginning the next pretest...")
 
-        time.sleep(60)  # Pre stim test
-        print("Sending second sequence")
-        stim_seq.send()
-        time.sleep(stim_duration)
-        time.sleep(60)  # Pre stim test
+            time.sleep(60)  # Pre stim test
+            print("Sending second sequence")
+            stim_seq.send()
+            time.sleep(stim_duration)
+            time.sleep(60)  # Pre stim test
+        except KeyboardInterrupt:
+            print("Keyboard interrupt detected")
+        except Exception as err: 
+            print(f"An error occurred ({err})")
 
         s.stop_recording()
         s.stop_file()
