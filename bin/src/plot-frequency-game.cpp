@@ -337,7 +337,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
                 printValues(&data, "A", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate > minStimRate) {
-                    stimRate -= stimAcc;
+                    stimRate -= acc;
                     stim_type--;
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                 }
@@ -358,7 +358,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 
                 printValues(&data, "B", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate < maxStimRate) {
-                    stimRate += stimAcc;
+                    stimRate += acc;
                     stim_type++;
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                 }
