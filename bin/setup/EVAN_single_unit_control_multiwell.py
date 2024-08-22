@@ -179,4 +179,4 @@ if __name__ == '__main__':
         s.stop_recording()
         s.stop_file()
         s.group_delete_all()
-        print("finished recording location " + str(stim_idx) + " of 6")
+        print("finished recording location " + str(stim_idx) + " of 5")

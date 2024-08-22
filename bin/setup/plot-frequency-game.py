@@ -54,20 +54,27 @@ def plot():
     fig = plt.gcf()
     fig.show()
 
-    stim_level = plt.subplot(211)
-    
+    plt.subplot(211)
     
     plt.title("Stimulation Frequency")
-    plt.ylabel("Frequency Level")
+    plt.ylabel("Stimulations per Second")
     plt.xlabel("Time (s)")
     plt.ylim(-1,11)
 
-    count = plt.subplot(212)
+    count = plt.subplot(223)
     plt.title("Total Button Presses")
     plt.ylabel("Count")
     plt.xlabel("Buttons")
-    plt.tight_layout()
+    
 
+    space = plt.subplot(224)
+    plt.title("Frequency World")
+    plt.ylabel("Stimulations per Second")
+    plt.xlabel("Space")
+    plt.ylim(0, 5)
+    plt.xlim(0, 11)
+
+    plt.tight_layout()
     fig.canvas.draw()
     plt.pause(1)
 
@@ -81,9 +88,9 @@ def plot():
         if (message == b"stop"):
             break
 
-        b,t,s = message.decode("utf-8").split(";")
+        b,t,s,r = message.decode("utf-8").split(";")
 
-        print(f"{b};{t};{s}")
+        print(f"{b};{t};{s};{r}")
 
         if (b == "A"):
             button_counts[0] = button_counts[0] + 1
@@ -93,15 +100,18 @@ def plot():
         times.append(float(t))
         stim_levels.append(int(s))
 
+        # stimulation frequency
         plt.subplot(211)
 
-
-        
-        # g, cause i'm a G
         plt.plot(times, stim_levels, color = 'g', marker = 'o')
 
-        plt.subplot(212)
+        # Total Button Presses
+        plt.subplot(223)
         plt.bar(buttons, button_counts, color=bar_colors)
+
+        # Frequency World
+        plt.subplot(224)
+        plt.plot([s], [r], color = 'purple', marker = 'o')
 
         plt.tight_layout()
         

@@ -342,13 +342,14 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 expBar.print();
                
                 aReleased = false;
+                float stimulationRate = FRAMES_PER_SEC / (float) stimRate;
 
-                string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type);
+                string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + stimulationRate;
                 // send the request message
                 socket.send(zmq::buffer(data));
 
             // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
-            } else if (bReleased && (firingRateAvgB != 0 )&& (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
+            } else if (bReleased && (firingRateAvgB != 0) && (firingRateB > 0.5) && (fano < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
                 
                 printValues(&data, "B", i, aRatio, bRatio, fano, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate > maxStimRate) {
@@ -360,9 +361,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 cout << i << ": button B pressed " << stim_type << " " << int(FRAMES_PER_SEC * 2/rates[stim_type])<< endl;
                 expBar.print();
 
+                float stimulationRate = FRAMES_PER_SEC / (float) stimRate;
+
                 bReleased = false;
 
-                string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type);
+                string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + stimulationRate;
                 // send the request message
                 socket.send(zmq::buffer(data));
             } else {
