@@ -18,12 +18,12 @@ import matplotlib.pyplot as plt
 rec_electrodes = []
 
 all_configs = [
-    "/home/mxwbio/configs/240805/configA.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240805/configD.cfg", #fast button #TODO
-    #full (slow + fast + stim + read) #TODO
+    "/home/mxwbio/configs/240823/Left Button.cfg", #slow button  #TODO
+    "/home/mxwbio/configs/240823/Right Button.cfg", #fast button #TODO
+    "/home/mxwbio/configs/240823/NS Config Well 5.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
-guidance = True #TODO Setup guidance here
+guidance = False #TODO Setup guidance here
 
 def sync():
     context = zmq.Context()
@@ -144,9 +144,9 @@ def merge_configs(configs):
 
 if __name__ == '__main__':
 
-    wells = [0] # TODO
-    experiment_name = "test-guidance" #TODO
-    chip_id = "16365" # TODO
+    wells = [5] # TODO
+    experiment_name = "initial_test_with_plotting_60min" #TODO
+    chip_id = "M07475" # TODO
 
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
@@ -155,10 +155,10 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well]) 
         mx.set_primary_well(well)
-        freq_electrodes = [5904, 5533, 19175, 19974] #TODO
+        freq_electrodes = [2493,5521,6103,6499] #TODO
 
-        dec_guidance_electrodes = [5533] #TODO
-        inc_guidance_electrodes = [19974] #TODO
+        dec_guidance_electrodes = [] #TODO
+        inc_guidance_electrodes = [] #TODO
         stim_electrodes = freq_electrodes # + dec_guidance_electrodes + inc_guidance_electrodes
         rec_electrodes = freq_electrodes + merge_configs(all_configs)
         print(len(rec_electrodes))
@@ -219,7 +219,7 @@ if __name__ == '__main__':
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(str(5)) # TODO set the number of minutes for the game
+        program_args.append(str(60)) # TODO set the number of minutes for the game
         program_args.append("--maxtwo")
         if guidance:
             program_args.append("--guidance")
@@ -227,6 +227,7 @@ if __name__ == '__main__':
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name)
+        hal.write_exp_description(s, "We're doing a 60 minute test to see what happens with frequency game. Should have plots, but bottom right bad.")
         hal.write_closed_loop_args(s, program_args)
         hal.write_stim_electrodes(s, stim_electrodes)
 
@@ -234,6 +235,8 @@ if __name__ == '__main__':
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
         print("recording... well " + str(well))
         s.start_recording([well])
+
+        time.sleep(60*10)   # Pre
 
         try:
             thread = threading.Thread(target = thread_cpp, args = [program_args])
@@ -244,7 +247,6 @@ if __name__ == '__main__':
 
             thread.join()
 
-
             mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
         except KeyboardInterrupt:
             print("Keyboard Interrupt")
@@ -253,9 +255,11 @@ if __name__ == '__main__':
 
         ########################################################################
 
+        time.sleep(60*10)   # Post
+
         s.stop_recording()
         s.stop_file()
         s.group_delete_all()
         print("finished recording")
 
-    # subprocess.run(["./mail.sh"])
+    subprocess.run(["./mail.sh"])
