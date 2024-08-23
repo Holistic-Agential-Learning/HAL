@@ -14,6 +14,7 @@ import bin.lib.py_src.config as cfg
 import threading
 import zmq
 import matplotlib.pyplot as plt
+import pickle
 
 rec_electrodes = []
 
@@ -23,7 +24,32 @@ all_configs = [
     "/home/mxwbio/configs/240823/NS Config Well 5.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
-guidance = False #TODO Setup guidance here
+#TODO
+wells = [5]
+
+#TODO
+experiment_name = "initial_test_with_plotting_60min"
+
+#TODO
+chip_id = "M07475" 
+
+#TODO toggle guidance system
+guidance = False 
+
+#TODO ratio calculation time, experiment time, pre/post time, all in minutes
+ratio_calculation_time = 5
+experiment_time = 60
+pre_exp_time = 10
+post_exp_time = 10
+
+#TODO stimulation electrodes
+freq_electrodes = [2493,5521,6103,6499]
+
+#TODO guidance electrodes
+dec_guidance_electrodes = []
+inc_guidance_electrodes = []
+
+#TODO times
 
 def sync():
     context = zmq.Context()
@@ -50,6 +76,7 @@ def plot(file):
     button_counts = [0, 0]
     times = []
     stim_levels = []
+    frequencies = []
 
     fig = plt.gcf()
     fig.show()
@@ -60,18 +87,16 @@ def plot(file):
     freqpath.set_xlabel("Time (s)")
     freqpath.set_ylim(0,5)
 
-    count = plt.subplot(223)
+    space = plt.subplot(312)
+    space.set_title("Frequency World")
+    space.set_ylabel("Stimulation Level")
+    space.set_xlabel("Time")
+    space.set_ylim(-1, 11)
+
+    count = plt.subplot(313)
     count.set_title("Total Button Presses")
     count.set_ylabel("Count")
     count.set_xlabel("Buttons")
-    
-
-    space = plt.subplot(224)
-    space.set_title("Frequency World")
-    space.set_ylabel("Stimulations per Second")
-    space.set_xlabel("Space")
-    space.set_ylim(0, 5)
-    space.set_xlim(0, 11)
 
     fig.tight_layout()
     fig.canvas.draw()
@@ -99,23 +124,18 @@ def plot(file):
             button_counts[1] = button_counts[1] + 1  
 
         times.append(float(t))
-        stim_levels.append(float(r))
+        stim_levels.append(int(s))
+        frequencies.append(float(r))
 
         # stimulation frequency
-        # plt.subplot(211)
-        freqpath.plot(times, stim_levels, color = 'g', marker = 'o')
-
-        # Total Button Presses
-        # plt.subplot(223)
-        count.bar(buttons, button_counts, color=bar_colors)
+        freqpath.plot(times, frequencies, color = 'g', marker = 'o')
 
         # Frequency World
-        # plt.subplot(224)
-        # space.clear()
-        space.plot([s], [r], marker = 'o')
-        # space.set_ylim([0, 5])
-        # space.set_xlim([0, 11])
+        space.plot(times, frequencies, color = 'purple', marker = 'o')
 
+        # Total Button Presses
+        count.bar(buttons, button_counts, color=bar_colors)
+        
         plt.tight_layout()
         
         fig.canvas.draw()
@@ -123,9 +143,14 @@ def plot(file):
 
     print("saving figure...")
     
-    plt.savefig(file)
+    pickle.dump(fig, open(f"{file}.fig.pickle", 'wb'))
 
 def thread_cpp(program_args):
+    """Runs closed-loop program on another thread
+
+    :param program_args: arguments of the program to run
+    :type program_args: List[str]
+    """
     try:
         subprocess.run(program_args)
     except KeyboardInterrupt:
@@ -143,11 +168,6 @@ def merge_configs(configs):
     return list(s)
 
 if __name__ == '__main__':
-
-    wells = [5] # TODO
-    experiment_name = "initial_test_with_plotting_60min" #TODO
-    chip_id = "M07475" # TODO
-
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
@@ -155,10 +175,6 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well]) 
         mx.set_primary_well(well)
-        freq_electrodes = [2493,5521,6103,6499] #TODO
-
-        dec_guidance_electrodes = [] #TODO
-        inc_guidance_electrodes = [] #TODO
         stim_electrodes = freq_electrodes # + dec_guidance_electrodes + inc_guidance_electrodes
         rec_electrodes = freq_electrodes + merge_configs(all_configs)
         print(len(rec_electrodes))
@@ -208,9 +224,6 @@ if __name__ == '__main__':
         dec_stim_seq = dec_stim.build_sequence()
         print(dec_stim.get_duration())
 
-        # TODO CHECK:
-        #Setup stims with three difference DAC sources
-
         program_args = ["./bin/build/plot-frequency-game", "--folder", directory_name]
 
         for i in range(len(new_buttons)):
@@ -219,7 +232,9 @@ if __name__ == '__main__':
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(str(60)) # TODO set the number of minutes for the game
+        program_args.append(str(experiment_time)) 
+        program_args.append("--ratio-time")
+        program_args.append(str(ratio_calculation_time))
         program_args.append("--maxtwo")
         if guidance:
             program_args.append("--guidance")
@@ -236,14 +251,14 @@ if __name__ == '__main__':
         print("recording... well " + str(well))
         s.start_recording([well])
 
-        time.sleep(60*10)   # Pre
+        time.sleep(60 * pre_exp_time)   # Pre
 
         try:
             thread = threading.Thread(target = thread_cpp, args = [program_args])
 
             thread.start()
 
-            plot(directory_name + "/" + file_name + ".png")
+            plot(directory_name + "/" + file_name)
 
             thread.join()
 
@@ -255,7 +270,7 @@ if __name__ == '__main__':
 
         ########################################################################
 
-        time.sleep(60*10)   # Post
+        time.sleep(60 * post_exp_time)   # Post
 
         s.stop_recording()
         s.stop_file()
