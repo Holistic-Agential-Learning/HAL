@@ -343,7 +343,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 }
 
                 expBar.clear();
-                cout << i << ": button A pressed " << stim_type << " " << int(FRAMES_PER_SEC * 2/rates[stim_type]) << endl;
+                cout << i << ": button A pressed " << stim_type << " " << stimRate) << endl;
                 expBar.print();
                
                 aReleased = false;
@@ -364,7 +364,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 }
 
                 expBar.clear();
-                cout << i << ": button B pressed " << stim_type << " " << int(FRAMES_PER_SEC * 2/rates[stim_type])<< endl;
+                cout << i << ": button B pressed " << stim_type << " " << stimRate << endl;
                 expBar.print();
 
                 bReleased = false;
@@ -391,17 +391,23 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
             //starts at the very firts frame and inc every 10 sec
             if (std::find(inc_idx.begin(), inc_idx.end(), i) != inc_idx.end() ){
-                if (stim_type < 10){
+                if (stimRate < maxStimRate){
+                    stimRate += acc;
                     stim_type++;
+                    framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                     cout << i << ": Speed increased by guidance" << endl;
+                    cout << stimRate << ", " << framesPerStim << endl;
                     maxlab::verifyStatus(maxlab::sendSequence("inc_guidance"));
                 }
             }
 
             if (std::find(dec_idx.begin(), dec_idx.end(), i) != dec_idx.end()){
-                if (stim_type > 0){
+                if (stimRate > minStimRate){
+                    stimRate -= acc;
                     stim_type--;
-                    cout << "Speed decreased by guidance" << endl;
+                    framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
+                    cout << i << ": Speed decreased by guidance" << endl;
+                    cout << stimRate << ", " << framesPerStim << endl;
                     maxlab::verifyStatus(maxlab::sendSequence("dec_guidance"));
                 }
             }

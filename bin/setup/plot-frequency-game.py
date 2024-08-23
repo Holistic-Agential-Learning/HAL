@@ -23,7 +23,7 @@ all_configs = [
     "/home/mxwbio/configs/240821/well0.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
-guidance = False #TODO Setup guidance here
+guidance = True #TODO Setup guidance here
 
 def sync():
     context = zmq.Context()
@@ -113,9 +113,10 @@ def plot():
         # Frequency World
         # plt.subplot(224)
         # space.clear()
+        space.cla()
         space.scatter([s], [r], color = 'purple', marker = 'o')
-        # space.set_ylim([0, 5])
-        # space.set_xlim([0, 11])
+        space.set_ylim([0, 5])
+        space.set_xlim([0, 11])
 
         plt.tight_layout()
         
