@@ -219,20 +219,20 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
     }
-    // cout << endl;
+    cout << endl;
 
-    // sort(ratios.begin(), ratios.end());
+    sort(ratios.begin(), ratios.end());
 
-    // int numRatios = ratios.size() - 1;
+    int numRatios = ratios.size() - 1;
 
-    // int aRatioIndex = 0.9 * numRatios;
-    // int bRatioIndex = 0.1 * numRatios;
+    int aRatioIndex = 0.9 * numRatios;
+    int bRatioIndex = 0.1 * numRatios;
 
-    float aRatio = 0.5;
-    float bRatio = -0.5;
+    // float aRatio = 0.5;
+    // float bRatio = -0.5;
 
-    // float aRatio = ratios[aRatioIndex];
-    // float bRatio = ratios[bRatioIndex];
+    float aRatio = ratios[aRatioIndex];
+    float bRatio = ratios[bRatioIndex];
 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
@@ -287,22 +287,22 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
 
         // every minute
-        // if (i % framesPerMin == 0) {
-        //     sort(ratios.begin(), ratios.end());
+        if (i % framesPerMin == 0) {
+            sort(ratios.begin(), ratios.end());
 
-        //     numRatios = ratios.size() - 1;
+            numRatios = ratios.size() - 1;
 
-        //     aRatioIndex = 0.9 * numRatios;
-        //     bRatioIndex = 0.1 * numRatios;
+            aRatioIndex = 0.9 * numRatios;
+            bRatioIndex = 0.1 * numRatios;
 
-        //     aRatio = ratios[aRatioIndex];
-        //     bRatio = ratios[bRatioIndex];
+            aRatio = ratios[aRatioIndex];
+            bRatio = ratios[bRatioIndex];
             
-        //     expBar.clear();
-        //     cout << "New A Threshold: " << aRatio << endl;
-        //     cout << "New B Threshold: " << bRatio << endl;
-        //     expBar.print();
-        // }
+            expBar.clear();
+            cout << "New A Threshold: " << aRatio << endl;
+            cout << "New B Threshold: " << bRatio << endl;
+            expBar.print();
+        }
         
 
         // If no data was read in, try again (happens when loop finishes before 
