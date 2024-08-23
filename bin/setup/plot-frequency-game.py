@@ -18,9 +18,9 @@ import matplotlib.pyplot as plt
 rec_electrodes = []
 
 all_configs = [
-    "/home/mxwbio/configs/240821/buttonB.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240821/buttonA.cfg", #fast button #TODO
-    "/home/mxwbio/configs/240821/well0.cfg" #full (slow + fast + stim + read) #TODO
+    "/home/mxwbio/configs/240805/configA.cfg", #slow button  #TODO
+    "/home/mxwbio/configs/240805/configD.cfg", #fast button #TODO
+    #full (slow + fast + stim + read) #TODO
 ]
 
 guidance = True #TODO Setup guidance here
@@ -37,7 +37,7 @@ def sync():
     #  Send reply back to client
     socket.send(b"sync")
 
-def plot():
+def plot(file):
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
     socket.connect("tcp://localhost:5555")
@@ -75,7 +75,6 @@ def plot():
 
     fig.tight_layout()
     fig.canvas.draw()
-    plt.pause(1)
 
     print("plot initialized")
 
@@ -113,15 +112,18 @@ def plot():
         # Frequency World
         # plt.subplot(224)
         # space.clear()
-        space.cla()
-        space.scatter([s], [r], color = 'purple', marker = 'o')
-        space.set_ylim([0, 5])
-        space.set_xlim([0, 11])
+        space.plot([s], [r], marker = 'o')
+        # space.set_ylim([0, 5])
+        # space.set_xlim([0, 11])
 
         plt.tight_layout()
         
         fig.canvas.draw()
         plt.pause(0.01)
+
+    print("saving figure...")
+    
+    plt.savefig(file)
 
 def thread_cpp(program_args):
     try:
@@ -142,9 +144,10 @@ def merge_configs(configs):
 
 if __name__ == '__main__':
 
-    wells = [1] # TODO
-    experiment_name = "test-plot" #TODO
-    chip_id = "M07458" # TODO
+    wells = [0] # TODO
+    experiment_name = "test-guidance" #TODO
+    chip_id = "16365" # TODO
+
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
     
     mx.initialize()
@@ -152,9 +155,10 @@ if __name__ == '__main__':
     for well in wells:
         mx.activate([well]) 
         mx.set_primary_well(well)
-        freq_electrodes = [4211, 8321, 4681, 8285] #TODO
-        dec_guidance_electrodes = [] #TODO
-        inc_guidance_electrodes = [] #TODO
+        freq_electrodes = [5904, 5533, 19175, 19974] #TODO
+
+        dec_guidance_electrodes = [5533] #TODO
+        inc_guidance_electrodes = [19974] #TODO
         stim_electrodes = freq_electrodes # + dec_guidance_electrodes + inc_guidance_electrodes
         rec_electrodes = freq_electrodes + merge_configs(all_configs)
         print(len(rec_electrodes))
@@ -177,10 +181,8 @@ if __name__ == '__main__':
         inc_units = hal.connect_stim_units_to_stim_electrodes(inc_guidance_electrodes, array)
         dec_units = hal.connect_stim_units_to_stim_electrodes(dec_guidance_electrodes, array)
 
+        directory_name, file_name, config_file_name = hal.get_file_names(well, experiment_name, trial_path)
 
-        directory_name = f"{trial_path}/well{well}"
-        file_name = experiment_name
-        config_file_name = directory_name + "/" + file_name + f"_well_{well}_config.cfg"
         print(config_file_name)
         array.save_config(config_file_name)
 
@@ -210,6 +212,7 @@ if __name__ == '__main__':
         #Setup stims with three difference DAC sources
 
         program_args = ["./bin/build/plot-frequency-game", "--folder", directory_name]
+
         for i in range(len(new_buttons)):
             program_args.append(f"--config{i}")
             program_args.append(new_buttons[i])
@@ -223,26 +226,28 @@ if __name__ == '__main__':
 
         s = mx.Saving()
         s.open_directory(directory_name)
-        s.start_file(file_name + "_well_" + str(well))
+        s.start_file(file_name)
         hal.write_closed_loop_args(s, program_args)
         hal.write_stim_electrodes(s, stim_electrodes)
 
-    
         s.group_delete_all()
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
         print("recording... well " + str(well))
         s.start_recording([well])
+
         try:
             thread = threading.Thread(target = thread_cpp, args = [program_args])
 
             thread.start()
 
-            plot()
+            plot(directory_name + "/" + file_name + ".png")
 
             thread.join()
 
 
             mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
+        except KeyboardInterrupt:
+            print("Keyboard Interrupt")
         except Exception as err: 
             print(f"An error occurred ({err}). Aborting...")
 

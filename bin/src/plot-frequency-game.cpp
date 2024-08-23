@@ -37,8 +37,8 @@ Options:\n\
 
 int FRAMES_PER_SEC = 20000;
 float rates[11] = {0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 7, 8, 9, 10};
-std::vector<int> inc_idx = {0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000};
-std::vector<int> dec_idx = {1000000, 1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000};
+std::vector<int> inc_idx = {0, 100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000};
+std::vector<int> dec_idx = {1100000, 1200000, 1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000, 2000000, 2100000, 2200000};
 
 
 float get_avg_side(ChannelWindow window);
@@ -183,7 +183,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     ChannelWindow *winB = controller.getButtonWindow("B");
 
     vector<float> ratios;
-    int numRatioFrames = FRAMES_PER_SEC * 1 * 60 ;
+    int numRatioFrames = FRAMES_PER_SEC * 0 * 60 ;
     ProgressBar ratioProgress = ProgressBar(numRatioFrames, "Calculating ratio thresholds...");
 
     /*
@@ -219,26 +219,23 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
     }
-    cout << endl;
+    // cout << endl;
 
-    sort(ratios.begin(), ratios.end());
+    // sort(ratios.begin(), ratios.end());
 
-    int numRatios = ratios.size() - 1;
+    // int numRatios = ratios.size() - 1;
 
-    int aRatioIndex = 0.9 * numRatios;
-    int bRatioIndex = 0.1 * numRatios;
+    // int aRatioIndex = 0.9 * numRatios;
+    // int bRatioIndex = 0.1 * numRatios;
 
-    // float aRatio = 0.5;
-    // float bRatio = -0.5;
+    float aRatio = 0.5;
+    float bRatio = -0.5;
 
-    float aRatio = ratios[aRatioIndex];
-    float bRatio = ratios[bRatioIndex];
+    // float aRatio = ratios[aRatioIndex];
+    // float bRatio = ratios[bRatioIndex];
 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
-
-    cout << "A Ratio Index: " << aRatioIndex << endl;
-    cout << "B Ratio Index: " << bRatioIndex << endl;
 
     int framesPerMin = FRAMES_PER_SEC * 60;
 
@@ -250,15 +247,18 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     int maxFramesPerStim = 200000; 
     int minFramesPerStim = 2250;
 
-    float minStimRate = FRAMES_PER_SEC / maxFramesPerStim;
-    float maxStimRate = FRAMES_PER_SEC / minFramesPerStim;
+    float minStimRate = FRAMES_PER_SEC / (float) maxFramesPerStim;
+    float maxStimRate = FRAMES_PER_SEC / (float) minFramesPerStim;
+
+    cout << minStimRate << endl << maxStimRate << endl;
 
     int numValues = 10;
 
     float acc = (maxStimRate - minStimRate) / numValues;
+    cout << acc << endl;
 
     // how often the culture is stimulated, in frames
-    float stimRate = maxFramesPerStim; 
+    float stimRate = minStimRate; 
 
     zmq::context_t context{1};
 
@@ -275,6 +275,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int framesPerStim = 200000;
 
+    int guidanceRate = 100000;
+    bool increase = true;
+
     /*
         Run Experiment
     */
@@ -284,22 +287,22 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
 
         // every minute
-        if (i % framesPerMin == 0) {
-            sort(ratios.begin(), ratios.end());
+        // if (i % framesPerMin == 0) {
+        //     sort(ratios.begin(), ratios.end());
 
-            numRatios = ratios.size() - 1;
+        //     numRatios = ratios.size() - 1;
 
-            aRatioIndex = 0.9 * numRatios;
-            bRatioIndex = 0.1 * numRatios;
+        //     aRatioIndex = 0.9 * numRatios;
+        //     bRatioIndex = 0.1 * numRatios;
 
-            aRatio = ratios[aRatioIndex];
-            bRatio = ratios[bRatioIndex];
+        //     aRatio = ratios[aRatioIndex];
+        //     bRatio = ratios[bRatioIndex];
             
-            expBar.clear();
-            cout << "New A Threshold: " << aRatio << endl;
-            cout << "New B Threshold: " << bRatio << endl;
-            expBar.print();
-        }
+        //     expBar.clear();
+        //     cout << "New A Threshold: " << aRatio << endl;
+        //     cout << "New B Threshold: " << bRatio << endl;
+        //     expBar.print();
+        // }
         
 
         // If no data was read in, try again (happens when loop finishes before 
@@ -343,14 +346,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 }
 
                 expBar.clear();
-                cout << i << ": button A pressed " << stim_type << " " << stimRate) << endl;
+                cout << i << ": button A pressed " << stim_type << " " << stimRate << endl;
                 expBar.print();
                
                 aReleased = false;
                 float stimulationRate = FRAMES_PER_SEC / (float) stimRate;
 
                 string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimRate);
-                // send the request message
                 socket.send(zmq::buffer(data));
 
             // Button B was pressed zScore(firingRateB, firingRateAvgB, sdB) > 3
@@ -370,7 +372,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 bReleased = false;
 
                 string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimRate);
-                // send the request message
                 socket.send(zmq::buffer(data));
             } else {
                 aReleased = true;
@@ -386,11 +387,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         //TODO: get guidance
         if(guidance){
-            if (i % 10000 == 0) {
-                cout << i << endl;
-            }
+            // if (i % 10000 == 0) {
+            //     cout << i << endl;
+            // }
             //starts at the very firts frame and inc every 10 sec
-            if (std::find(inc_idx.begin(), inc_idx.end(), i) != inc_idx.end() ){
+            if (increase && i % guidanceRate == 0 && i != 0){
+                cout << "check" << endl;
                 if (stimRate < maxStimRate){
                     stimRate += acc;
                     stim_type++;
@@ -398,26 +400,30 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     cout << i << ": Speed increased by guidance" << endl;
                     cout << stimRate << ", " << framesPerStim << endl;
                     maxlab::verifyStatus(maxlab::sendSequence("inc_guidance"));
-                }
-            }
 
-            if (std::find(dec_idx.begin(), dec_idx.end(), i) != dec_idx.end()){
-                if (stimRate > minStimRate){
+                    string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimRate);
+                    socket.send(zmq::buffer(data));
+                } else {
+                    increase = false;
+                }
+            } else if (!increase && i % guidanceRate == 0){
+                if (stimRate > minStimRate) {
                     stimRate -= acc;
                     stim_type--;
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                     cout << i << ": Speed decreased by guidance" << endl;
                     cout << stimRate << ", " << framesPerStim << endl;
                     maxlab::verifyStatus(maxlab::sendSequence("dec_guidance"));
-                }
-            }
 
-            if ((i >= 1900000)){
-                guidance = false;
+                    string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stim_type) + ";" + to_string(stimRate);
+                    socket.send(zmq::buffer(data));
+                } if (stimRate == minStimRate)  {
+                    guidance = false;
+                }
             }
         }
 
-        if (i % framesPerStim) {
+        if (i % framesPerStim == 0) {
             maxlab::verifyStatus(maxlab::sendSequence("stim"));
             blanking=200;
         }      
