@@ -24,26 +24,30 @@ all_configs = [
     "/home/mxwbio/configs/240823/NS Config Well 5.cfg" #full (slow + fast + stim + read) #TODO
 ]
 
-#TODO
-wells = [5]
 
 #TODO
-experiment_name = "initial_test_with_plotting_60min"
+wells = [0]
 
 #TODO
-chip_id = "M07475" 
+experiment_name = "pickle"
+
+#TODO
+chip_id = "16365" 
 
 #TODO toggle guidance system
 guidance = False 
 
+#TODO
+sendEmail = True
+
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
-ratio_calculation_time = 5
-experiment_time = 60
-pre_exp_time = 10
-post_exp_time = 10
+ratio_calculation_time = 1
+experiment_time = 3
+pre_exp_time = 0
+post_exp_time = 0
 
 #TODO stimulation electrodes
-freq_electrodes = [2493,5521,6103,6499]
+freq_electrodes = []
 
 #TODO guidance electrodes
 dec_guidance_electrodes = []
@@ -81,7 +85,7 @@ def plot(file):
     fig = plt.gcf()
     fig.show()
 
-    freqpath = plt.subplot(211)
+    freqpath = plt.subplot(311)
     freqpath.set_title("Stimulation Frequency")
     freqpath.set_ylabel("Stimulations per Second")
     freqpath.set_xlabel("Time (s)")
@@ -106,7 +110,7 @@ def plot(file):
     while True:
         #  Wait for next request from client
         try:
-            print("waiting for message")
+            # print("waiting for message")
             message = socket.recv()
         except KeyboardInterrupt:
             break
@@ -116,7 +120,7 @@ def plot(file):
 
         b,t,s,r = message.decode("utf-8").split(";")
 
-        print(f"{b};{t};{s};{r}")
+        # print(f"{b};{t};{s};{r}")
 
         if (b == "A"):
             button_counts[0] = button_counts[0] + 1
@@ -131,7 +135,7 @@ def plot(file):
         freqpath.plot(times, frequencies, color = 'g', marker = 'o')
 
         # Frequency World
-        space.plot(times, frequencies, color = 'purple', marker = 'o')
+        space.plot(times, stim_levels, color = 'purple', marker = 'o')
 
         # Total Button Presses
         count.bar(buttons, button_counts, color=bar_colors)
@@ -277,4 +281,5 @@ if __name__ == '__main__':
         s.group_delete_all()
         print("finished recording")
 
-    subprocess.run(["./mail.sh"])
+    if (sendEmail):
+        subprocess.run(["./mail.sh"])

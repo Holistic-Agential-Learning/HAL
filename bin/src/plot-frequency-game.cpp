@@ -100,7 +100,7 @@ void printValues(fstream *data, string ab, int frameNo, float aRatioThreshold, f
 }
 
 
-void runExperiment(string path, string config0, string config1, int frames, int ratioFrames int well, bool guidance) {
+void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool guidance) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     int stimType = 0;
@@ -176,6 +176,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         if (winA->pastWindowsReady() && winB->pastWindowsReady()) {
             float firingRateAvgA = winA->avgPastWindows();
             float firingRateAvgB = winB->avgPastWindows();
+            float firingRateA = winA->firingRate();
+            float firingRateB = winB->firingRate();
             
             if (firingRateA > 1 || firingRateB > 1) {
                 float ratio = calcRatio(firingRateAvgA, firingRateAvgB);
