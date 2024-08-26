@@ -27,7 +27,7 @@ sq_steps = 1
 all_configs = [
     [hal.get_electrode_square(10000, sq_radius, sq_steps),
      hal.get_electrode_square(5000, sq_radius, 2),
-     "/home/mxwbio/configs/240823/NS Config Well 5.cfg"],
+     "/home/mxwbio/Desktop/HAL/test_config_2.cfg"],
     ["/home/mxwbio/configs/240823/Left Button.cfg", 
     "/home/mxwbio/configs/240823/Right Button.cfg", 
     "/home/mxwbio/configs/240823/NS Config Well 5.cfg"],
@@ -41,13 +41,13 @@ all_configs = [
 wells = [0]
 
 #TODO
-experiment_name = "pickle"
+experiment_name = "squares"
 
 #TODO
 chip_id = "16365" 
 
 #TODO toggle guidance system
-guidance = False 
+guidance = True 
 
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
@@ -56,7 +56,14 @@ experiment_time = 3
 post_exp_time = 0
 
 #TODO stimulation electrodes
-freq_electrodes = []
+freq_electrodes = [
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+]
 
 #TODO guidance electrodes
 dec_guidance_electrodes = []
@@ -204,15 +211,15 @@ if __name__ == '__main__':
     mx.initialize()
 
     for well in wells:
-        mx.activate([well]) 
+        mx.activate([well])
         mx.set_primary_well(well)
-        stim_electrodes = freq_electrodes # + dec_guidance_electrodes + inc_guidance_electrodes
-        rec_electrodes = freq_electrodes + merge_configs(all_configs[well])
+        stim_electrodes = freq_electrodes[well] + dec_guidance_electrodes + inc_guidance_electrodes
+        rec_electrodes = freq_electrodes[well] + merge_configs(all_configs[well])
 
-        time.sleep(5)
-        if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
-            raise RuntimeError("The system didn't initialize correctly.")
-        time.sleep(mx.Timing.waitInit)
+        # time.sleep(5)
+        # if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
+        #     raise RuntimeError("The system didn't initialize correctly.")
+        # time.sleep(mx.Timing.waitInit)
         print(f"Initializing well {well}...")
         
         array = mx.Array(f"stimulation{well}")
@@ -221,8 +228,9 @@ if __name__ == '__main__':
         array.select_electrodes(rec_electrodes)
         array.select_stimulation_electrodes(stim_electrodes)
         array.route()
+        array.download([well])
         
-        freq_units = hal.connect_stim_units_to_stim_electrodes(freq_electrodes, array)
+        freq_units = hal.connect_stim_units_to_stim_electrodes(freq_electrodes[well], array)
         inc_units = hal.connect_stim_units_to_stim_electrodes(inc_guidance_electrodes, array)
         dec_units = hal.connect_stim_units_to_stim_electrodes(dec_guidance_electrodes, array)
 
@@ -231,7 +239,7 @@ if __name__ == '__main__':
         print(config_file_name)
         array.save_config(config_file_name)
 
-        new_buttons = cfg.get_buttons(config_file_name, [all_configs[0], all_configs[1]], directory_name)
+        new_buttons = cfg.get_buttons(config_file_name, [all_configs[well][0], all_configs[well][1]], directory_name)
         
         array.download([well]) 
         mx.offset() 

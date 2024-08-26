@@ -2,6 +2,10 @@ import re
 import os
 from typing import List
 
+# remember to detail out naming scheme -- if the buttons are electrode lists, 
+# then they will be named "buttonA.cfg", "buttonB.cfg" etc. If one is already
+# a string, then its basename will be taken and the corresponding letter will be
+# skipped (assuming there are other List[int] type buttons)
 def get_buttons(full_config, buttons, save_path):
     print(full_config)
     print(buttons)
@@ -18,9 +22,15 @@ def get_buttons(full_config, buttons, save_path):
                 button.remove(data)
 
     new_buttons = []
+    curr_button = "A"
 
     for i in range(len(buttons)):
-        new_path = save_path + "/" + os.path.basename(buttons[i])
+        filename = f"button{curr_button}.cfg"
+        curr_button = chr(ord(curr_button) + 1)
+        if (isinstance(buttons[i], str)):
+            filename = os.path.basename(buttons[i])
+            
+        new_path = save_path + "/" + filename
         print(f"writing {new_path}")
 
         make_config(buttons_data[i], new_path)

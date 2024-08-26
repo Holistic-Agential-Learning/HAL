@@ -189,20 +189,28 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     }
     cout << endl;
 
-    // sort all ratios
-    sort(ratios.begin(), ratios.end());
+    float aRatio;
+    float bRatio;
+    int aRatioIndex;
+    int bRatioIndex;
+    int numRatios;
 
-    int numRatios = ratios.size() - 1;
+    if (ratios.size() < 10) {
+        aRatio = 0.5;
+        bRatio = -0.5;
+    } else {
+        // sort all ratios
+        sort(ratios.begin(), ratios.end());
 
-    // get 10th percentile and 90th percentile
-    int aRatioIndex = 0.9 * numRatios;
-    int bRatioIndex = 0.1 * numRatios;
+        numRatios = ratios.size() - 1;
 
-    // float aRatio = 0.5;
-    // float bRatio = -0.5;
+        // get 10th percentile and 90th percentile
+        aRatioIndex = 0.9 * numRatios;
+        bRatioIndex = 0.1 * numRatios;
 
-    float aRatio = ratios[aRatioIndex];
-    float bRatio = ratios[bRatioIndex];
+        aRatio = ratios[aRatioIndex];
+        bRatio = ratios[bRatioIndex];
+    }
 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
@@ -257,7 +265,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
 
         // every minute
-        if (i % framesPerMin == 0) {
+        if (ratios.size() > 10 && i % framesPerMin == 0) {
             sort(ratios.begin(), ratios.end());
 
             numRatios = ratios.size() - 1;
@@ -367,8 +375,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     maxlab::verifyStatus(maxlab::sendSequence("inc_guidance"));
                     
                     // send to plotter for testing 
-                    // string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stimType) + ";" + to_string(stimRate);
-                    // socket.send(zmq::buffer(data));
+                    string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stimType) + ";" + to_string(stimRate);
+                    socket.send(zmq::buffer(data));
                 } else {
                     increase = false;
                 }
@@ -383,8 +391,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     expBar.print();
                     maxlab::verifyStatus(maxlab::sendSequence("dec_guidance"));
 
-                    // string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stimType) + ";" + to_string(stimRate);
-                    // socket.send(zmq::buffer(data));
+                    string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stimType) + ";" + to_string(stimRate);
+                    socket.send(zmq::buffer(data));
                 } if (stimRate == minStimRate)  {
                     guidance = false;
                 }
@@ -419,7 +427,7 @@ int main(int argc, char * argv[]) {
     int well = getIntArgSecure("--well", 0, argc, argv);
     bool guidance = checkOption("--guidance", argc, argv);
 
-    cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << endl;
+    cout << "Running experiment on Max" << (maxtwo ? "Two" : "One");
     cout << " for " << minutes << " minutes on well " << well << endl;
 
     if (guidance){
