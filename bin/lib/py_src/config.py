@@ -1,12 +1,13 @@
 import re
 import os
+from typing import List
 
 def get_buttons(full_config, buttons, save_path):
     print(full_config)
     print(buttons)
     print(save_path)
     full_config_map = read_config_electrode_to_channel(full_config)
-    buttons_data = [read_config(b) for b in buttons]
+    buttons_data = [read_config(b) if isinstance(b, str) else make_config_args(b) for b in buttons]
 
     for button in buttons_data:
         for data in button:
@@ -14,6 +15,7 @@ def get_buttons(full_config, buttons, save_path):
                 data[0] = full_config_map[data[1]]
             except Exception as err:
                 print(f"{data[1]} not routed")
+                button.remove(data)
 
     new_buttons = []
 
@@ -26,7 +28,10 @@ def get_buttons(full_config, buttons, save_path):
 
     return new_buttons
 
-
+# makes a list of config args (channel no (0), elec no, elec coords) given a 
+# list of electrode numbers
+def make_config_args(elecs: List[int]):
+    return [[0,e,(e // 220) * 17.5,(e % 220) * 17.5] for e in elecs]
     
     
 def make_config(data, file_name):
@@ -41,7 +46,14 @@ def make_config(data, file_name):
 
     f.write(to_write)
 
-def read_config_elecs(file):
+def read_config_elecs(file: str):
+    """Gets electrode numbers from a MaxWell electrode configuration file.
+
+    :param file: full path of config 
+    :type file: ``str``
+    :return: list of electrodes
+    :rtype: ``int``
+    """
     data = read_config(file)
 
     elecs = [int(e[1]) for e in data]

@@ -16,14 +16,26 @@ import zmq
 import matplotlib.pyplot as plt
 import pickle
 
-rec_electrodes = []
+#TODO optional variables if you want to use the same radius and density for all
+# generated squares
+sq_radius = 5
+sq_steps = 1
 
+#TODO configs
+# the index of each element in the list corresponds to a well number
+#
 all_configs = [
-    "/home/mxwbio/configs/240823/Left Button.cfg", #slow button  #TODO
-    "/home/mxwbio/configs/240823/Right Button.cfg", #fast button #TODO
-    "/home/mxwbio/configs/240823/NS Config Well 5.cfg" #full (slow + fast + stim + read) #TODO
+    [hal.get_electrode_square(10000, sq_radius, sq_steps),
+     hal.get_electrode_square(5000, sq_radius, 2),
+     "/home/mxwbio/configs/240823/NS Config Well 5.cfg"],
+    ["/home/mxwbio/configs/240823/Left Button.cfg", 
+    "/home/mxwbio/configs/240823/Right Button.cfg", 
+    "/home/mxwbio/configs/240823/NS Config Well 5.cfg"],
+    [],
+    [],
+    [],
+    []
 ]
-
 
 #TODO
 wells = [0]
@@ -37,13 +49,10 @@ chip_id = "16365"
 #TODO toggle guidance system
 guidance = False 
 
-#TODO
-sendEmail = True
-
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
+pre_exp_time = 0
 ratio_calculation_time = 1
 experiment_time = 3
-pre_exp_time = 0
 post_exp_time = 0
 
 #TODO stimulation electrodes
@@ -53,7 +62,11 @@ freq_electrodes = []
 dec_guidance_electrodes = []
 inc_guidance_electrodes = []
 
-#TODO times
+#TODO desription
+desc = "We're doing a 60 minute test to see what happens with frequency game. Should have plots, but bottom right bad."
+
+#TODO
+sendEmail = False
 
 def sync():
     context = zmq.Context()
@@ -162,14 +175,28 @@ def thread_cpp(program_args):
     except Exception as err:
         print(f"An error occurred: {err}")
 
+def get_elecs(src):
+    if isinstance(src, str):
+        return cfg.read_config_elecs(src)
+    else:
+        return src
+
 def merge_configs(configs):
     s = set()
     for config in configs:
-        ret = GUI.read_config(config, False)
-        elec_nums = ret[1]
+        elec_nums = get_elecs(config)
         for n in elec_nums:
             s.add(n)
+    l = list(s)
+    if (len(l) > 1020):
+        print(f"WARNING: {len(l)} electrodes have been chosen--not all will be \
+        routed")
+    else:
+        print(f"{len(l)} electrodes have been chosen")
+    
     return list(s)
+
+
 
 if __name__ == '__main__':
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
@@ -180,17 +207,15 @@ if __name__ == '__main__':
         mx.activate([well]) 
         mx.set_primary_well(well)
         stim_electrodes = freq_electrodes # + dec_guidance_electrodes + inc_guidance_electrodes
-        rec_electrodes = freq_electrodes + merge_configs(all_configs)
-        print(len(rec_electrodes))
-        does_stimulations = True
+        rec_electrodes = freq_electrodes + merge_configs(all_configs[well])
 
         time.sleep(5)
         if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
             raise RuntimeError("The system didn't initialize correctly.")
         time.sleep(mx.Timing.waitInit)
-        print("Initializing wells...")
+        print(f"Initializing well {well}...")
         
-        array = mx.Array("stimulation")
+        array = mx.Array(f"stimulation{well}")
         array.reset()
         array.clear_selected_electrodes()
         array.select_electrodes(rec_electrodes)
@@ -236,7 +261,7 @@ if __name__ == '__main__':
         program_args.append("--well")
         program_args.append(str(well))
         program_args.append("--minutes")
-        program_args.append(str(experiment_time)) 
+        program_args.append(str(experiment_time))
         program_args.append("--ratio-time")
         program_args.append(str(ratio_calculation_time))
         program_args.append("--maxtwo")
@@ -246,7 +271,7 @@ if __name__ == '__main__':
         s = mx.Saving()
         s.open_directory(directory_name)
         s.start_file(file_name)
-        hal.write_exp_description(s, "We're doing a 60 minute test to see what happens with frequency game. Should have plots, but bottom right bad.")
+        hal.write_exp_description(s, desc)
         hal.write_closed_loop_args(s, program_args)
         hal.write_stim_electrodes(s, stim_electrodes)
 

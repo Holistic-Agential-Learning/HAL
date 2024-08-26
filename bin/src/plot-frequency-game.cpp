@@ -39,7 +39,9 @@ using namespace argparse;
 Options:\n\
 \t[--maxtwo]             Indicates running on the MaxTwo\n\
 \t[--minutes <value>]    Number of minutes to run, float \n\
-\t[--well <value>]       Well number, int (default 0)\n"
+\t[--well <value>]       Well number, int (default 0)\n\
+\t[--ratio-time <value>] Time to calculate button ratios before the experiment\
+ begins.\n"
 
 #define FRAMES_DEFAULT 15*60*20000
 #define MINUTES_DEFAULT 15

@@ -4,25 +4,34 @@ import shutil
 from typing import List
 import maxlab as mx
 
-def get_electrode_square(center, radius, step=1):
+
+def get_electrode_square(center: int, radius: int, step_width=1):
+    """Generates a square of electrodes centered around a single electrode
+
+    :param center: the target electrode to center the square around
+    :type center: ``int``
+    :param radius: half the length of the square, measured in steps/chosen 
+    electrodes
+    :type radius: ``int``
+    :param step_width: how far to "step" when choosing electrodes in the square, 
+    defaults to 1
+    :type step_width: ``int``, optional
+    :return: list of electrodes
+    :rtype: ``List[int]``
+    """
     chip_width = 220
-    chip_height = 120
 
     top_left = center
 
-    width = radius
-    height = radius
-
     center_coord = [center % chip_width, center // chip_width]
 
-    top_left = [center_coord[0] - radius * step, center_coord[1] - radius * step]
-    # top_left = [center_coord[0] + radius * step, center_coord[1] + radius * step]
+    top_left = [center_coord[0] - radius * step_width, center_coord[1] - radius * step_width]
 
     coords = [top_left]
     for row in range(radius * 2 + 1):
-        left = [top_left[0] + step * row, top_left[1]]
+        left = [top_left[0] + step_width * row, top_left[1]]
         for col in range(radius * 2 + 1):
-            curr = [left[0], left[1] + step * col]
+            curr = [left[0], left[1] + step_width * col]
             coords.append(curr)
 
     return [coord_to_elec(c) for c in coords if in_bounds(c)]
@@ -34,9 +43,6 @@ def in_bounds(coord):
 def coord_to_elec(coord):
     return coord[1] * 220 + coord[0]
             
-
-    
-
 def get_file_names(well_no: int, experiment_name: str, trial_path: str):
     """Returns names and paths for recording directory, config, and 
     h5 file.
