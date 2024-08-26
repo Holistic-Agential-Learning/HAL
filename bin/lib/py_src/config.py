@@ -7,9 +7,7 @@ from typing import List
 # a string, then its basename will be taken and the corresponding letter will be
 # skipped (assuming there are other List[int] type buttons)
 def get_buttons(full_config, buttons, save_path):
-    print(full_config)
-    print(buttons)
-    print(save_path)
+    # keys and values are STRINGS
     full_config_map = read_config_electrode_to_channel(full_config)
     buttons_data = [read_config(b) if isinstance(b, str) else make_config_args(b) for b in buttons]
 
@@ -41,7 +39,7 @@ def get_buttons(full_config, buttons, save_path):
 # makes a list of config args (channel no (0), elec no, elec coords) given a 
 # list of electrode numbers
 def make_config_args(elecs: List[int]):
-    return [[0,e,(e // 220) * 17.5,(e % 220) * 17.5] for e in elecs]
+    return [[0,str(e),str((e // 220) * 17.5),str((e % 220) * 17.5)] for e in elecs]
     
     
 def make_config(data, file_name):

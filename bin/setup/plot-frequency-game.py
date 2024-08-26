@@ -19,18 +19,20 @@ import pickle
 #TODO optional variables if you want to use the same radius and density for all
 # generated squares
 sq_radius = 5
-sq_steps = 1
+sq_steps = 2
+
+# With this the button is width is: 2 * 17.5 um * sq_radius * sq_steps
 
 #TODO configs
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [hal.get_electrode_square(10000, sq_radius, sq_steps),
-     hal.get_electrode_square(5000, sq_radius, 2),
-     "/home/mxwbio/Desktop/HAL/test_config_2.cfg"],
-    ["/home/mxwbio/configs/240823/Left Button.cfg", 
-    "/home/mxwbio/configs/240823/Right Button.cfg", 
-    "/home/mxwbio/configs/240823/NS Config Well 5.cfg"],
+    [hal.get_electrode_square(16547, sq_radius, sq_steps),
+     hal.get_electrode_square(5247, sq_radius, sq_steps),
+     "/home/mxwbio/configs/240826/M07475_well0.cfg"],
+    [hal.get_electrode_square(23595, sq_radius, sq_steps),
+     hal.get_electrode_square(23263, sq_radius, sq_steps), 
+    "/home/mxwbio/configs/240826/M07475_Well1.cfg"],
     [],
     [],
     [],
@@ -38,27 +40,27 @@ all_configs = [
 ]
 
 #TODO
-wells = [0]
+wells = [0, 1]
 
 #TODO
-experiment_name = "squares"
+experiment_name = "FR_balanced_buttons"
 
 #TODO
-chip_id = "16365" 
+chip_id = "M07475" 
 
 #TODO toggle guidance system
-guidance = True 
+guidance = False 
 
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
-ratio_calculation_time = 1
-experiment_time = 3
-post_exp_time = 0
+ratio_calculation_time = 5
+experiment_time = 10
+post_exp_time = 5
 
 #TODO stimulation electrodes
 freq_electrodes = [
-    [],
-    [],
+    [8637, 4727, 20611, 24171],
+    [12157, 6953, 2129, 14049],
     [],
     [],
     [],
@@ -70,10 +72,10 @@ dec_guidance_electrodes = []
 inc_guidance_electrodes = []
 
 #TODO desription
-desc = "We're doing a 60 minute test to see what happens with frequency game. Should have plots, but bottom right bad."
+desc = "We're doing a quick  test to try the new square button program + frequency game."
 
 #TODO
-sendEmail = False
+sendEmail = True
 
 def sync():
     context = zmq.Context()
@@ -216,16 +218,18 @@ if __name__ == '__main__':
         stim_electrodes = freq_electrodes[well] + dec_guidance_electrodes + inc_guidance_electrodes
         rec_electrodes = freq_electrodes[well] + merge_configs(all_configs[well])
 
-        # time.sleep(5)
-        # if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
-        #     raise RuntimeError("The system didn't initialize correctly.")
-        # time.sleep(mx.Timing.waitInit)
+        print(f"simulation electrodes: {stim_electrodes}")
+
+        time.sleep(5)
+        if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
+            raise RuntimeError("The system didn't initialize correctly.")
+        time.sleep(mx.Timing.waitInit)
         print(f"Initializing well {well}...")
         
         array = mx.Array(f"stimulation{well}")
         array.reset()
         array.clear_selected_electrodes()
-        array.select_electrodes(rec_electrodes)
+        array.select_electrodes(stim_electrodes + rec_electrodes)
         array.select_stimulation_electrodes(stim_electrodes)
         array.route()
         array.download([well])

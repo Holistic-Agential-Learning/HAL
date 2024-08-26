@@ -162,7 +162,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     /*
         Calibrate ratio thresholds
     */
-    for (int i = 0; i < ratioFrames; i++) {
+    for (int i = 0; i < 0; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         
@@ -290,7 +290,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             continue;
         }
 
-        expBar.increment();        
+        expBar.increment();
         
 
         if (blanking > 0) {
@@ -302,7 +302,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
 
-        if (winA->pastWindowsReady() && winB->pastWindowsReady() && (guidance == false) && !blanking) {
+        if (winA->pastWindowsReady() && winB->pastWindowsReady() && guidance == false && !blanking) {
             float firingRateAvgA = winA->avgPastWindows();
             float firingRateAvgB = winB->avgPastWindows();
             float sdA = winA->firingRateSD();
@@ -400,9 +400,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         if (i % framesPerStim == 0) {
+            expBar.clear();
+            cout << i << ": stimulation sent" << endl;
+            expBar.print();
             maxlab::verifyStatus(maxlab::sendSequence("stim"));
             blanking=200;
-        }      
+        }
               
     }
     // tell plotter that the program is over
