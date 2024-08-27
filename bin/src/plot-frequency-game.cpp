@@ -181,7 +181,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateA = winA->firingRate();
             float firingRateB = winB->firingRate();
             
-            if (firingRateA > 1 || firingRateB > 1) {
+            if (firingRateA > 0 && firingRateB > 0) {
                 float ratio = calcRatio(firingRateAvgA, firingRateAvgB);
                 ratios.push_back(ratio);
             }
@@ -211,6 +211,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         aRatio = ratios[aRatioIndex];
         bRatio = ratios[bRatioIndex];
     }
+
+    ratios.clear();
 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
@@ -264,8 +266,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
 
-        // every minute
-        if (ratios.size() > 10 && i % framesPerMin == 0) {
+        // every 2 minutes
+        if (ratios.size() > 10 && i % (2 * framesPerMin) == 0) {
             sort(ratios.begin(), ratios.end());
 
             numRatios = ratios.size() - 1;
@@ -280,6 +282,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             cout << "New A Threshold: " << aRatio << endl;
             cout << "New B Threshold: " << bRatio << endl;
             expBar.print();
+
+            ratios.clear();
         }
         
 
@@ -354,14 +358,14 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 bReleased = true;
             }
 
-            if (firingRateA > 1 || firingRateB > 1) {
+            if (firingRateA > 0 && firingRateB > 0) {
                 ratios.push_back(ratio);
             } 
         }
 
         float numSeconds = (float) i / FRAMES_PER_SEC;
 
-        if(guidance){
+        if(guidance) {
             //starts at the very firts frame and inc every 10 sec
             if (increase && i % guidanceRate == 0 && i != 0){
                 if (stimRate < maxStimRate){
