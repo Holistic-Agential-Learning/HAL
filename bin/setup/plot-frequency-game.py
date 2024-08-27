@@ -18,7 +18,7 @@ import pickle
 
 #TODO optional variables if you want to use the same radius and density for all
 # generated squares
-sq_radius = 5
+sq_radius = 10
 sq_steps = 2
 
 # With this the button is width is: 2 * 17.5 um * sq_radius * sq_steps
@@ -27,41 +27,39 @@ sq_steps = 2
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [hal.get_electrode_square(16547, sq_radius, sq_steps),
-     hal.get_electrode_square(5247, sq_radius, sq_steps),
-     "/home/mxwbio/configs/240826/M07475_well0.cfg"],
-    [hal.get_electrode_square(23595, sq_radius, sq_steps),
-     hal.get_electrode_square(23263, sq_radius, sq_steps), 
-    "/home/mxwbio/configs/240826/M07475_Well1.cfg"],
     [],
+    [],
+    [hal.get_electrode_square(4817, sq_radius, sq_steps),
+     hal.get_electrode_square(21089, sq_radius, sq_steps),
+     "/home/mxwbio/configs/240827/M07480_DIV55_well2.cfg"],
     [],
     [],
     []
 ]
 
 #TODO
-wells = [1]
+wells = [2]
 
 #TODO
 experiment_name = "FR_balanced_buttons_test"
 
 #TODO
-chip_id = "M07475" 
+chip_id = "M07480" 
 
 #TODO toggle guidance system
 guidance = False 
 
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
-ratio_calculation_time = 0
+ratio_calculation_time = 5
 experiment_time = 10
 post_exp_time = 5
 
 #TODO stimulation electrodes
 freq_electrodes = [
-    [8637, 4727, 20611, 24171],
-    [12157, 6953, 2129, 14049],
     [],
+    [],
+    [2031,6877,12599,23207],
     [],
     [],
     []
@@ -72,7 +70,7 @@ dec_guidance_electrodes = []
 inc_guidance_electrodes = []
 
 #TODO desription
-desc = "We're doing a quick  test to try the new square button program + frequency game."
+desc = "We're doing a test to try the new square button program + frequency game with big buttons."
 
 #TODO
 sendEmail = True
@@ -298,6 +296,7 @@ if __name__ == '__main__':
             # run closed-loop program on another thread
             thread = threading.Thread(target = thread_cpp, args = [program_args])
 
+            mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
             thread.start()
 
             # plot on the main thread (since Matplotlib only works on the main 
@@ -319,7 +318,7 @@ if __name__ == '__main__':
         s.stop_recording()
         s.stop_file()
         s.group_delete_all()
-        print("finished recording")
+        print("finished recording - safe to exit.")
 
     if (sendEmail):
         subprocess.run(["./mail.sh"])

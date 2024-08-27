@@ -418,7 +418,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     // tell plotter that the program is over
     socket.send(zmq::buffer(stop));
 
-    cout << "program over  " << endl;
+    cout << "program over - starting post recording " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     data.close();
 } 

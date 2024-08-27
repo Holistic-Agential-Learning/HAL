@@ -1,0 +1,55 @@
+#TODO optional variables if you want to use the same radius and density for all
+# generated squares
+sq_radius = 5
+sq_steps = 2
+
+# With this the button is width is: 2 * 17.5 um * sq_radius * sq_steps
+
+#TODO configs
+# the index of each element in the list corresponds to a well number
+#
+all_configs = [
+    [hal.get_electrode_square(16547, sq_radius, sq_steps),
+     hal.get_electrode_square(5247, sq_radius, sq_steps),
+     "/home/mxwbio/configs/240826/M07475_well0.cfg"],
+    [hal.get_electrode_square(23595, sq_radius, sq_steps),
+     hal.get_electrode_square(23263, sq_radius, sq_steps), 
+    "/home/mxwbio/configs/240826/M07475_Well1.cfg"],
+    [],
+    [],
+    [],
+    []
+]
+
+#TODO
+wells = [1]
+
+#TODO
+experiment_name = "FR_balanced_buttons_test"
+
+#TODO
+chip_id = "M07475" 
+
+#TODO toggle guidance system
+guidance = False 
+
+#TODO ratio calculation time, experiment time, pre/post time, all in minutes
+pre_exp_time = 0
+ratio_calculation_time = 0
+experiment_time = 10
+post_exp_time = 5
+
+#TODO stimulation electrodes
+freq_electrodes = [
+    [8637, 4727, 20611, 24171],
+    [12157, 6953, 2129, 14049],
+    [],
+    [],
+    [],
+    []
+]
+
+#TODO guidance electrodes
+dec_guidance_electrodes = []
+inc_guidance_electrodes = []
+
