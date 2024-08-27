@@ -2,7 +2,7 @@ import re
 import os
 from typing import List
 
-# remember to detail out naming scheme -- if the buttons are electrode lists, 
+# if the buttons are electrode lists, 
 # then they will be named "buttonA.cfg", "buttonB.cfg" etc. If one is already
 # a string, then its basename will be taken and the corresponding letter will be
 # skipped (assuming there are other List[int] type buttons)

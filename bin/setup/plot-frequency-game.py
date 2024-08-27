@@ -86,7 +86,7 @@ def sync():
     except KeyboardInterrupt:
         return
 
-    #  Send reply back to client
+    # Send message back to closed-loop program
     socket.send(b"sync")
 
 def plot(file):
@@ -172,7 +172,7 @@ def plot(file):
     pickle.dump(fig, open(f"{file}.fig.pickle", 'wb'))
 
 def thread_cpp(program_args):
-    """Runs closed-loop program on another thread
+    """Runs closed-loop program
 
     :param program_args: arguments of the program to run
     :type program_args: List[str]
@@ -295,10 +295,13 @@ if __name__ == '__main__':
         time.sleep(60 * pre_exp_time)   # Pre
 
         try:
+            # run closed-loop program on another thread
             thread = threading.Thread(target = thread_cpp, args = [program_args])
 
             thread.start()
 
+            # plot on the main thread (since Matplotlib only works on the main 
+            # thread)
             plot(directory_name + "/" + file_name)
 
             thread.join()
