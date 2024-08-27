@@ -40,10 +40,10 @@ all_configs = [
 ]
 
 #TODO
-wells = [0, 1]
+wells = [1]
 
 #TODO
-experiment_name = "FR_balanced_buttons"
+experiment_name = "FR_balanced_buttons_test"
 
 #TODO
 chip_id = "M07475" 
@@ -53,7 +53,7 @@ guidance = False
 
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
-ratio_calculation_time = 5
+ratio_calculation_time = 0
 experiment_time = 10
 post_exp_time = 5
 
@@ -165,7 +165,7 @@ def plot(file):
         plt.tight_layout()
         
         fig.canvas.draw()
-        plt.pause(0.01)
+        plt.pause(0.0001)
 
     print("saving figure...")
     

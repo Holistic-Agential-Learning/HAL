@@ -131,8 +131,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int blanking = 0;
 
-    controller.addButton("A", windowLength, config0.c_str(), 9); //slow button
-    controller.addButton("B", windowLength, config1.c_str(), 9); //fast button
+    controller.addButton("A", windowLength, config0.c_str(), 49); //slow button
+    controller.addButton("B", windowLength, config1.c_str(), 49); //fast button
     
     ProgressBar controllerProgress = ProgressBar(windowLength, "Initializing controller...");
 
@@ -162,7 +162,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     /*
         Calibrate ratio thresholds
     */
-    for (int i = 0; i < 0; i++) {
+    for (int i = 0; i < ratioFrames; i++) {
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         
@@ -225,7 +225,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     bool bReleased = true;
 
     int maxFramesPerStim = 200000; 
-    int minFramesPerStim = 2250;
+    int minFramesPerStim = 5000; // used to be 2250
 
     float minStimRate = FRAMES_PER_SEC / (float) maxFramesPerStim;
     float maxStimRate = FRAMES_PER_SEC / (float) minFramesPerStim;
@@ -314,10 +314,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateA = winA->firingRate();
             float firingRateB = winB->firingRate();
             float ratio = calcRatio(firingRateAvgA, firingRateAvgB);
-
+            float zScoreA = zScore(firingRateA, firingRateAvgA, sdA);
+            float zScoreB = zScore(firingRateB, firingRateAvgB, sdB);
 
             // Button A was pressed
-            if (aReleased && (firingRateAvgA != 0) && (firingRateA > 0.5) && (ratio > aRatio) && (zScore(firingRateA, firingRateAvgA, sdA) > 2)) {
+            if (aReleased && (firingRateAvgA != 0) && zScoreA > 2 && zScoreA > zScoreB) {
 
                 printValues(&data, "A", i, aRatio, bRatio, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate > minStimRate) {
@@ -336,7 +337,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 socket.send(zmq::buffer(data));
 
             // Button B was pressed 
-            } else if (bReleased && (firingRateAvgB != 0) && (firingRateB > 0.5) && (ratio < bRatio) && (zScore(firingRateB, firingRateAvgB, sdB) > 2)) {
+            } else if (bReleased && (firingRateAvgB != 0) && zScoreB > 2 && zScoreB > zScoreA) {
                 
                 printValues(&data, "B", i, aRatio, bRatio, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate < maxStimRate) {
@@ -404,11 +405,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         if (i % framesPerStim == 0) {
-            expBar.clear();
-            cout << i << ": stimulation sent" << endl;
-            expBar.print();
+            // expBar.clear();
+            // cout << i << ": stimulation sent" << endl;
+            // expBar.print();
+
+            // data << i << ": stimulation sent" << endl;
             maxlab::verifyStatus(maxlab::sendSequence("stim"));
-            blanking=200;
+            blanking=500;
         }
               
     }
