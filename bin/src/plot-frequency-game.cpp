@@ -52,7 +52,7 @@ void sync();
 float calcRatio(float A, float B);
 float zScore(float value, float avg, float sd);
 void printValues(fstream *data, string ab, int frameNo, float aRatioThreshold, float bRatioThreshold, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
-void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool guidance);
+void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance);
 
 void signal_interrupt_handler(int sig) {
     cout << " signalled!" << endl;
@@ -102,7 +102,7 @@ void printValues(fstream *data, string ab, int frameNo, float aRatioThreshold, f
 }
 
 
-void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool guidance) {
+void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int minFramesPerStim, int maxFramesPerStim,int well, bool guidance) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     int stimType = 0;
@@ -223,9 +223,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     bool aReleased = true;
     bool bReleased = true;
-
-    int maxFramesPerStim = 200000; 
-    int minFramesPerStim = 5000; // used to be 2250
 
     float minStimRate = FRAMES_PER_SEC / (float) maxFramesPerStim;
     float maxStimRate = FRAMES_PER_SEC / (float) minFramesPerStim;
@@ -437,6 +434,9 @@ int main(int argc, char * argv[]) {
     int well = getIntArgSecure("--well", 0, argc, argv);
     bool guidance = checkOption("--guidance", argc, argv);
 
+    int lower = getIntArgSecure("--lower", 5000, argc, argv)
+    int uppwer = getIntArgSecure("--upper", 200000, argc, argv)
+
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One");
     cout << " for " << minutes << " minutes on well " << well << endl;
 
@@ -452,7 +452,7 @@ int main(int argc, char * argv[]) {
     int ratioFrames = ratioTime * 60 * FRAMES_PER_SEC;
 
     try {
-        runExperiment(path, config0, config1, frames, ratioFrames, well, guidance);
+        runExperiment(path, config0, config1, frames, ratioFrames, lower, upper, well, guidance);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
