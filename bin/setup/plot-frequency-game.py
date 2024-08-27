@@ -48,8 +48,15 @@ experiment_name = "FR_balanced_buttons_test"
 #TODO
 chip_id = "M07475" 
 
+#TODO
+maxtwo = True
+
 #TODO toggle guidance system
 guidance = False 
+
+#TODO bounds for stim rates
+max_frames_per_stim = 200000
+min_frames_per_stim = 5000
 
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
@@ -89,11 +96,18 @@ def sync():
     # Send message back to closed-loop program
     socket.send(b"sync")
 
-def plot(file):
+def plot(file, min_frames, max_frames):
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
     socket.connect("tcp://localhost:5555")
     socket.setsockopt(zmq.SUBSCRIBE, b"")
+
+    frame_rate = 10000.0 if maxtwo else 20000.0
+    lower = frame_rate / max_frames
+    upper = frame_rate / min_frames
+
+    print(f"Max stim rate: {upper}")
+    print(f"Min stim rate: {lower}")
 
     sync()
 
@@ -111,7 +125,7 @@ def plot(file):
     freqpath.set_title("Stimulation Frequency")
     freqpath.set_ylabel("Stimulations per Second")
     freqpath.set_xlabel("Time (s)")
-    freqpath.set_ylim(0,5)
+    freqpath.set_ylim(lower,upper)
 
     space = plt.subplot(312)
     space.set_title("Frequency World")
@@ -276,7 +290,12 @@ if __name__ == '__main__':
         program_args.append(str(experiment_time))
         program_args.append("--ratio-time")
         program_args.append(str(ratio_calculation_time))
-        program_args.append("--maxtwo")
+        if maxtwo:
+            program_args.append("--maxtwo")
+        program_args.append("--lower")
+        program_args.append(str(min_frames_per_stim))
+        program_args.append("--upper")
+        program_args.append(max_frames_per_stim)
         if guidance:
             program_args.append("--guidance")
 
@@ -302,7 +321,7 @@ if __name__ == '__main__':
 
             # plot on the main thread (since Matplotlib only works on the main 
             # thread)
-            plot(directory_name + "/" + file_name)
+            plot(directory_name + "/" + file_name, min_frames_per_stim, max_frames_per_stim)
 
             thread.join()
 
