@@ -365,12 +365,12 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
 
  
                     if (left_to_right) {
-                        world->move_right();
+                        world->moveRight();
                     } 
                     else {
-                        world->move_left();
+                        world->moveLeft();
                     }
-                    string position = string{world->get_position()};
+                    string position = string{world->getPosition()};
                     cout << "moved to position " << position << endl;
                     cout << "sending sequence " << ("move_to_" + to_string(world->location)).c_str() << endl;
                     maxlab::verifyStatus(maxlab::sendSequence(("move_to_" + to_string(world->location)).c_str()));
@@ -516,12 +516,12 @@ int main(int argc, char * argv[]) {
             int a = cin.get();
             switch(a){
                 case 67://right
-                    world.move_right();
-                    cout << "at position " << world.get_position() << endl;
+                    world.moveRight();
+                    cout << "at position " << world.getPosition() << endl;
                 break;
                 case 68: //left
-                    world.move_left();
-                    cout << "at position " << world.get_position() << endl;
+                    world.moveLeft();
+                    cout << "at position " << world.getPosition() << endl;
                 break;
                 case 'x': //esc
                     next = false;

@@ -53,16 +53,16 @@ void WorldState::display(){
     cout << "┘" << endl;
 }
 
-void WorldState::move_left(){
+void WorldState::moveLeft(){
     this->location = remainder(location - 1, nodes);
     display();
 }
 
-void WorldState::move_right(){
+void WorldState::moveRight(){
     this->location = remainder(location + 1, nodes);
     display();
 }
 
-char WorldState::get_position(){
+char WorldState::getPosition(){
     return world_map[location];
 }

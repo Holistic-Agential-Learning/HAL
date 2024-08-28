@@ -49,7 +49,14 @@ class ChannelWindow {
          */
         ChannelWindow(int length, ElectrodeMap emap, int toSave=0);
         
-        // assumes that the data streamer is open
+        /**
+         * @brief Initialize the window
+         * 
+         * This will read in <code>maxlab::FilteredFrameData</code> structs 
+         * until the window is full. The data streamer must be initialized 
+         * before calling this function.
+         * 
+         */
         void init();
 
 
@@ -67,7 +74,6 @@ class ChannelWindow {
          * 
          */
         void add(maxlab::FilteredFrameData frame);
-
         
 
         /**
