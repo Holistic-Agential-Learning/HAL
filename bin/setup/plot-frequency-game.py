@@ -16,6 +16,9 @@ import zmq
 import matplotlib.pyplot as plt
 import pickle
 
+plot_lock = threading.Lock()
+plot_data = []
+
 #TODO optional variables if you want to use the same radius and density for all
 # generated squares
 sq_radius = 10
@@ -41,7 +44,7 @@ all_configs = [
 wells = [2]
 
 #TODO
-experiment_name = "FR_balanced_buttons_test"
+experiment_name = "fast_plot"
 
 #TODO
 chip_id = "M07480" 
@@ -58,7 +61,7 @@ min_frames_per_stim = 5000
 
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
-ratio_calculation_time = 5
+ratio_calculation_time = 0
 experiment_time = 10
 post_exp_time = 5
 
@@ -141,6 +144,10 @@ def plot(file, min_frames, max_frames):
 
     print("plot initialized")
 
+    prev_rate = 0
+    prev_space = 0
+    prev_time = 0
+
     while True:
         #  Wait for next request from client
         try:
@@ -167,12 +174,18 @@ def plot(file, min_frames, max_frames):
 
         # stimulation frequency
         freqpath.plot(times, frequencies, color = 'g', marker = 'o')
+        freqpath.set_ylim(lower,upper)
 
         # Frequency World
         space.plot(times, stim_levels, color = 'purple', marker = 'o')
+        space.set_ylim(-1, 11)
 
         # Total Button Presses
         count.bar(buttons, button_counts, color=bar_colors)
+
+        prev_space = s
+        prev_rate = r
+        prev_time = t
         
         plt.tight_layout()
         
