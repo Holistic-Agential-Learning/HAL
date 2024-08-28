@@ -27,18 +27,18 @@ sq_steps = 2
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [(xxx, sq_radius, sq_steps),    #inhib
-     (xxx, sq_radius, sq_steps),    #excit
+    [(7455, sq_radius, sq_steps),    #inhib
+     (25899, sq_radius, sq_steps),    #excit
      "/home/mxwbio/configs/240827/M07480_DIV55_well2.cfg"],
-    [(xxx, sq_radius, sq_steps),    #inhib
-     (xxx, sq_radius, sq_steps),    #excit
+    [(26203, sq_radius, sq_steps),    #inhib
+     (13015, sq_radius, sq_steps),    #excit
      "/home/mxwbio/configs/240827/M07480_DIV55_well2.cfg"],
     [(4817, sq_radius, sq_steps),
      (21089, sq_radius, sq_steps),
      "/home/mxwbio/configs/240827/M07480_DIV55_well2.cfg"],
     [], # not this oen
-    [(xxx, sq_radius, sq_steps),    #excite
-     (xxx, sq_radius, sq_steps),    #inhib
+    [(10795, sq_radius, sq_steps),    #excite
+     (1609, sq_radius, sq_steps),    #inhib
      "/home/mxwbio/configs/240827/M07480_DIV55_well2.cfg"],
     [] # not this one
 ]
