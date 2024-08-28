@@ -77,7 +77,7 @@ dec_guidance_electrodes = []
 inc_guidance_electrodes = []
 
 #TODO desription
-desc = "We're doing a test to try the new square button program + frequency game with big buttons."
+desc = "Evan's test to try the new square button program + frequency game with big buttons."
 
 #TODO
 sendEmail = True
@@ -296,7 +296,7 @@ if __name__ == '__main__':
         program_args.append("--lower")
         program_args.append(str(min_frames_per_stim))
         program_args.append("--upper")
-        program_args.append(max_frames_per_stim)
+        program_args.append(str(max_frames_per_stim))
         if guidance:
             program_args.append("--guidance")
 

@@ -434,8 +434,8 @@ int main(int argc, char * argv[]) {
     int well = getIntArgSecure("--well", 0, argc, argv);
     bool guidance = checkOption("--guidance", argc, argv);
 
-    int lower = getIntArgSecure("--lower", 5000, argc, argv)
-    int uppwer = getIntArgSecure("--upper", 200000, argc, argv)
+    int lower = getIntArgSecure("--lower", 5000, argc, argv);
+    int upper = getIntArgSecure("--upper", 200000, argc, argv);
 
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One");
     cout << " for " << minutes << " minutes on well " << well << endl;
