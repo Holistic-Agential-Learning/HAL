@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import pickle
 
 plot_lock = threading.Lock()
+data_condition = threading.Condition(plot_lock)
 plot_data = []
 
 #TODO optional variables if you want to use the same radius and density for all
@@ -97,11 +98,38 @@ def sync():
     # Send message back to closed-loop program
     socket.send(b"sync")
 
-def plot(file, min_frames, max_frames):
+def plot_producer():
     context = zmq.Context()
     socket = context.socket(zmq.SUB)
     socket.connect("tcp://localhost:5555")
     socket.setsockopt(zmq.SUBSCRIBE, b"")
+
+    sync()
+
+    while True:
+
+        try:
+            # print("waiting for message")
+            message = socket.recv()
+        except KeyboardInterrupt:
+            break
+
+        with data_condition:
+            if (message == b"stop"):
+                plot_data.append("stop")
+                break
+
+            b,t,s,r = message.decode("utf-8").split(";")
+
+            plot_data.append([b, t, s, r])
+
+            data_condition.notify()
+
+
+def plot(file, min_frames, max_frames):
+    producer = threading.Thread(target=plot_producer, args=[])
+
+    producer.start()
 
     frame_rate = 10000.0 if maxtwo else 20000.0
     lower = frame_rate / max_frames
@@ -109,8 +137,6 @@ def plot(file, min_frames, max_frames):
 
     print(f"Max stim rate: {upper}")
     print(f"Min stim rate: {lower}")
-
-    sync()
 
     buttons = ["A", "B"]
     bar_colors = ["red", "blue"]
@@ -126,7 +152,7 @@ def plot(file, min_frames, max_frames):
     freqpath.set_title("Stimulation Frequency")
     freqpath.set_ylabel("Stimulations per Second")
     freqpath.set_xlabel("Time (s)")
-    freqpath.set_ylim(lower,upper)
+    freqpath.set_ylim(lower - 0.5,upper + 0.5)
 
     space = plt.subplot(312)
     space.set_title("Frequency World")
@@ -148,49 +174,58 @@ def plot(file, min_frames, max_frames):
     prev_space = 0
     prev_time = 0
 
-    while True:
-        #  Wait for next request from client
-        try:
-            # print("waiting for message")
-            message = socket.recv()
-        except KeyboardInterrupt:
-            break
+    done = False
+    try:
+        while not done:
 
-        if (message == b"stop"):
-            break
+            with data_condition:
+                while len(plot_data) == 0:
+                    data_condition.wait()
 
-        b,t,s,r = message.decode("utf-8").split(";")
+                for item in plot_data:
+                    if (item == "stop"):
+                        done == True
+                    else:
+                        # b = item[0]
+                        # t = item[1]
+                        # s = item[2]
+                        # r = item[3]
+                        b, t, s, r = item
+                        if (b == "A"):
+                            button_counts[0] = button_counts[0] + 1
+                        if (b == "B"):
+                            button_counts[1] = button_counts[1] + 1  
 
-        # print(f"{b};{t};{s};{r}")
+                        times.append(float(t))
+                        stim_levels.append(int(s))
+                        frequencies.append(float(r))
+                plot_data.clear()
 
-        if (b == "A"):
-            button_counts[0] = button_counts[0] + 1
-        if (b == "B"):
-            button_counts[1] = button_counts[1] + 1  
+            # stimulation frequency
+            freqpath.plot(times, frequencies, color = 'g', marker = 'o')
+            # freqpath.set_ylim(lower,upper)
 
-        times.append(float(t))
-        stim_levels.append(int(s))
-        frequencies.append(float(r))
+            # Frequency World
+            space.plot(times, stim_levels, color = 'purple', marker = 'o')
+            # space.set_ylim(-1, 11)
 
-        # stimulation frequency
-        freqpath.plot(times, frequencies, color = 'g', marker = 'o')
-        freqpath.set_ylim(lower,upper)
+            # Total Button Presses
+            count.bar(buttons, button_counts, color=bar_colors)
 
-        # Frequency World
-        space.plot(times, stim_levels, color = 'purple', marker = 'o')
-        space.set_ylim(-1, 11)
-
-        # Total Button Presses
-        count.bar(buttons, button_counts, color=bar_colors)
-
-        prev_space = s
-        prev_rate = r
-        prev_time = t
+            # prev_space = s
+            # prev_rate = r
+            # prev_time = t
+            
+            plt.tight_layout()
+            
+            fig.canvas.draw()
+            plt.pause(0.0001)
         
-        plt.tight_layout()
-        
-        fig.canvas.draw()
-        plt.pause(0.0001)
+        producer.join()
+    except KeyboardInterrupt:
+        print("plotter detected interrupt!")
+    except Exception as err:
+        print("ope")
 
     print("saving figure...")
     
@@ -325,9 +360,10 @@ if __name__ == '__main__':
         s.start_recording([well])
 
         print(f"Recording well {well} for {pre_exp_time} minutes...")
-        time.sleep(60 * pre_exp_time)   # Pre
+        
 
         try:
+            time.sleep(60 * pre_exp_time)   # Pre
             # run closed-loop program on another thread
             thread = threading.Thread(target = thread_cpp, args = [program_args])
 
@@ -341,6 +377,10 @@ if __name__ == '__main__':
             thread.join()
 
             mx.send(mx.Event(well, 1, 1, f"end_experiment {well}"))
+
+            print(f"Recording for {post_exp_time}...")
+
+            time.sleep(60 * post_exp_time)   # Post
         except KeyboardInterrupt:
             print("Keyboard Interrupt")
         except Exception as err: 
@@ -348,9 +388,7 @@ if __name__ == '__main__':
 
         ########################################################################
 
-        print(f"Recording for {post_exp_time}...")
-
-        time.sleep(60 * post_exp_time)   # Post
+        
 
         s.stop_recording()
         s.stop_file()
