@@ -48,7 +48,7 @@ all_configs = [
 ]
 
 #TODO
-wells = [0, 1, 2, 4]
+wells = [4]
 
 #TODO 
 experiment_name = "Multiwell_excite_inhib"
@@ -118,16 +118,18 @@ def plot_producer():
             # print("waiting for message")
             message = socket.recv()
         except KeyboardInterrupt:
+            print("producer detected interrupt!")
             break
 
         with data_condition:
             if (message == b"stop"):
                 plot_data.append("stop")
-                break
+                print("stop detected!")
+                
+            else:
+                b,t,s,r = message.decode("utf-8").split(";")
 
-            b,t,s,r = message.decode("utf-8").split(";")
-
-            plot_data.append([b, t, s, r])
+                plot_data.append([b, t, s, r])
 
             data_condition.notify()
 
@@ -191,6 +193,7 @@ def plot(file, min_frames, max_frames):
                 for item in plot_data:
                     if (item == "stop"):
                         done == True
+                        print("plotter: stop detected")
                     else:
                         # b = item[0]
                         # t = item[1]
@@ -225,8 +228,9 @@ def plot(file, min_frames, max_frames):
             plt.tight_layout()
             
             fig.canvas.draw()
-            plt.pause(0.0001)
-        
+            if not done:
+                plt.pause(0.0001)
+        print("waiting for producer to join...")
         producer.join()
     except KeyboardInterrupt:
         print("plotter detected interrupt!")
