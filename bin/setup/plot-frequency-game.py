@@ -29,8 +29,8 @@ sq_steps = 2
 all_configs = [
     [],
     [],
-    [hal.get_electrode_square(4817, sq_radius, sq_steps),
-     hal.get_electrode_square(21089, sq_radius, sq_steps),
+    [(4817, sq_radius, sq_steps),
+     (21089, sq_radius, sq_steps),
      "/home/mxwbio/configs/240827/M07480_DIV55_well2.cfg"],
     [],
     [],
@@ -196,11 +196,14 @@ def thread_cpp(program_args):
     except Exception as err:
         print(f"An error occurred: {err}")
 
+def get_square(dims):
+    return hal.get_electrode_square(dims[0], dims[1], dims[2])
+
 def get_elecs(src):
     if isinstance(src, str):
         return cfg.read_config_elecs(src)
     else:
-        return src
+        return get_square(src)
 
 def merge_configs(configs):
     s = set()
@@ -230,7 +233,7 @@ if __name__ == '__main__':
         stim_electrodes = freq_electrodes[well] + dec_guidance_electrodes + inc_guidance_electrodes
         rec_electrodes = freq_electrodes[well] + merge_configs(all_configs[well])
 
-        print(f"simulation electrodes: {stim_electrodes}")
+        print(f"stimulation electrodes: {stim_electrodes}")
 
         time.sleep(5)
         if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
@@ -255,7 +258,7 @@ if __name__ == '__main__':
         print(config_file_name)
         array.save_config(config_file_name)
 
-        new_buttons = cfg.get_buttons(config_file_name, [all_configs[well][0], all_configs[well][1]], directory_name)
+        new_buttons = cfg.get_buttons(config_file_name, [get_elecs(all_configs[well][0]), get_elecs(all_configs[well][1])], directory_name)
         
         array.download([well]) 
         mx.offset() 
@@ -306,16 +309,16 @@ if __name__ == '__main__':
 
         s.group_delete_all()
         s.group_define(well, f"all_channels_{well}", list(range(1024)))
-        print("recording... well " + str(well))
         s.start_recording([well])
 
+        print(f"Recording well {well} for {pre_exp_time} minutes...")
         time.sleep(60 * pre_exp_time)   # Pre
 
         try:
             # run closed-loop program on another thread
             thread = threading.Thread(target = thread_cpp, args = [program_args])
 
-            mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
+            mx.send(mx.Event(well, 1, 5, f"start_experiment {well}"))
             thread.start()
 
             # plot on the main thread (since Matplotlib only works on the main 
@@ -324,13 +327,15 @@ if __name__ == '__main__':
 
             thread.join()
 
-            mx.send(mx.Event(well, 1, 1, "end_subprocess 1"))
+            mx.send(mx.Event(well, 1, 1, f"end_experiment {well}"))
         except KeyboardInterrupt:
             print("Keyboard Interrupt")
         except Exception as err: 
             print(f"An error occurred ({err}). Aborting...")
 
         ########################################################################
+
+        print(f"Recording for {post_exp_time}...")
 
         time.sleep(60 * post_exp_time)   # Post
 
