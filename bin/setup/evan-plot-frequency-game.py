@@ -52,7 +52,7 @@ all_configs = [
 wells = [0, 1, 2, 4]
 
 #TODO 
-experiment_name = "concurrent_bug"
+experiment_name = "official_num_2"
 
 #TODO
 chip_id = "M07480" 
@@ -68,10 +68,10 @@ max_frames_per_stim = 200000
 min_frames_per_stim = 5000
 
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
-pre_exp_time = 0
+pre_exp_time = 5
 ratio_calculation_time = 0
-experiment_time = 0.5
-post_exp_time = 0
+experiment_time = 10
+post_exp_time = 5
 
 #TODO stimulation electrodes
 freq_electrodes = [
@@ -88,10 +88,10 @@ dec_guidance_electrodes = []
 inc_guidance_electrodes = []
 
 #TODO desription
-desc = "Evan's test to try the new square button program + frequency game with big buttons."
+desc = "Evan's test to try the new square button program + frequency game with big buttons. Std=4"
 
 #TODO
-sendEmail = False
+sendEmail = True
 
 def sync():
     context = zmq.Context()

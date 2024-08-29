@@ -315,7 +315,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float zScoreB = zScore(firingRateB, firingRateAvgB, sdB);
 
             // Button A was pressed
-            if (aReleased && (firingRateAvgA != 0) && zScoreA > 5 && zScoreA > zScoreB) {
+            if (aReleased && (firingRateAvgA != 0) && zScoreA > 4 && zScoreA > zScoreB) {
 
                 printValues(&data, "A", i, aRatio, bRatio, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate > minStimRate) {
@@ -334,7 +334,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 socket.send(zmq::buffer(data));
 
             // Button B was pressed 
-            } else if (bReleased && (firingRateAvgB != 0) && zScoreB > 5 && zScoreB > zScoreA) {
+            } else if (bReleased && (firingRateAvgB != 0) && zScoreB > 4 && zScoreB > zScoreA) {
                 
                 printValues(&data, "B", i, aRatio, bRatio, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate < maxStimRate) {

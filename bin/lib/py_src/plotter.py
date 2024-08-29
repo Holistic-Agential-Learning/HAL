@@ -8,14 +8,14 @@ class Plotter:
     def __init__(self, file_name, maxtwo, min_frames, max_frames):
         self.fname = file_name
         frame_rate = 10000.0 if maxtwo else 20000.0
-        self.upper = frame_rate / min_frames - 0.5
+        self.upper = frame_rate / min_frames + 0.5
         self.lower = frame_rate / max_frames - 0.5
 
         self.plot_lock = threading.Lock()
         self.data_cond = threading.Condition(self.plot_lock)
         self.plot_data = []
     
-    def _sync():
+    def _sync(self):
         context = zmq.Context()
         socket = context.socket(zmq.REP)
         socket.bind("tcp://*:5556")
@@ -60,7 +60,7 @@ class Plotter:
                 self.data_cond.notify()
 
     def plot_frequency_game(self):
-        producer = threading.Thread(target=self._plot_producer, args=[self])
+        producer = threading.Thread(target=self._plot_producer, args=[])
 
         producer.start()
 
@@ -145,4 +145,6 @@ class Plotter:
         
         plt.savefig(f"{self.fname}.png")
         pickle.dump(fig, open(f"{self.fname}.fig.pickle", 'wb'))
+
+        plt.clf()
 
