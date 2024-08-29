@@ -15,6 +15,7 @@ import threading
 import zmq
 import matplotlib.pyplot as plt
 import pickle
+import bin.lib.py_src.plotter as plotter
 
 plot_lock = threading.Lock()
 data_condition = threading.Condition(plot_lock)
@@ -384,7 +385,9 @@ if __name__ == '__main__':
 
             # plot on the main thread (since Matplotlib only works on the main 
             # thread)
-            plot(directory_name + "/" + file_name, min_frames_per_stim, max_frames_per_stim)
+            # plot(directory_name + "/" + file_name, min_frames_per_stim, max_frames_per_stim)
+            p = plotter.Plotter(directory_name + "/" + file_name, maxtwo, min_frames_per_stim, max_frames_per_stim)
+            p.plot_frequency_game()
 
             thread.join()
 
