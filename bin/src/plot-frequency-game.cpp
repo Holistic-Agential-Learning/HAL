@@ -51,7 +51,7 @@ int FRAMES_PER_SEC = 20000;
 void sync();
 float calcRatio(float A, float B);
 float zScore(float value, float avg, float sd);
-void printValues(fstream *data, string ab, int frameNo, float aRatioThreshold, float bRatioThreshold, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
+void printValues(fstream *data, string ab, int frameNo, int stimLevel, float stimFreq, float aRatioThreshold, float bRatioThreshold, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
 void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance);
 
 void signal_interrupt_handler(int sig) {
@@ -95,10 +95,11 @@ float zScore(float value, float avg, float sd) {
     return (value - avg) / sd;
 }
 
-void printValues(fstream *data, string ab, int frameNo, float aRatioThreshold, float bRatioThreshold,  float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
-    *data << frameNo << "," << ab << ", " << aRatioThreshold << ", " << bRatioThreshold << ", " << ratio << ",";
-    *data << valA << "," << avgA << "," << sdA << ",";
-    *data << valB << "," << avgB << "," << sdB << endl;
+void printValues(fstream *data, string ab, int frameNo, int stimLevel, float stimFreq, float aRatioThreshold, float bRatioThreshold,  float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
+    *data << frameNo << ", " << ab << ", " << stimLevel << "," << stimFreq;
+    *data << ", " << aRatioThreshold << ", " << bRatioThreshold << ", " << ratio << ", ";
+    *data << valA << ", " << avgA << ", " << sdA << ",";
+    *data << valB << ", " << avgB << ", " << sdB << endl;
 }
 
 
@@ -111,7 +112,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     std::fstream data;
     data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
-    data << "frame number,button pressed,A ratio threshold,B ratio threshold,ratio,value A,avg A,SD A,value B,avg B,SD B" << endl;
+    data << "frame number, button pressed, stimulation level, stimulation frequency, A ratio threshold, B ratio threshold, ratio, value A, avg A, SD A, value B, avg B, gSD B" << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -316,13 +317,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
             // Button A was pressed
             if (aReleased && (firingRateAvgA != 0) && zScoreA > 4 && zScoreA > zScoreB) {
-
-                printValues(&data, "A", i, aRatio, bRatio, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate > minStimRate) {
                     stimRate -= acc;
                     stimType--;
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                 }
+                printValues(&data, "A", i, stimType, stimRate, aRatio, bRatio, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
 
                 expBar.clear();
                 cout << i << ": button A pressed " << stimType << " " << stimRate << endl;
@@ -336,12 +336,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             // Button B was pressed 
             } else if (bReleased && (firingRateAvgB != 0) && zScoreB > 4 && zScoreB > zScoreA) {
                 
-                printValues(&data, "B", i, aRatio, bRatio, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
                 if (stimRate < maxStimRate) {
                     stimRate += acc;
                     stimType++;
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                 }
+                printValues(&data, "B", i, stimType, stimRate, aRatio, bRatio, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
 
                 expBar.clear();
                 cout << i << ": button B pressed " << stimType << " " << stimRate << endl;
