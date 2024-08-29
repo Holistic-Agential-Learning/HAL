@@ -48,10 +48,10 @@ all_configs = [
 ]
 
 #TODO
-wells = [4]
+wells = [0, 1, 2, 4]
 
 #TODO 
-experiment_name = "Multiwell_excite_inhib"
+experiment_name = "concurrent_bug"
 
 #TODO
 chip_id = "M07480" 
@@ -67,10 +67,10 @@ max_frames_per_stim = 200000
 min_frames_per_stim = 5000
 
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
-pre_exp_time = 5
+pre_exp_time = 0
 ratio_calculation_time = 0
-experiment_time = 10
-post_exp_time = 5
+experiment_time = 0.5
+post_exp_time = 0
 
 #TODO stimulation electrodes
 freq_electrodes = [
@@ -90,7 +90,7 @@ inc_guidance_electrodes = []
 desc = "Evan's test to try the new square button program + frequency game with big buttons."
 
 #TODO
-sendEmail = True
+sendEmail = False
 
 def sync():
     context = zmq.Context()
@@ -112,7 +112,9 @@ def plot_producer():
 
     sync()
 
-    while True:
+    done = False
+
+    while not done:
 
         try:
             # print("waiting for message")
@@ -125,6 +127,7 @@ def plot_producer():
             if (message == b"stop"):
                 plot_data.append("stop")
                 print("stop detected!")
+                done = True
                 
             else:
                 b,t,s,r = message.decode("utf-8").split(";")
@@ -178,10 +181,6 @@ def plot(file, min_frames, max_frames):
 
     print("plot initialized")
 
-    prev_rate = 0
-    prev_space = 0
-    prev_time = 0
-
     done = False
     try:
         while not done:
@@ -192,13 +191,9 @@ def plot(file, min_frames, max_frames):
 
                 for item in plot_data:
                     if (item == "stop"):
-                        done == True
+                        done = True
                         print("plotter: stop detected")
                     else:
-                        # b = item[0]
-                        # t = item[1]
-                        # s = item[2]
-                        # r = item[3]
                         b, t, s, r = item
                         if (b == "A"):
                             button_counts[0] = button_counts[0] + 1
@@ -208,16 +203,19 @@ def plot(file, min_frames, max_frames):
                         times.append(float(t))
                         stim_levels.append(int(s))
                         frequencies.append(float(r))
-                plot_data.clear()
 
+                plot_data.clear()
+                
+
+            
             # stimulation frequency
             freqpath.plot(times, frequencies, color = 'g', marker = 'o')
             # freqpath.set_ylim(lower,upper)
-
+            
             # Frequency World
             space.plot(times, stim_levels, color = 'purple', marker = 'o')
             # space.set_ylim(-1, 11)
-
+            
             # Total Button Presses
             count.bar(buttons, button_counts, color=bar_colors)
 
@@ -230,6 +228,7 @@ def plot(file, min_frames, max_frames):
             fig.canvas.draw()
             if not done:
                 plt.pause(0.0001)
+        
         print("waiting for producer to join...")
         producer.join()
     except KeyboardInterrupt:
@@ -238,8 +237,12 @@ def plot(file, min_frames, max_frames):
         print("ope")
 
     print("saving figure...")
-    
+
+    plt.savefig(f"{file}.png")
     pickle.dump(fig, open(f"{file}.fig.pickle", 'wb'))
+
+    plt.clf()
+
 def thread_cpp(program_args):
     """Runs closed-loop program
 
