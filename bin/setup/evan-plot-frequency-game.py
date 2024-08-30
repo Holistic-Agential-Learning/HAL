@@ -52,7 +52,7 @@ all_configs = [
 wells = [0, 1, 2, 4]
 
 #TODO 
-experiment_name = "official_num_2"
+experiment_name = "evan_freq_game"
 
 #TODO
 chip_id = "M07480" 
@@ -88,7 +88,7 @@ dec_guidance_electrodes = []
 inc_guidance_electrodes = []
 
 #TODO desription
-desc = "Evan's test to try the new square button program + frequency game with big buttons. Std=4"
+desc = "Evan's test to try the new square button program + frequency game with big buttons, Day 3. Std=4"
 
 #TODO
 sendEmail = True

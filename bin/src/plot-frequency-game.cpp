@@ -96,7 +96,7 @@ float zScore(float value, float avg, float sd) {
 }
 
 void printValues(fstream *data, string ab, int frameNo, int stimLevel, float stimFreq, float aRatioThreshold, float bRatioThreshold,  float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
-    *data << frameNo << ", " << ab << ", " << stimLevel << "," << stimFreq;
+    *data << frameNo << ", " << ab << ", " << stimLevel << ", " << stimFreq;
     *data << ", " << aRatioThreshold << ", " << bRatioThreshold << ", " << ratio << ", ";
     *data << valA << ", " << avgA << ", " << sdA << ",";
     *data << valB << ", " << avgB << ", " << sdB << endl;
