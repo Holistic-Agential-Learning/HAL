@@ -30,7 +30,7 @@ class Plotter {
         void close();
 
     private:
-
+        zmq::context_t context;
         zmq::socket_t pubSock;
 };
 

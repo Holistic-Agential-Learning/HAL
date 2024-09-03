@@ -56,22 +56,23 @@ class Plotter:
             try:
                 # print("waiting for message")
                 message = socket.recv()
+            
+
+                with self.data_cond:
+                    if (message == b"stop"):
+                        self.plot_data.append("stop")
+                        print("stop detected!")
+                        done = True
+                        
+                    else:
+                        b,t,s,r = message.decode("utf-8").split(";")
+
+                        self.plot_data.append([b, t, s, r])
+
+                    self.data_cond.notify()
             except KeyboardInterrupt:
                 print("producer detected interrupt!")
                 break
-
-            with self.data_cond:
-                if (message == b"stop"):
-                    self.plot_data.append("stop")
-                    print("stop detected!")
-                    done = True
-                    
-                else:
-                    b,t,s,r = message.decode("utf-8").split(";")
-
-                    self.plot_data.append([b, t, s, r])
-
-                self.data_cond.notify()
 
     def plot_frequency_game(self):
         """Plots data from the frequency game. 

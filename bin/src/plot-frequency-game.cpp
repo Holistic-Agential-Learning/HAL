@@ -228,20 +228,21 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     float minStimRate = FRAMES_PER_SEC / (float) maxFramesPerStim;
     float maxStimRate = FRAMES_PER_SEC / (float) minFramesPerStim;
 
-    cout << minStimRate << endl << maxStimRate << endl;
+    // cout << minStimRate << endl << maxStimRate << endl;
 
     // number of steps to get from the min stim rate to max stim rate
     int numSteps = 10;
 
     // acceleration (the amount to increase/decrease the stim rate by)
     float acc = (maxStimRate - minStimRate) / numSteps;
-    cout << acc << endl;
+    // cout << acc << endl;
 
     // how often the culture is stimulated, in frames
     float stimRate = minStimRate; 
-
+    cout << "starting plotter..." << endl;
     Plotter plot = Plotter();
 
+    cout << "syncing..." << endl;
     plot.sync();
 
     cout << "Sockets initialized and synced" << endl;

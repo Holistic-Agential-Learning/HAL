@@ -15,10 +15,7 @@ import threading
 import zmq
 import matplotlib.pyplot as plt
 import pickle
-
-plot_lock = threading.Lock()
-data_condition = threading.Condition(plot_lock)
-plot_data = []
+import bin.lib.py_src.plotter as plotter
 
 #TODO optional variables if you want to use the same radius and density for all
 # generated squares
@@ -31,30 +28,36 @@ sq_steps = 2
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [],
-    [],
+    [(7455, sq_radius, sq_steps),    #inhib
+     (25899, sq_radius, sq_steps),    #excit
+     "/home/mxwbio/Desktop/HAL/test_config_2.cfg"],
+    [(26203, sq_radius, sq_steps),    #inhib
+     (13015, sq_radius, sq_steps),    #excit
+     "/home/mxwbio/configs/240828/15h06m13s.cfg"],
     [(4817, sq_radius, sq_steps),
      (21089, sq_radius, sq_steps),
-     "/home/mxwbio/configs/240827/M07480_DIV55_well2.cfg"],
-    [],
-    [],
-    []
+     "/home/mxwbio/configs/240828/15h06m16s.cfg"],
+    [], # not this oen
+    [(10795, sq_radius, sq_steps),    #excite
+     (1609, sq_radius, sq_steps),    #inhib
+     "/home/mxwbio/configs/240828/15h06m24s.cfg"],
+    [] # not this one
 ]
 
 #TODO
-wells = [2]
+wells = [0]
+
+#TODO 
+experiment_name = "cpp_plotter_test"
 
 #TODO
-experiment_name = "fast_plot"
+chip_id = "16365" 
 
 #TODO
-chip_id = "M07480" 
-
-#TODO
-maxtwo = True
+maxtwo = False
 
 #TODO toggle guidance system
-guidance = False 
+guidance = True 
 
 #TODO bounds for stim rates
 max_frames_per_stim = 200000
@@ -63,16 +66,16 @@ min_frames_per_stim = 5000
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
 ratio_calculation_time = 0
-experiment_time = 10
-post_exp_time = 5
+experiment_time = 3
+post_exp_time = 0
 
 #TODO stimulation electrodes
 freq_electrodes = [
+    [2883,9473,16961,22241],
+    [3071,6101,12717,22857],
+    [2463,13433,15393,21091],
     [],
-    [],
-    [2031,6877,12599,23207],
-    [],
-    [],
+    [15281,21965,22247,23639],
     []
 ]
 
@@ -81,155 +84,11 @@ dec_guidance_electrodes = []
 inc_guidance_electrodes = []
 
 #TODO desription
-desc = "Evan's test to try the new square button program + frequency game with big buttons."
+desc = "Evan's test to try the new square button program + frequency game with big buttons, Day 3. Std=4"
 
 #TODO
-sendEmail = True
+sendEmail = False
 
-def sync():
-    context = zmq.Context()
-    socket = context.socket(zmq.REP)
-    socket.bind("tcp://*:5556")
-    try:
-        message = socket.recv()
-    except KeyboardInterrupt:
-        return
-
-    # Send message back to closed-loop program
-    socket.send(b"sync")
-
-def plot_producer():
-    context = zmq.Context()
-    socket = context.socket(zmq.SUB)
-    socket.connect("tcp://localhost:5555")
-    socket.setsockopt(zmq.SUBSCRIBE, b"")
-
-    sync()
-
-    while True:
-
-        try:
-            # print("waiting for message")
-            message = socket.recv()
-        except KeyboardInterrupt:
-            break
-
-        with data_condition:
-            if (message == b"stop"):
-                plot_data.append("stop")
-                break
-
-            b,t,s,r = message.decode("utf-8").split(";")
-
-            plot_data.append([b, t, s, r])
-
-            data_condition.notify()
-
-
-def plot(file, min_frames, max_frames):
-    producer = threading.Thread(target=plot_producer, args=[])
-
-    producer.start()
-
-    frame_rate = 10000.0 if maxtwo else 20000.0
-    lower = frame_rate / max_frames
-    upper = frame_rate / min_frames
-
-    print(f"Max stim rate: {upper}")
-    print(f"Min stim rate: {lower}")
-
-    buttons = ["A", "B"]
-    bar_colors = ["red", "blue"]
-    button_counts = [0, 0]
-    times = []
-    stim_levels = []
-    frequencies = []
-
-    fig = plt.gcf()
-    fig.show()
-
-    freqpath = plt.subplot(311)
-    freqpath.set_title("Stimulation Frequency")
-    freqpath.set_ylabel("Stimulations per Second")
-    freqpath.set_xlabel("Time (s)")
-    freqpath.set_ylim(lower - 0.5,upper + 0.5)
-
-    space = plt.subplot(312)
-    space.set_title("Frequency World")
-    space.set_ylabel("Stimulation Level")
-    space.set_xlabel("Time")
-    space.set_ylim(-1, 11)
-
-    count = plt.subplot(313)
-    count.set_title("Total Button Presses")
-    count.set_ylabel("Count")
-    count.set_xlabel("Buttons")
-
-    fig.tight_layout()
-    fig.canvas.draw()
-
-    print("plot initialized")
-
-    prev_rate = 0
-    prev_space = 0
-    prev_time = 0
-
-    done = False
-    try:
-        while not done:
-
-            with data_condition:
-                while len(plot_data) == 0:
-                    data_condition.wait()
-
-                for item in plot_data:
-                    if (item == "stop"):
-                        done == True
-                    else:
-                        # b = item[0]
-                        # t = item[1]
-                        # s = item[2]
-                        # r = item[3]
-                        b, t, s, r = item
-                        if (b == "A"):
-                            button_counts[0] = button_counts[0] + 1
-                        if (b == "B"):
-                            button_counts[1] = button_counts[1] + 1  
-
-                        times.append(float(t))
-                        stim_levels.append(int(s))
-                        frequencies.append(float(r))
-                plot_data.clear()
-
-            # stimulation frequency
-            freqpath.plot(times, frequencies, color = 'g', marker = 'o')
-            # freqpath.set_ylim(lower,upper)
-
-            # Frequency World
-            space.plot(times, stim_levels, color = 'purple', marker = 'o')
-            # space.set_ylim(-1, 11)
-
-            # Total Button Presses
-            count.bar(buttons, button_counts, color=bar_colors)
-
-            # prev_space = s
-            # prev_rate = r
-            # prev_time = t
-            
-            plt.tight_layout()
-            
-            fig.canvas.draw()
-            plt.pause(0.0001)
-        
-        producer.join()
-    except KeyboardInterrupt:
-        print("plotter detected interrupt!")
-    except Exception as err:
-        print("ope")
-
-    print("saving figure...")
-    
-    pickle.dump(fig, open(f"{file}.fig.pickle", 'wb'))
 
 def thread_cpp(program_args):
     """Runs closed-loop program
@@ -360,10 +219,10 @@ if __name__ == '__main__':
         s.start_recording([well])
 
         print(f"Recording well {well} for {pre_exp_time} minutes...")
-        
 
         try:
             time.sleep(60 * pre_exp_time)   # Pre
+
             # run closed-loop program on another thread
             thread = threading.Thread(target = thread_cpp, args = [program_args])
 
@@ -372,7 +231,9 @@ if __name__ == '__main__':
 
             # plot on the main thread (since Matplotlib only works on the main 
             # thread)
-            plot(directory_name + "/" + file_name, min_frames_per_stim, max_frames_per_stim)
+            # plot(directory_name + "/" + file_name, min_frames_per_stim, max_frames_per_stim)
+            p = plotter.Plotter(directory_name + "/" + file_name, maxtwo, min_frames_per_stim, max_frames_per_stim)
+            p.plot_frequency_game()
 
             thread.join()
 

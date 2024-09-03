@@ -2,10 +2,19 @@
 #include <string>
 #include <iostream>
 
-Plotter::Plotter() {
-    zmq::context_t context{1};
-    pubSock = zmq::socket_t(context, ZMQ_PUB);
+using namespace std;
+
+Plotter::Plotter():
+    context(1),
+    pubSock(context, ZMQ_PUB)
+ {
+    cout << "connecting..." << endl;
     pubSock.bind("tcp://*:5555");
+    // pubSock = zmq::socket_t(context, ZMQ_PUB);
+    
+    // pubSock.bind("tcp://*:5555");
+
+    // pubSock = sock;
 }
 
 void Plotter::sync() {
@@ -14,16 +23,16 @@ void Plotter::sync() {
     zmq::socket_t socket{context, zmq::socket_type::req};
     socket.connect("tcp://localhost:5556");
 
-    const std::string data{"sync"};
+    const string data{"sync"};
 
-    std::cout << "Sending sync..." << std::endl;
+    cout << "Sending sync..." << endl;
     socket.send(zmq::buffer(data), zmq::send_flags::none);
     
     zmq::message_t reply{};
     socket.recv(reply, zmq::recv_flags::none);
 
-    std::cout << "Received " << reply.to_string(); 
-    std::cout << std::endl;
+    cout << "Received " << reply.to_string(); 
+    cout << endl;
 }
 
 void Plotter::sendFrequencyGameData(string buttonPressed, float seconds, int stimLevel, float stimRate) {
@@ -33,7 +42,7 @@ void Plotter::sendFrequencyGameData(string buttonPressed, float seconds, int sti
 }
 
 void Plotter::close() {
-    const std::string stop{"stop"};
+    const string stop{"stop"};
 
     pubSock.send(zmq::buffer(stop));
 }
