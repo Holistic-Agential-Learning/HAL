@@ -3,10 +3,24 @@ import matplotlib.pyplot as plt
 import pickle
 import zmq
 
+from typing import List
+
 class Plotter:
 
-    def __init__(self, file_name, maxtwo, min_frames, max_frames):
-        self.fname = file_name
+    """
+
+    :param file_name: full path of file to save pickle and png (no extension)
+    :type file_name: str
+    :param maxtwo: indicates whether the experiment is running on the maxtwo
+    :type maxtwo: bool
+    :param min_frames: minimum number of frames in between stimulations
+    :type min_frames: int
+    :param max_frames: maximum number of frames in between stimulations
+    :type max_frames: int
+    """
+    def __init__(self, file_path: str, maxtwo: bool, min_frames: int, max_frames: int):
+        
+        self.fname = file_path
         frame_rate = 10000.0 if maxtwo else 20000.0
         self.upper = frame_rate / min_frames + 0.5
         self.lower = frame_rate / max_frames - 0.5
@@ -60,6 +74,10 @@ class Plotter:
                 self.data_cond.notify()
 
     def plot_frequency_game(self):
+        """Plots data from the frequency game. 
+
+        This function expects ZMQ connections from the closed-loop program
+        """
         producer = threading.Thread(target=self._plot_producer, args=[])
 
         producer.start()

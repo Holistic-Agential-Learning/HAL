@@ -69,7 +69,15 @@ def read_config_elecs(file: str):
     return elecs
 
 
-def read_config(file):
+def read_config(file: str):
+    """Reads all electrode data from a MaxWell configuration file
+
+    :param file: full path of the file
+    :type file: ``str``
+    :return: a list containing data for each electrode (channel, electrode, x, y)
+    :rtype: ``List[List[str]]``
+    """
+
     # Error checking
     if (not file.endswith('.cfg')):
         return False
@@ -77,14 +85,6 @@ def read_config(file):
 
     f = open(file, "r")
     contents = f.read()
-
-    # Parse file content
-    electrode = 0
-    x = 0
-    y = 0
-    channel = 0
-    curr_word = ''
-    electrode_map = {}
 
     channels = contents.split(";")
     channels.pop(len(channels) - 1)
@@ -97,7 +97,15 @@ def read_config(file):
 
     return all_electrodes
 
-def read_config_electrode_to_channel(file):
+def read_config_electrode_to_channel(file: str):
+    """Reads channel-electrode number mappings from a config file
+
+    :param file: full path of the file
+    :type file: str
+    :return: a dictionary of strings, where the keys are channel numbers and the 
+    values are electrode numbers
+    :rtype: ``Dict[str]``
+    """
     data = read_config(file)
 
     electrodes = {}
