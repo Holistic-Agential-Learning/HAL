@@ -192,7 +192,7 @@ def power_up_stim_units(stimulation_units: List[int], dac=0):
 
 def make_trial_folders(experiment_parameters):
     """ Creates folders for saving data based on a dict, generated from an 
-    experiment ``json`` file (see: :ref:`getting-started:Folder Structure`)
+    experiment ``json`` file (see: :ref:`getting_started:Folder Structure`)
 
     :param experiment_parameters: Holds the experiment paremeters; the following elements are **required**:
             ``'FOLDER'``, ``'NAME'``, ``'WELLS'``
@@ -247,7 +247,7 @@ def make_trial_folders(experiment_parameters):
 
 def make_trial_folders_raw(parent_path, experiment_name, chip_id, wells):
     """ Creates folders for saving data without using a dict, in the HAL 
-    specified folder format (see :ref:`getting-started:Folder Structure`).
+    specified folder format (see :ref:`getting_started:Folder Structure`).
 
     :param parent_path: full path of the parent folder
     :type parent_path: ``string``

@@ -2,6 +2,9 @@
 #define __PLOTTER_H__
 
 #include <string>
+#include <zmq.hpp>
+
+using namespace std;
 
 class Plotter {
     public: 
@@ -18,7 +21,7 @@ class Plotter {
          */
         void sync();
 
-        void sendFrequencyGameData(string buttonPressed, int frame, int stimLevel, float stimRate);
+        void sendFrequencyGameData(string buttonPressed, float seconds, int stimLevel, float stimRate);
 
         /**
          * @brief Closees the plotter connection
