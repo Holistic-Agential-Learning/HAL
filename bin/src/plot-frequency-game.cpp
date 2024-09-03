@@ -366,7 +366,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         if(guidance) {
             //starts at the very firts frame and inc every 10 sec
             if (increase && i % guidanceRate == 0 && i != 0){
-                if (stimRate < maxStimRate){
+                if (stimRate < maxStimRate) {
                     stimRate += acc;
                     stimType++;
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
@@ -382,7 +382,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 } else {
                     increase = false;
                 }
-            } else if (!increase && i % guidanceRate == 0){
+            } else if (!increase && i % guidanceRate == 0) {
                 if (stimRate > minStimRate) {
                     stimRate -= acc;
                     stimType--;

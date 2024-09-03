@@ -4,3 +4,4 @@
 #include "worldstate.h"
 #include "waveDetector.h"
 #include "progressBar.h"
+#include "plotter.h"

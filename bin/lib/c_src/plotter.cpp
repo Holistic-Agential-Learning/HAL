@@ -1,13 +1,9 @@
 #include "plotter.h"
 #include <zmq.hpp>
-#include <stdlib.h>
-#include <stdio.h>
 
-Plotter::Plotter(string experiment_type) {
-    type = experiment_type;
-
+Plotter::Plotter() {
     zmq::context_t context{1};
-    pub_sock{context, ZMQ_PUB};
+    pubSock{context, ZMQ_PUB};
     socket.bind("tcp://*:5555");
 }
 
@@ -27,4 +23,16 @@ void Plotter::sync() {
 
     std::cout << "Received " << reply.to_string(); 
     std::cout << std::endl;
+}
+
+void Plotter::sendFrequencyGameData(string buttonPressed, float seconds, int stimLevel, float stimRate) {
+    string data = buttonPressed + ";" + to_string(second) + ";" +  to_string(stimLevel) + ";" + to_string(stimRate);
+
+    pubSock.send(zmq.bugger(data));
+}
+
+void Plotter::close() {
+    const std::string stop{"stop"};
+
+    pub_sock.send(zmq::buffer(stop));
 }

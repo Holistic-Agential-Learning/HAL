@@ -7,25 +7,28 @@ class Plotter {
     public: 
         /**
          * @brief Construct a new Plotter object
-         * 
-         * @param experiment_type <code>string</code> representing the type of 
-         *                        experiment being run. Currently, only 
-         *                        "frequency_game" is supported.
          */
-        Plotter(string experiment_type="frequency_game");
+        Plotter();
 
         /**
-         * @brief Syncs with Python plotter 
+         * @brief Syncs with Python plotter. Note that this function will 
+         * block until the plotter is ready.
          * 
          * 
          */
         void sync();
 
+        void sendFrequencyGameData(string buttonPressed, int frame, int stimLevel, float stimRate);
+
+        /**
+         * @brief Closees the plotter connection
+         * 
+         */
+        void close();
+
     private:
 
-        // currrently supports "frequency_game"
-        string type;
-        zmq::socket_t pub_sock;
+        zmq::socket_t pubSock;
 };
 
 #endif
