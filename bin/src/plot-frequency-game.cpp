@@ -240,16 +240,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     // how often the culture is stimulated, in frames
     float stimRate = minStimRate; 
 
-    zmq::context_t context{1};
-    zmq::socket_t socket{context, ZMQ_PUB};
-    cout << "connecting..." << endl;
-    socket.bind("tcp://*:5555");
+    Plotter plot = Plotter();
 
-    sync();
+    plot.sync();
 
     cout << "Sockets initialized and synced" << endl;
-
-    const std::string stop{"stop"};
 
     int framesPerStim = 200000;
 
@@ -299,7 +294,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             blanking--;
         }
 
-        if (!blanking){
+        if (!blanking) {
             controller.shift(frameData);
         }
 
@@ -330,8 +325,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                
                 aReleased = false;
 
-                string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stimType) + ";" + to_string(stimRate);
-                socket.send(zmq::buffer(data));
+                plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, stimType, stimRate);
 
             // Button B was pressed 
             } else if (bReleased && (firingRateAvgB != 0) && zScoreB > 4 && zScoreB > zScoreA) {
@@ -349,8 +343,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
                 bReleased = false;
 
-                string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stimType) + ";" + to_string(stimRate);
-                socket.send(zmq::buffer(data));
+                plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, stimType, stimRate);
             } else {
                 aReleased = true;
                 bReleased = true;
@@ -365,7 +358,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         if(guidance) {
             //starts at the very firts frame and inc every 10 sec
-            if (increase && i % guidanceRate == 0 && i != 0){
+            if (increase && i % guidanceRate == 0 && i != 0) {
                 if (stimRate < maxStimRate) {
                     stimRate += acc;
                     stimType++;
@@ -377,8 +370,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     maxlab::verifyStatus(maxlab::sendSequence("inc_guidance"));
                     
                     // send to plotter for testing 
-                    string data = "B;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stimType) + ";" + to_string(stimRate);
-                    socket.send(zmq::buffer(data));
+                    plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, stimType, stimRate);
                 } else {
                     increase = false;
                 }
@@ -393,9 +385,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     expBar.print();
                     maxlab::verifyStatus(maxlab::sendSequence("dec_guidance"));
 
-                    string data = "A;" + to_string(i / (float)FRAMES_PER_SEC) + ";" +  to_string(stimType) + ";" + to_string(stimRate);
-                    socket.send(zmq::buffer(data));
-                } if (stimRate == minStimRate)  {
+                    plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, stimType, stimRate);
+                } if (stimRate == minStimRate) {
                     guidance = false;
                 }
             }
@@ -413,7 +404,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
               
     }
     // tell plotter that the program is over
-    socket.send(zmq::buffer(stop));
+    plot.close();
 
     cout << "program over - starting post recording " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -440,7 +431,7 @@ int main(int argc, char * argv[]) {
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One");
     cout << " for " << minutes << " minutes on well " << well << endl;
 
-    if (guidance){
+    if (guidance) {
         cout << "Running with guidance system" << endl;
     }
         
