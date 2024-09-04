@@ -79,6 +79,9 @@ class Plotter:
 
         This function expects ZMQ connections from the closed-loop program
         """
+
+        lwidth = 2
+        msize = 4
         producer = threading.Thread(target=self._plot_producer, args=[])
 
         producer.start()
@@ -140,10 +143,10 @@ class Plotter:
                     self.plot_data.clear()
 
                 # stimulation frequency
-                freqpath.plot(times, frequencies, color = 'g', marker = 'o')
+                freqpath.plot(times, frequencies, color = 'g', marker = 'o', linewidth = lwidth, markersize = msize)
 
                 # Frequency World
-                space.plot(times, stim_levels, color = 'purple', marker = 'o')
+                space.plot(times, stim_levels, color = 'purple', marker = 'o', linewidth = lwidth, markersize = msize)
 
                 # Total Button Presses
                 count.bar(buttons, button_counts, color=bar_colors)

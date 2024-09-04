@@ -26,53 +26,53 @@ sq_steps = 2
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [(4862, sq_radius, sq_steps),
-     (5036, sq_radius, sq_steps)],
     [],
     [],
-    [], 
+    [],
+    [(9711, sq_radius, sq_steps),
+     (5687, sq_radius, sq_steps)], 
     [],
     [] 
 ]
 
 #TODO indicates whether to simply read data, or to stimulate the buttons manually
-live_chip = False
+live_chip = True
 
 #TODO
-wells = [0]
+wells = [3]
 
 #TODO 
-experiment_name = "button_detection_sd4"
+experiment_name = "live_chip"
 
 #TODO
-chip_id = "16365" 
+chip_id = "M07461" 
 
 #TODO
 maxtwo = True
 
 #TODO 
-experiment_time = 0.5
+experiment_time = 1
 
 #TODO stimulation electrodes
 a_electrodes = [
-    [4862],
     [],
     [],
     [],
+    [9711],
     [],
     []
 ]
 b_electrodes = [
-    [5036],
     [],
     [],
     [],
+    [5687],
     [],
     []
 ]
 
 #TODO desription
-desc = "Verifying the button detection."
+desc = "Verifying the button detection. Current releasing logic."
 
 #TODO
 sendEmail = False

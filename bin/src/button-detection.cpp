@@ -47,7 +47,7 @@ int FRAMES_PER_SEC = 20000;
 void sync();
 float calcRatio(float A, float B);
 float zScore(float value, float avg, float sd);
-void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB);
+void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float zA, float valB, float avgB, float zB);
 void runExperiment(string path, string config0, string config1, int frames, int well, bool isLive);
 
 void signal_interrupt_handler(int sig) {
@@ -91,10 +91,10 @@ float zScore(float value, float avg, float sd) {
     return (value - avg) / sd;
 }
 
-void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float valB, float avgB, float sdB) {
-    *data << frameNo << ", " << ab << ", " << ratio << ", ";
-    *data << valA << ", " << avgA << ", " << sdA << ",";
-    *data << valB << ", " << avgB << ", " << sdB << endl;
+void printValues(fstream *data, string ab, int frameNo, float valA, float avgA, float zA, float valB, float avgB, float zB) {
+    *data << frameNo << ", " << ab << ", ";
+    *data << valA << ", " << avgA << ", " << zA << ",";
+    *data << valB << ", " << avgB << ", " << zB << endl;
 }
 
 
@@ -107,7 +107,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     std::fstream data;
     data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
-    data << "frame number, button pressed, stimulation level, stimulation frequency, A ratio threshold, B ratio threshold, ratio, value A, avg A, SD A, value B, avg B, gSD B" << endl;
+    data << "frame number, button pressed, firing rate A, avg FR A, Z score A, firing rate B, avg FR B, Z Score B" << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -177,6 +177,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             controller.shift(frameData);
         }
 
+        bool pressed = false;
+
 
         if (winA->pastWindowsReady() && winB->pastWindowsReady() && !blanking) {
             float firingRateAvgA = winA->avgPastWindows();
@@ -185,39 +187,54 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float sdB = winB->firingRateSD();
             float firingRateA = winA->firingRate();
             float firingRateB = winB->firingRate();
-            float ratio = calcRatio(firingRateAvgA, firingRateAvgB);
             float zScoreA = zScore(firingRateA, firingRateAvgA, sdA);
             float zScoreB = zScore(firingRateB, firingRateAvgB, sdB);
 
             // Button A was pressed
-            if (aReleased && firingRateAvgA != 0 && zScoreA > 4 && zScoreA > zScoreB) {
+            if (firingRateAvgA != 0 && zScoreA > 4 && zScoreA > zScoreB) {
+
+                if (aReleased) {
+                    printValues(&data, "A", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
+
+                    expBar.clear();
+                    cout << i << ": button A pressed " << endl;
+                    expBar.print();
+
+                    maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
+
+                    pressed = true;
+                    aReleased = false;
+
+                } else pressed = false;
                 
-                printValues(&data, "A", i, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
-
-                expBar.clear();
-                cout << i << ": button A pressed " << endl;
-                expBar.print();
-
-                maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
-               
-                aReleased = false;
-
             // Button B was pressed 
             } else if (bReleased && firingRateAvgB != 0 && zScoreB > 4 && zScoreB > zScoreA) {
-    
-                printValues(&data, "B", i, ratio, firingRateA, firingRateAvgA, sdA, firingRateB, firingRateAvgB, sdB);
+                
+                if (bReleased) {
+                    printValues(&data, "B", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
 
-                expBar.clear();
-                cout << i << ": button B pressed " << endl;
-                expBar.print();
+                    expBar.clear();
+                    cout << i << ": button B pressed " << endl;
+                    expBar.print();
 
-                maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
+                    maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
 
-                bReleased = false;
+                    bReleased = false;
+
+                    pressed = true;
+                } else {
+                    pressed = false;
+                }
 
             } else {
+                pressed = false;
                 aReleased = true;
                 bReleased = true;
+            }
+
+            if (!pressed) {
+                // N indicates that no button was pressed
+                printValues(&data, "N", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
             }
         }
 
@@ -226,13 +243,13 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             if (i % (FRAMES_PER_SEC * 10) == 0) {
                 data << i << ": Pressing A..." << endl;
                 cout << "Pressing A" << endl;
-                maxlab::verifyStatus(maxlab::sendSequence("A"));
+                // maxlab::verifyStatus(maxlab::sendSequence("A"));
 
             // stimulation config B every second that's a multiple of 5 (but not 10)
             } else if (i % (FRAMES_PER_SEC * 5) == 0) {
                 data << i << ": Pressing B..." << endl;
                 cout << "Pressing B" << endl;
-                maxlab::verifyStatus(maxlab::sendSequence("B"));
+                // maxlab::verifyStatus(maxlab::sendSequence("B"));
             }
         }
     }
