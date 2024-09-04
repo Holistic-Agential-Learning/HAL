@@ -178,6 +178,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         bool pressed = false;
+        bool aTriggered = false;
+        bool bTriggered = false;
 
 
         if (winA->pastWindowsReady() && winB->pastWindowsReady() && !blanking) {
@@ -205,7 +207,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     pressed = true;
                     aReleased = false;
 
-                } else pressed = false;
+                } 
+
+                aTriggered = true;
                 
             // Button B was pressed 
             } else if (bReleased && firingRateAvgB != 0 && zScoreB > 4 && zScoreB > zScoreA) {
@@ -222,15 +226,14 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     bReleased = false;
 
                     pressed = true;
-                } else {
-                    pressed = false;
-                }
+                } 
 
-            } else {
-                pressed = false;
-                aReleased = true;
-                bReleased = true;
-            }
+                bTriggered = true;
+
+            } 
+
+            if (!aTriggered) aReleased = true;
+            if (!bTriggered) bReleased = true;
 
             if (!pressed) {
                 // N indicates that no button was pressed
