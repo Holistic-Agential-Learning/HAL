@@ -26,20 +26,13 @@ sq_steps = 2
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [(7455, sq_radius, sq_steps),    #inhib
-     (25899, sq_radius, sq_steps),    #excit
-     "/home/mxwbio/configs/240828/15h06m06s.cfg"],
-    [(26203, sq_radius, sq_steps),    #inhib
-     (13015, sq_radius, sq_steps),    #excit
-     "/home/mxwbio/configs/240828/15h06m13s.cfg"],
-    [(4817, sq_radius, sq_steps),
-     (21089, sq_radius, sq_steps),
-     "/home/mxwbio/configs/240828/15h06m16s.cfg"],
-    [], # not this oen
-    [(10795, sq_radius, sq_steps),    #excite
-     (1609, sq_radius, sq_steps),    #inhib
-     "/home/mxwbio/configs/240828/15h06m24s.cfg"],
-    [] # not this one
+    [(4862, sq_radius, sq_steps),
+     (5036, sq_radius, sq_steps)],
+    [],
+    [],
+    [], 
+    [],
+    [] 
 ]
 
 #TODO indicates whether to simply read data, or to stimulate the buttons manually
@@ -58,11 +51,11 @@ chip_id = "16365"
 maxtwo = True
 
 #TODO 
-experiment_time = 10
+experiment_time = 0.5
 
 #TODO stimulation electrodes
 a_electrodes = [
-    [],
+    [4862],
     [],
     [],
     [],
@@ -70,7 +63,7 @@ a_electrodes = [
     []
 ]
 b_electrodes = [
-    [],
+    [5036],
     [],
     [],
     [],
@@ -169,11 +162,22 @@ if __name__ == '__main__':
 
         amp = 20
 
-        stim_a = Stimulation(token="a", dac_source=0, amplitude=amp, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
+        stim_a = Stimulation(token="A", dac_source=0, amplitude=amp, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
         stim_seq_a = stim_a.build_sequence()
         
-        stim_b = Stimulation(token="b", dac_source=1, amplitude=amp, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
+        stim_b = Stimulation(token="B", dac_source=1, amplitude=amp, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
         stim_seq_b = stim_b.build_sequence()
+
+        a_pressed = mx.Sequence("A-pressed", persistent=False)
+        del a_pressed
+        a_pressed = mx.Sequence("A-pressed", persistent=True)
+        a_pressed.append(mx.Event(well, 1, 5, "A pressed"))
+
+        b_pressed = mx.Sequence("B-pressed", persistent=False)
+        del b_pressed
+        b_pressed = mx.Sequence("B-pressed", persistent=True)
+        b_pressed.append(mx.Event(well, 1, 6, "B pressed"))
+
 
         program_args = ["./bin/build/button-detection", "--folder", directory_name]
 
@@ -200,7 +204,7 @@ if __name__ == '__main__':
 
         try:
 
-            mx.send(mx.Event(well, 1, 5, f"start_experiment {well}"))
+            mx.send(mx.Event(well, 1, 2, f"start_experiment {well}"))
 
             run_cpp(program_args)
 

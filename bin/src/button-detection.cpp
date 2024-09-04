@@ -197,6 +197,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 expBar.clear();
                 cout << i << ": button A pressed " << endl;
                 expBar.print();
+
+                maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
                
                 aReleased = false;
 
@@ -208,6 +210,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 expBar.clear();
                 cout << i << ": button B pressed " << endl;
                 expBar.print();
+
+                maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
 
                 bReleased = false;
 
