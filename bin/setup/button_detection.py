@@ -178,6 +178,8 @@ if __name__ == '__main__':
         b_pressed = mx.Sequence("B-pressed", persistent=True)
         b_pressed.append(mx.Event(well, 1, 6, "B pressed"))
 
+        hal.build_training_sequences(well)
+
 
         program_args = ["./bin/build/button-detection", "--folder", directory_name]
 
@@ -203,12 +205,8 @@ if __name__ == '__main__':
         s.start_recording([well])
 
         try:
-
-            mx.send(mx.Event(well, 1, 2, f"start_experiment {well}"))
-
             run_cpp(program_args)
 
-            mx.send(mx.Event(well, 1, 1, f"end_experiment {well}"))
 
         except KeyboardInterrupt:
             print("Keyboard Interrupt")

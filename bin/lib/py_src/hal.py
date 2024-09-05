@@ -66,8 +66,8 @@ def get_file_names(well_no: int, experiment_name: str, trial_path: str):
     return ret
 
 def build_training_sequences(well_no: int):
-    """Builds general event sequences: before-training (ID: 2), training
-    (ID: 3), and after-training (ID: 4)
+    """Builds general event sequences: pre_recording_start (ID: 2), closed_loop_start
+    (ID: 3), post_recording_start (ID: 4), and end_experiment (ID: 5)
 
     These are meant to be used to signal when the training actually happens in 
     the closed-loop program.
@@ -75,20 +75,25 @@ def build_training_sequences(well_no: int):
     :param well_no: well number
     :type well_no: ``int``
     """
-    start_seq = mx.Sequence(f"before-training{well_no}", persistent = False)
+    start_seq = mx.Sequence(f"pre_recording_start_{well_no}", persistent = False)
     del start_seq
-    start_seq = mx.Sequence(f"before-training{well_no}", persistent = True)
-    start_seq.append(mx.Event(well_no, 1, 2, "before_training 1"))
+    start_seq = mx.Sequence(f"pre_recording_start_{well_no}", persistent = True)
+    start_seq.append(mx.Event(well_no, 1, 2, f"pre_recording_start {well_no}"))
 
-    train_seq = mx.Sequence(f"training{well_no}", persistent = False)
+    train_seq = mx.Sequence(f"closed_loop_start_{well_no}", persistent = False)
     del train_seq
-    train_seq = mx.Sequence(f"training{well_no}", persistent = True)
-    train_seq.append(mx.Event(well_no, 1, 3, "training 1"))
+    train_seq = mx.Sequence(f"closed_loop_start_{well_no}", persistent = True)
+    train_seq.append(mx.Event(well_no, 1, 3, f"closed_loop_start {well_no}"))
 
-    end_seq = mx.Sequence(f"after-training{well_no}", persistent = False)
+    end_seq = mx.Sequence(f"post_recording_start_{well_no}", persistent = False)
     del end_seq
-    end_seq = mx.Sequence(f"after-training{well_no}", persistent = True)
-    end_seq.append(mx.Event(well_no, 1, 4, "after_training 1"))
+    end_seq = mx.Sequence(f"post_recording_start_{well_no}", persistent = True)
+    end_seq.append(mx.Event(well_no, 1, 4, f"post_recording_start {well_no}"))
+
+    end_seq = mx.Sequence(f"end_experiment_{well_no}", persistent = False)
+    del end_seq
+    end_seq = mx.Sequence(f"end_experiment_{well_no}", persistent = True)
+    end_seq.append(mx.Event(well_no, 1, 5, f"end_experiment {well_no}"))
 
 def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
     """ Initilizes the well recording electrodes and stimulation electrodes. 

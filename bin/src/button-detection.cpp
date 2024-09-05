@@ -153,6 +153,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     bool aReleased = true;
     bool bReleased = true;
 
+    maxlab::verifyStatus(maxlab::sendSequence("closed_loop_start_" + string(well)));
+
     /*
         Run Experiment
     */
@@ -256,6 +258,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             }
         }
     }
+    maxlab::verifyStatus(maxlab::sendSequence("end_experiment_" + string(well)));
     cout << "program over - starting post recording " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     data.close();
