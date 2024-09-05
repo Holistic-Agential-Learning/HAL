@@ -195,47 +195,32 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float zScoreB = zScore(firingRateB, firingRateAvgB, sdB);
 
             // Button A was pressed
-            if (firingRateAvgA != 0 && zScoreA > 4 && zScoreA > zScoreB) {
+            if (aReleased && firingRateAvgA != 0 && zScoreA > 4 && zScoreA > zScoreB) {
+                printValues(&data, "A", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
 
-                if (aReleased) {
-                    printValues(&data, "A", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
+                expBar.clear();
+                cout << i << ": button A pressed " << endl;
+                expBar.print();
 
-                    expBar.clear();
-                    cout << i << ": button A pressed " << endl;
-                    expBar.print();
+                maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
-                    maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
-
-                    pressed = true;
-                    aReleased = false;
-
-                } 
-
-                aTriggered = true;
+                pressed = true;
                 
             // Button B was pressed 
-            } else if (firingRateAvgB != 0 && zScoreB > 4 && zScoreB > zScoreA) {
-                
-                if (bReleased) {
-                    printValues(&data, "B", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
+            } else if (bReleased && firingRateAvgB != 0 && zScoreB > 4 && zScoreB > zScoreA) {
+                printValues(&data, "B", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
 
-                    expBar.clear();
-                    cout << i << ": button B pressed " << endl;
-                    expBar.print();
+                expBar.clear();
+                cout << i << ": button B pressed " << endl;
+                expBar.print();
 
-                    maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
+                maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
 
-                    bReleased = false;
-
-                    pressed = true;
-                } 
-
-                bTriggered = true;
-
+                pressed = true;
             } 
 
-            if (!aTriggered) aReleased = true;
-            if (!bTriggered) bReleased = true;
+            aReleased = (zScoreA > 4) ? false : true;
+            bReleased = (zScoreB > 4) ? false : true;
 
             if (!pressed) {
                 // N indicates that no button was pressed
