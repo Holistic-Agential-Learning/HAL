@@ -219,6 +219,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
 
+    float zScoreThreshold = 6;
+
     /*
         Run Experiment
     */
@@ -259,7 +261,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float ratio = calcRatio(firingRateA, firingRateB);
 
             // Button A was pressed
-            if (aReleased && firingRateAvgA != 0 && zScoreA > 4 && zScoreA > zScoreB && ratio > aRatio) {
+            if (aReleased && firingRateAvgA != 0 && zScoreA > zScoreThreshold && zScoreA > zScoreB && ratio > aRatio) {
                 printValues(&data, "A", i, ratio, firingRateA, firingRateAvgA, sdA, zScoreA, firingRateB, firingRateAvgB, sdB, zScoreB);
 
                 expBar.clear();
@@ -271,7 +273,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 pressed = true;
                 
             // Button B was pressed 
-            } else if (bReleased && firingRateAvgB != 0 && zScoreB > 4 && zScoreB > zScoreA && ratio < bRatio) {
+            } else if (bReleased && firingRateAvgB != 0 && zScoreB > zScoreThreshold && zScoreB > zScoreA && ratio < bRatio) {
                 printValues(&data, "B", i, ratio, firingRateA, firingRateAvgA, sdA, zScoreA, firingRateB, firingRateAvgB, sdB, zScoreB);
 
                 expBar.clear();
@@ -283,8 +285,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 pressed = true;
             } 
 
-            aReleased = (zScoreA > 4) ? false : true;
-            bReleased = (zScoreB > 4) ? false : true;
+            aReleased = (zScoreA > zScoreThreshold) ? false : true;
+            bReleased = (zScoreB > zScoreThreshold) ? false : true;
 
             if (!pressed) {
                 // N indicates that no button was pressed
