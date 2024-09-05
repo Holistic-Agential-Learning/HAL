@@ -290,7 +290,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
             if (!pressed) {
                 // N indicates that no button was pressed
-                printValues(&data, "N", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
+                printValues(&data, "N", i, ratio, firingRateA, firingRateAvgA, sdA, zScoreA, firingRateB, firingRateAvgB, sdB, zScoreB);
             }
         }
 

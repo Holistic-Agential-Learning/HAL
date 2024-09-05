@@ -48,10 +48,10 @@ experiment_name = "live_chip"
 chip_id = "M07461" 
 
 #TODO
-maxtwo = True
+maxtwo = False
 
 #TODO 
-experiment_time = 1
+experiment_time = 10
 
 #TODO stimulation electrodes
 a_electrodes = [
@@ -75,7 +75,7 @@ b_electrodes = [
 desc = "Verifying the button detection. New button releasing logic."
 
 #TODO
-sendEmail = False
+sendEmail = True
 
 def run_cpp(program_args):
     """Runs closed-loop program
