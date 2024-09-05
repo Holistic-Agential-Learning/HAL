@@ -72,7 +72,7 @@ b_electrodes = [
 ]
 
 #TODO desription
-desc = "Verifying the button detection. Current releasing logic."
+desc = "Verifying the button detection. New button releasing logic."
 
 #TODO
 sendEmail = False
