@@ -214,7 +214,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 aTriggered = true;
                 
             // Button B was pressed 
-            } else if (bReleased && firingRateAvgB != 0 && zScoreB > 4 && zScoreB > zScoreA) {
+            } else if (firingRateAvgB != 0 && zScoreB > 4 && zScoreB > zScoreA) {
                 
                 if (bReleased) {
                     printValues(&data, "B", i, firingRateA, firingRateAvgA, zScoreA, firingRateB, firingRateAvgB, zScoreB);
