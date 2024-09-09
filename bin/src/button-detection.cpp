@@ -103,11 +103,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     int stimType = 0;
 
-    int windowLength = 200;
+    int windowLength = 1000;
 
     std::fstream data;
     data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
-    data << "frame number, button pressed, firing rate A, avg FR A, Z score A, firing rate B, avg FR B, Z Score B" << endl;
+    data << "frame number, button pressed, normalized difference, firing rate A, avg FR A, SD A, Z score A, firing rate B, avg FR B, SD B, Z Score B" << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -127,8 +127,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int blanking = 0;
 
-    controller.addButton("A", windowLength, config0.c_str(), 49); //slow button
-    controller.addButton("B", windowLength, config1.c_str(), 49); //fast button
+    controller.addButton("A", windowLength, config0.c_str(), 10); //slow button
+    controller.addButton("B", windowLength, config1.c_str(), 10); //fast button
     
     // initialize the vector with 200 frames
     for (int i = 0; i < windowLength; i++) {
