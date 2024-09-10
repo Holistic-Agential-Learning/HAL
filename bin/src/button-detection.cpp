@@ -219,7 +219,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
 
-    float zScoreThreshold = 6;
+    float zScoreThreshold = 3;
 
     /*
         Run Experiment
