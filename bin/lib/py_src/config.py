@@ -39,7 +39,7 @@ def get_buttons(full_config, buttons, save_path):
 # makes a list of config args (channel no (0), elec no, elec coords) given a 
 # list of electrode numbers
 def make_config_args(elecs: List[int]):
-    return [[0,str(e),str((e // 220) * 17.5),str((e % 220) * 17.5)] for e in elecs]
+    return [[-1,str(e),str((e // 220) * 17.5),str((e % 220) * 17.5)] for e in elecs]
     
     
 def make_config(data, file_name):
@@ -48,7 +48,8 @@ def make_config(data, file_name):
     to_write = ""
 
     for d in data:
-        to_write += f"{d[0]}({d[1]}){d[2]}/{d[3]};"
+        if d[0] != -1:
+            to_write += f"{d[0]}({d[1]}){d[2]}/{d[3]};"
 
     to_write += "\nH"
 
