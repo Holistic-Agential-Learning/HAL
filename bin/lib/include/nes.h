@@ -7,6 +7,11 @@ using namespace std;
 
 class NES : public Controller {
     public:
+        void addButtonA(const char *configPath);
+
+        void addButtonB(const char *configPath);
+
+        void addButton();
 
 
     private:

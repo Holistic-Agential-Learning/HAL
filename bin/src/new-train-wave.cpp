@@ -376,7 +376,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         if (stimulate && !bursting){
             maxlab::verifyStatus(maxlab::sendSequence("pulse"));
             cout << i << ": PULSE SENT" << endl;
-            //blanking += int(FRAMES_PER_SEC) / 2 + polling_window_size;
+            // blanking += int(FRAMES_PER_SEC) / 2 + polling_window_size;
             blanking += int(FRAMES_PER_SEC)/10 +  polling_window_size;
         }
     } 

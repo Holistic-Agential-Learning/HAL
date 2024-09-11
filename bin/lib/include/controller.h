@@ -36,6 +36,15 @@ class Controller {
         void addButton(string id, int windowLength, const char *configPath, int saveWindows=0);
 
         /**
+         * @brief Initializes all buttons
+         * 
+         *  
+         * 
+         */
+        void init();
+         
+
+        /**
          * @brief Get the ChannelWindow of the specified button
          * 
          * @param id <code>string</code> id of the button
@@ -77,6 +86,8 @@ class Controller {
 
     private:
         map<string, ChannelWindow *> buttons;
+
+        int getMaxLength();
 };
 
 #endif
