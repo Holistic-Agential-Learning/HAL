@@ -103,7 +103,7 @@ def read_config_electrode_to_channel(file: str):
     :param file: full path of the file
     :type file: str
     :return: a dictionary of strings, where the keys are channel numbers and the 
-    values are electrode numbers
+             values are electrode numbers
     :rtype: ``Dict[str]``
     """
     data = read_config(file)

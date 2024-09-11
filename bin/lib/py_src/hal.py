@@ -11,10 +11,10 @@ def get_electrode_square(center: int, radius: int, step_width=1):
     :param center: the target electrode to center the square around
     :type center: ``int``
     :param radius: half the length of the square, measured in steps/chosen 
-    electrodes
+                   electrodes
     :type radius: ``int``
     :param step_width: how far to "step" when choosing electrodes in the square, 
-    defaults to 1
+                       defaults to 1
     :type step_width: ``int``, optional
     :return: list of electrodes
     :rtype: ``List[int]``
@@ -55,7 +55,7 @@ def get_file_names(well_no: int, experiment_name: str, trial_path: str):
     :type trial_path: str
 
     :return: tuple of recording directory, experiment name, and config, 
-    respectively
+             respectively
     :rtype: ``List[str]``
     """
     recording_dir = f"{trial_path}/well{well_no}"
