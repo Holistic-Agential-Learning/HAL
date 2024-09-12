@@ -28,8 +28,8 @@ sq_steps = 2
 all_configs = [
     [],
     [],
-    [(23877, sq_radius, sq_steps),
-     (20412, sq_radius, sq_steps)],
+    [(21732, sq_radius, sq_steps),
+     (14691, sq_radius, sq_steps)],
     [], 
     [],
     [] 

@@ -109,7 +109,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     std::fstream data;
     data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
-    data << "frame number, button pressed, normalized difference, firing rate A, avg FR A, SD A, Z score A, firing rate B, avg FR B, SD B, Z Score B" << endl;
+    data << "frame number, button pressed, percent fired A, firing rate A, avg FR A, SD A, Z score A, percent fired B, firing rate B, avg FR B, SD B, Z Score B" << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -279,10 +279,10 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             bool bPressed = false;
 
             // Button A was pressed
-            if (aReleased && zScoreA > zScoreThreshold && percentChannelsFiredA > spikePercentThreshold) {
+            if (aReleased && bReleased && zScoreA > zScoreThreshold && percentChannelsFiredA > spikePercentThreshold) {
                 aPressed = true;
             // Button B was pressed 
-            } else if (bReleased && zScoreB > zScoreThreshold && percentChannelsFiredB > spikePercentThreshold) {
+            } else if (aReleased && bReleased && zScoreB > zScoreThreshold && percentChannelsFiredB > spikePercentThreshold) {
                 bPressed = true;
             } 
 
@@ -314,7 +314,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
             }
 
-            printValues(&data, buttonPressed, i, spikePercentThreshold, firingRateA, firingRateAvgA, sdA, zScoreA, spikePercentThreshold, firingRateA, firingRateAvgB, sdB, zScoreB);
+            printValues(&data, buttonPressed, i, percentChannelsFiredA, firingRateA, firingRateAvgA, sdA, zScoreA, percentChannelsFiredB, firingRateB, firingRateAvgB, sdB, zScoreB);
         }
 
         if (!isLive) {
