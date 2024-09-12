@@ -137,6 +137,10 @@ int ChannelWindow::totalSpikeCount() {
     return sum;
 }
 
+int ChannelWindow::numChannels() {
+    return emap.size();
+}
+
 ElectrodeMap ChannelWindow::electrodeMap() {
     return emap;
 }

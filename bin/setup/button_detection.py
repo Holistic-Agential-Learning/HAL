@@ -71,6 +71,9 @@ b_electrodes = [
     []
 ]
 
+#TODO threshold for percent of channels fired in button
+spike_percent_threshold = 0.03
+
 #TODO desription
 desc = "Verifying the button detection. New button releasing logic. window=1000 frames, std threshold=3"
 
@@ -190,6 +193,8 @@ if __name__ == '__main__':
         program_args.append(str(well))
         program_args.append("--minutes")
         program_args.append(str(experiment_time))
+        program_args.append("--spike-percent-thresh")
+        program_args.append(str(spike_percent_threshold))
         if live_chip: program_args.append("--live")
         if maxtwo: program_args.append("--maxtwo")
 

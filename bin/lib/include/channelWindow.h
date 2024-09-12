@@ -104,7 +104,7 @@ class ChannelWindow {
         /**
          * @brief Returns the length of the window
          * 
-         * @return <code>int</code> representing the length of the window
+         * @return <code>int</code> 
          */
         int length();
 
@@ -112,10 +112,17 @@ class ChannelWindow {
          * @brief  Returns the sum of all the spike counts (of valid channels) 
          *          in the window
          * 
-         * @return <code>int</code> representing the sum of all spike counts
+         * @return <code>int</code>
          * 
          */
         int totalSpikeCount();
+
+        /**
+         * @brief Returns the number of channels that the window tracks
+         * 
+         * @return <code>int</code> 
+         */
+        int numChannels();
 
         /**
          * @brief Returns the <code>ElectrodeMap</code>
@@ -192,6 +199,7 @@ class ChannelWindow {
          * @param message <code>string</code> to print
          */
         void debug(string message);
+
     
     private:
         vector<maxlab::FilteredFrameData> spikeWindow;

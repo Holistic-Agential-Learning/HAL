@@ -48,7 +48,7 @@ void sync();
 float calcRatio(float A, float B);
 float zScore(float value, float avg, float sd);
 // void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float zA, float valB, float avgB, float zB);
-void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool isLive);
+void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool isLive, float spikePercentThreshold);
 
 void signal_interrupt_handler(int sig) {
     cout << " signalled!" << endl;
@@ -91,14 +91,14 @@ float zScore(float value, float avg, float sd) {
     return (value - avg) / sd;
 }
 
-void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float sdA, float zA, float valB, float avgB, float sdB, float zB) {
-    *data << frameNo << ", " << ab << ", " << ratio << ", ";
-    *data << valA << ", " << avgA << ", " << sdA << ", " << zA << ", ";
-    *data << valB << ", " << avgB << ", " << sdB << ", " << zB << endl;
+void printValues(fstream *data, string ab, int frameNo, float perA, float valA, float avgA, float sdA, float zA, float perB, float valB, float avgB, float sdB, float zB) {
+    *data << frameNo << ", " << ab << ", " ;
+    *data << perA << ", "<< valA << ", " << avgA << ", " << sdA << ", " << zA << ", ";
+    *data << perB << ", "<< valB << ", " << avgB << ", " << sdB << ", " << zB << endl;
 }
 
 
-void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool isLive) {
+void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool isLive, float spikePercentThreshold) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     int stimType = 0;
@@ -210,11 +210,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     ratios.clear();
 
-    cout << "A Ratio Threshold: " << aRatio << endl;
-    cout << "B Ratio Threshold: " << bRatio << endl;
+    // cout << "A Ratio Threshold: " << aRatio << endl;
+    // cout << "B Ratio Threshold: " << bRatio << endl;
 
-    thresholds << "A Ratio Threshold: " << aRatio << endl;
-    thresholds << "B Ratio Threshold: " << bRatio << endl;
+    // thresholds << "A Ratio Threshold: " << aRatio << endl;
+    // thresholds << "B Ratio Threshold: " << bRatio << endl;
 
     ProgressBar expBar = ProgressBar(frames, "Button verification running...");
 
@@ -250,6 +250,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         bool pressed = false;
+        // N means that no button was pressed
+        string buttonPressed = "0";
        
         if (winA->pastWindowsReady() && winB->pastWindowsReady() && !blanking) {
             float firingRateAvgA = winA->avgPastWindows();
@@ -260,42 +262,59 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             float firingRateB = winB->firingRate();
             float zScoreA = zScore(firingRateA, firingRateAvgA, sdA);
             float zScoreB = zScore(firingRateB, firingRateAvgB, sdB);
+            int spikeCountA = winA->totalSpikeCount();
+            int spikeCountB = winB->totalSpikeCount();
+
+            int numChannelsA = winA->numChannels();
+            int numChannelsB = winB->numChannels();
+
+            float percentChannelsFiredA = spikeCountA / (float) numChannelsA;
+            float percentChannelsFiredB = spikeCountB / (float) numChannelsB;
+
 
             // get normalized difference
             float ratio = calcRatio(firingRateA, firingRateB);
 
-            // Button A was pressed
-            if (aReleased && firingRateAvgA != 0 && zScoreA > zScoreThreshold && zScoreA > zScoreB && ratio > aRatio) {
-                printValues(&data, "A", i, ratio, firingRateA, firingRateAvgA, sdA, zScoreA, firingRateB, firingRateAvgB, sdB, zScoreB);
+            bool aPressed = false;
+            bool bPressed = false;
 
+            // Button A was pressed
+            if (aReleased && zScoreA > zScoreThreshold && percentChannelsFiredA > spikePercentThreshold) {
+                aPressed = true;
+            // Button B was pressed 
+            } else if (bReleased && zScoreB > zScoreThreshold && percentChannelsFiredB > spikePercentThreshold) {
+                bPressed = true;
+            } 
+
+            // check if the button is currently being "pressed"
+            aReleased = !aPressed;
+            bReleased = !bPressed;
+
+            // ensure that only A or B gets pressed
+            if (aPressed && bPressed) {
+                if (percentChannelsFiredA >= percentChannelsFiredB) {
+                    bPressed = false;
+                } else aPressed = false;
+            }
+
+            if (aPressed) {
+                buttonPressed = "1";
                 expBar.clear();
                 cout << i << ": button A pressed " << endl;
                 expBar.print();
 
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
-                pressed = true;
-                
-            // Button B was pressed 
-            } else if (bReleased && firingRateAvgB != 0 && zScoreB > zScoreThreshold && zScoreB > zScoreA && ratio < bRatio) {
-                printValues(&data, "B", i, ratio, firingRateA, firingRateAvgA, sdA, zScoreA, firingRateB, firingRateAvgB, sdB, zScoreB);
-
+            } else if (bPressed) {
+                buttonPressed = "2";
                 expBar.clear();
                 cout << i << ": button B pressed " << endl;
                 expBar.print();
 
                 maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
-
-                pressed = true;
-            } 
-
-            aReleased = (zScoreA > zScoreThreshold) ? false : true;
-            bReleased = (zScoreB > zScoreThreshold) ? false : true;
-
-            if (!pressed) {
-                // N indicates that no button was pressed
-                printValues(&data, "N", i, ratio, firingRateA, firingRateAvgA, sdA, zScoreA, firingRateB, firingRateAvgB, sdB, zScoreB);
             }
+
+            printValues(&data, buttonPressed, i, spikePercentThreshold, firingRateA, firingRateAvgA, sdA, zScoreA, spikePercentThreshold, firingRateA, firingRateAvgB, sdB, zScoreB);
         }
 
         if (!isLive) {
@@ -333,6 +352,7 @@ int main(int argc, char * argv[]) {
     float minutes = getFloatArgSecure("--minutes", 0.5, argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
     int ratioTime = getIntArgSecure("--ratio-time", 5, argc, argv);
+    float spikePercent = getFloatArgSecure("--spike-percent-thresh", 0.03, argc, argv);
 
 
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One");
@@ -346,7 +366,7 @@ int main(int argc, char * argv[]) {
     int ratioFrames = ratioTime * 60 * FRAMES_PER_SEC;
 
     try {
-        runExperiment(path, config0, config1, frames, ratioFrames, well, live);
+        runExperiment(path, config0, config1, frames, 0, well, live, spikePercent);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
