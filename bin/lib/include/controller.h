@@ -33,7 +33,7 @@ class Controller {
          * @param saveWindows <code>int</code> indicating how many windows to 
          *                  save, default 0
          */
-        void addButton(string id, int windowLength, const char *configPath, int saveWindows=0);
+        virtual void addButton(string id, int windowLength, const char *configPath, int saveWindows=0);
 
         /**
          * @brief Initializes all buttons

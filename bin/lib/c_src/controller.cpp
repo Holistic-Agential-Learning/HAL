@@ -13,7 +13,7 @@ Controller::~Controller() {
     }
 }
 
-void Controller::addButton(string id, int windowLength, const char *configPath, int saveWindows) {
+virtual void Controller::addButton(string id, int windowLength, const char *configPath, int saveWindows) {
     ChannelWindow *win = new ChannelWindow(windowLength, configPath, saveWindows);
 
     buttons.insert(make_pair(id, win));
