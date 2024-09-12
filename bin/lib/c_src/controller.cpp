@@ -7,15 +7,17 @@ Controller::Controller() {
 
 Controller::~Controller() {
     for (const auto& pair: buttons) {
-        string key = pair.first;
-        ChannelWindow *win = buttons[key];
-        delete win;
+        delete pair.second;
     }
 }
 
 virtual void Controller::addButton(string id, int windowLength, const char *configPath, int saveWindows) {
     ChannelWindow *win = new ChannelWindow(windowLength, configPath, saveWindows);
 
+    if (buttons.count(id) > 0) {
+        ChannelWindow *old = buttons.at(id);
+        delete old;
+    }
     buttons.insert(make_pair(id, win));
 }
 
@@ -53,7 +55,7 @@ int Controller::getMaxLength() {
 }
 
 ChannelWindow *Controller::getButtonWindow(string id) {
-    ChannelWindow *win = buttons[id];
+    ChannelWindow *win = buttons.at(id);
 
     return win;
 }
@@ -61,17 +63,13 @@ ChannelWindow *Controller::getButtonWindow(string id) {
 void Controller::add(maxlab::FilteredFrameData frame) {
 
     for (const auto& pair: buttons) {
-        string key = pair.first;
-        ChannelWindow *win = buttons[key];
-        win->add(frame);
+        (pair.second)->add(frame);
     }
 }
 
 void Controller::shift(maxlab::FilteredFrameData frame) {
     for (const auto& pair: buttons) {
-        string key = pair.first;
-        ChannelWindow *win = buttons[key];
-        win->shift(frame);
+        (pair.second)->shift(frame);
     }
 }
 
