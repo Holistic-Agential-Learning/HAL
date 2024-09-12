@@ -17,7 +17,7 @@ import bin.lib.py_src.plotter as plotter
 
 #TODO optional variables if you want to use the same radius and density for all
 # generated squares
-sq_radius = 10
+sq_radius = 8
 sq_steps = 2
 
 # With this the button is width is: 2 * 17.5 um * sq_radius * sq_steps
@@ -28,9 +28,9 @@ sq_steps = 2
 all_configs = [
     [],
     [],
-    [],
-    [(9711, sq_radius, sq_steps),
-     (5687, sq_radius, sq_steps)], 
+    [(23877, sq_radius, sq_steps),
+     (20412, sq_radius, sq_steps)],
+    [], 
     [],
     [] 
 ]
@@ -39,7 +39,7 @@ all_configs = [
 live_chip = True
 
 #TODO
-wells = [3]
+wells = [2]
 
 #TODO 
 experiment_name = "live_chip"
@@ -48,17 +48,17 @@ experiment_name = "live_chip"
 chip_id = "M07461" 
 
 #TODO
-maxtwo = False
+maxtwo = True
 
 #TODO 
-experiment_time = 10
+experiment_time = 5
 
 #TODO stimulation electrodes
 a_electrodes = [
     [],
     [],
     [],
-    [9711],
+    [16315],
     [],
     []
 ]
@@ -72,7 +72,7 @@ b_electrodes = [
 ]
 
 #TODO desription
-desc = "Verifying the button detection. New button releasing logic."
+desc = "Verifying the button detection. New button releasing logic. window=1000 frames, std threshold=3"
 
 #TODO
 sendEmail = True

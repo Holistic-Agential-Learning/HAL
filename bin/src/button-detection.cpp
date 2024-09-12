@@ -104,6 +104,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     int stimType = 0;
 
     int windowLength = 1000;
+    std::fstream thresholds;
+    thresholds.open(path + "/thresholds_well_" + to_string(well) + ".txt", std::fstream::out);
 
     std::fstream data;
     data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
@@ -127,8 +129,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int blanking = 0;
 
-    controller.addButton("A", windowLength, config0.c_str(), 10); //slow button
-    controller.addButton("B", windowLength, config1.c_str(), 10); //fast button
+    controller.addButton("A", windowLength, config0.c_str(), 50); //slow button
+    controller.addButton("B", windowLength, config1.c_str(), 50); //fast button
     
     // initialize the vector with 200 frames
     for (int i = 0; i < windowLength; i++) {
@@ -211,6 +213,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "A Ratio Threshold: " << aRatio << endl;
     cout << "B Ratio Threshold: " << bRatio << endl;
 
+    thresholds << "A Ratio Threshold: " << aRatio << endl;
+    thresholds << "B Ratio Threshold: " << bRatio << endl;
 
     ProgressBar expBar = ProgressBar(frames, "Button verification running...");
 
@@ -313,6 +317,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "program over - starting post recording " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
     data.close();
+    thresholds.close();
 } 
 
 // run with ./prints-bursts frames threshold

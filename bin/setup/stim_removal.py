@@ -24,14 +24,14 @@ import bin.lib.py_src.hal as hal
 #     2: [3315,6127,22413,22671]
 # }
 STIM_ELECTRODES = {
-    0: [3319,3919,22243,22845],
-    1: [3757,3929,22411,23115],
-    2: [3765,3941,20483,21977],
-    3: [4213,8323,23285,24017],
-    4: [4653,5249,21971,23571],
-    5: [6009,6965,19317,19655]
+    0: [],
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+    5: []
 }
-MINUTES = 60
+MINUTES = 5
 THRESH = 0.1
 STIM_RATE = 5 #stims per second?
 
@@ -66,9 +66,9 @@ if __name__ == '__main__':
 
         array = hal.init_well(well, rec_electrodes, STIM_ELECTRODES[well])
 
-        well_data[well] = hal.get_file_names(well, file_name, trial_path)
+        dir, h5, config_name = hal.get_file_names(well, file_name, trial_path)
 
-        array.save_config(well_data[well]["CFG"])
+        array.save_config(config_name)
         
         ############################################################################
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         #Create start train and end sequences. TODO: LOOP THROUGH ALL WELLS AND DO THIS
         hal.build_training_sequences(well)
         
-        program_args = [f"./bin/build/rp_stim_removal", "2>", "ERR_LOG", "--config", well_data[well]["CFG"], "--folder", well_data[well]["REC_DIR"], "--pulse_duration", str(duration)]
+        program_args = [f"./bin/build/new-train-wave", "2>", "ERR_LOG", "--config", config_name, "--folder", dir, "--pulse_duration", str(duration)]
         if exp_args['-MAXTWO-']:
             program_args.append("--maxtwo")
 
@@ -95,24 +95,23 @@ if __name__ == '__main__':
         program_args.append("--stim_rate")
         program_args.append(str(STIM_RATE))
 
-        well_data[well]["ARGS"] = program_args
+        
 
         #############################################################################
 
     #time.sleep(3600)
 
-    for well in wells:
         mx.activate([well])
         mx.set_primary_well(well)
         
         s = mx.Saving()
-        s.open_directory(well_data[well]["REC_DIR"])
-        s.start_file(well_data[well]["REC_FILE"])
+        s.open_directory(dir)
+        s.start_file(h5)
 
         #Write metadata
         hal.write_exp_description(s, f"Removal of noxious stimuli to train burst direction. Stim frequency: {STIM_RATE} Hz. Threshold: {THRESH}. Time: {MINUTES} mins.")
         hal.write_stim_electrodes(s, STIM_ELECTRODES[well])
-        hal.write_closed_loop_args(s, well_data[well]["ARGS"])
+        hal.write_closed_loop_args(s, program_args)
 
         s.group_delete_all()
         
@@ -127,7 +126,7 @@ if __name__ == '__main__':
 
         mx.send(mx.Event(well, 1, 1, "start_subprocess 1"))
         try:
-            subprocess.run(well_data[well]["ARGS"])
+            subprocess.run(program_args)
         except KeyboardInterrupt:
             print("start-maxlab.py: ^C signalled")
         except Exception as err:

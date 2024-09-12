@@ -84,7 +84,7 @@ dec_guidance_electrodes = []
 inc_guidance_electrodes = []
 
 #TODO desription
-desc = "Evan's test to try the new square button program + frequency game with big buttons, Day 5. Std=4"
+desc = "Evan's test to try the new square button program + frequency game with big buttons, Day 6. Std=4"
 
 #TODO
 sendEmail = True
