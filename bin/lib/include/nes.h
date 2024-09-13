@@ -30,6 +30,8 @@ class NES : public Controller {
          */
         // void addButton(string id, int windowLength, const char *configPath, int saveWindows=10);
 
+        int checkButtons(int frameNo);
+
         
 
 
@@ -38,6 +40,11 @@ class NES : public Controller {
         std::fstream csv;
         float zThresh;
         float percentThresh;
+        bool aReleased;
+        bool bReleased;
+
+        float zScore(float value, float avg, float sd);
+        void printValues(int ab, int frameNo, float perA, float valA, float avgA, float sdA, float zA, float perB, float valB, float avgB, float sdB, float zB);
         
 
 };

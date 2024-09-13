@@ -156,80 +156,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     int framesPerMin = FRAMES_PER_SEC * 60;
 
-    vector<float> ratios;
-
-    // amount of time to gather data for ratio threshold calculation
-    ProgressBar ratioProgress = ProgressBar(ratioFrames, "Calculating ratio thresholds...");
-
-    /*
-        Calibrate ratio thresholds
-    */
-    for (int i = 0; i < ratioFrames; i++) {
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
-        
-        // If no data was read in, try again (happens when loop finishes before 
-        // the machine takes another sample)
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
-            continue;
-        }        
-        controller.shift(frameData);
-        ratioProgress.increment();
-
-        if (winA->pastWindowsReady() && winB->pastWindowsReady()) {
-            float firingRateAvgA = winA->avgPastWindows();
-            float firingRateAvgB = winB->avgPastWindows();
-            float firingRateA = winA->firingRate();
-            float firingRateB = winB->firingRate();
-            
-            if (firingRateA > 0 && firingRateB > 0) {
-                float ratio = calcRatio(firingRateAvgA, firingRateAvgB);
-                ratios.push_back(ratio);
-            }
-        }
-    }
-    cout << endl;
-
-    float aRatio;
-    float bRatio;
-    int aRatioIndex;
-    int bRatioIndex;
-    int numRatios;
-
-    if (ratios.size() < 10) {
-        aRatio = 0.5;
-        bRatio = -0.5;
-    } else {
-        // sort all ratios
-        sort(ratios.begin(), ratios.end());
-
-        numRatios = ratios.size() - 1;
-
-        // get 10th percentile and 90th percentile
-        aRatioIndex = 0.9 * numRatios;
-        bRatioIndex = 0.1 * numRatios;
-
-        aRatio = ratios[aRatioIndex];
-        bRatio = ratios[bRatioIndex];
-    }
-
-    ratios.clear();
-
-    // cout << "A Ratio Threshold: " << aRatio << endl;
-    // cout << "B Ratio Threshold: " << bRatio << endl;
-
-    // thresholds << "A Ratio Threshold: " << aRatio << endl;
-    // thresholds << "B Ratio Threshold: " << bRatio << endl;
-
     ProgressBar expBar = ProgressBar(frames, "Button verification running...");
 
-    bool aReleased = true;
-    bool bReleased = true;
-
     maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
-
-    float zScoreThreshold = 3;
 
     /*
         Run Experiment
@@ -255,72 +184,20 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             controller.shift(frameData);
         }
 
-        bool pressed = false;
-        // N means that no button was pressed
-        string buttonPressed = "0";
-       
-        if (winA->pastWindowsReady() && winB->pastWindowsReady() && !blanking) {
-            float firingRateAvgA = winA->avgPastWindows();
-            float firingRateAvgB = winB->avgPastWindows();
-            float sdA = winA->firingRateSD();
-            float sdB = winB->firingRateSD();
-            float firingRateA = winA->firingRate();
-            float firingRateB = winB->firingRate();
-            float zScoreA = zScore(firingRateA, firingRateAvgA, sdA);
-            float zScoreB = zScore(firingRateB, firingRateAvgB, sdB);
-            int spikeCountA = winA->totalSpikeCount();
-            int spikeCountB = winB->totalSpikeCount();
+        int pressed = controller.checkButtons(i);
 
-            int numChannelsA = winA->numChannels();
-            int numChannelsB = winB->numChannels();
+        if (pressed == 1) {
+            maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
-            float percentChannelsFiredA = spikeCountA / (float) numChannelsA;
-            float percentChannelsFiredB = spikeCountB / (float) numChannelsB;
+            expBar.clear();
+            cout << i << ": button A pressed " << endl;
+            expBar.print();
+        } else if (pressed == 2) {
+            maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
 
-
-            // get normalized difference
-            float ratio = calcRatio(firingRateA, firingRateB);
-
-            bool aPressed = false;
-            bool bPressed = false;
-
-            // Button A was pressed
-            if (aReleased && bReleased && zScoreA > zScoreThreshold && percentChannelsFiredA > spikePercentThreshold) {
-                aPressed = true;
-            // Button B was pressed 
-            } else if (aReleased && bReleased && zScoreB > zScoreThreshold && percentChannelsFiredB > spikePercentThreshold) {
-                bPressed = true;
-            } 
-
-            // check if the button is currently being "pressed"
-            aReleased = !aPressed;
-            bReleased = !bPressed;
-
-            // ensure that only A or B gets pressed
-            if (aPressed && bPressed) {
-                if (percentChannelsFiredA >= percentChannelsFiredB) {
-                    bPressed = false;
-                } else aPressed = false;
-            }
-
-            if (aPressed) {
-                buttonPressed = "1";
-                expBar.clear();
-                cout << i << ": button A pressed " << endl;
-                expBar.print();
-
-                maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
-
-            } else if (bPressed) {
-                buttonPressed = "2";
-                expBar.clear();
-                cout << i << ": button B pressed " << endl;
-                expBar.print();
-
-                maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
-            }
-
-            printValues(&data, buttonPressed, i, percentChannelsFiredA, firingRateA, firingRateAvgA, sdA, zScoreA, percentChannelsFiredB, firingRateB, firingRateAvgB, sdB, zScoreB);
+            expBar.clear();
+            cout << i << ": button B pressed " << endl;
+            expBar.print();
         }
 
         if (!isLive) {
