@@ -17,7 +17,7 @@ import bin.lib.py_src.plotter as plotter
 
 #TODO optional variables if you want to use the same radius and density for all
 # generated squares
-sq_radius = 10
+sq_radius = 5
 sq_steps = 2
 
 # With this the button is width is: 2 * 17.5 um * sq_radius * sq_steps
@@ -28,7 +28,8 @@ sq_steps = 2
 all_configs = [
     [],
     [],
-    [],
+    [(19753, sq_radius, sq_steps),
+     (24593, sq_radius, sq_steps)],
     [(9711, sq_radius, sq_steps),
      (5687, sq_radius, sq_steps)], 
     [],
@@ -39,7 +40,7 @@ all_configs = [
 live_chip = True
 
 #TODO
-wells = [3]
+wells = [2]
 
 #TODO 
 experiment_name = "NES_test"

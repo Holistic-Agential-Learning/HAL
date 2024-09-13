@@ -98,7 +98,8 @@ int NES::checkButtons(int frameNo) {
         if (aReleased && bReleased && zScoreA > zThresh && percentChannelsFiredA > percentThresh) {
             aPressed = true;
         // Button B was pressed 
-        } else if (aReleased && bReleased && zScoreB > zThresh && percentChannelsFiredB > percentThresh) {
+        } 
+        if (aReleased && bReleased && zScoreB > zThresh && percentChannelsFiredB > percentThresh) {
             bPressed = true;
         } 
 
