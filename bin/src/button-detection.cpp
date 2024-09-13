@@ -278,7 +278,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             if (aReleased && bReleased && zScoreA > zScoreThreshold && percentChannelsFiredA > spikePercentThreshold) {
                 aPressed = true;
             // Button B was pressed 
-            } else if (aReleased && bReleased && zScoreB > zScoreThreshold && percentChannelsFiredB > spikePercentThreshold) {
+            } 
+            if (aReleased && bReleased && zScoreB > zScoreThreshold && percentChannelsFiredB > spikePercentThreshold) {
                 bPressed = true;
             } 
 

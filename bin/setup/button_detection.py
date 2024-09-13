@@ -17,7 +17,7 @@ import bin.lib.py_src.plotter as plotter
 
 #TODO optional variables if you want to use the same radius and density for all
 # generated squares
-sq_radius = 8
+sq_radius = 5
 sq_steps = 2
 
 # With this the button is width is: 2 * 17.5 um * sq_radius * sq_steps
@@ -28,8 +28,8 @@ sq_steps = 2
 all_configs = [
     [],
     [],
-    [(21732, sq_radius, sq_steps),
-     (14691, sq_radius, sq_steps)],
+    [(19753, sq_radius, sq_steps),
+     (24593, sq_radius, sq_steps)],
     [], 
     [],
     [] 
@@ -225,4 +225,4 @@ if __name__ == '__main__':
         print("finished recording - safe to exit.")
 
     if (sendEmail):
-        subprocess.run(["./mail.sh"])
+        subprocess.run(["./mail.sh", "trevor.sullivan@tufts.edu"])
