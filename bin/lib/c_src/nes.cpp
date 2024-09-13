@@ -6,6 +6,7 @@
 NES::NES(float spikePercentThreshold, float zScoreThreshold) {
     percentThresh = spikePercentThreshold;
     zThresh = zScoreThreshold;
+    cout << "Z score theshold: " << zThresh << endl << "P thresh: " << percentThresh << endl;
     aReleased = true;
     bReleased = true;
 }
@@ -22,7 +23,11 @@ NES::NES(const char *csvName, float spikePercentThreshold, float zScoreThreshold
         exit(1);
     }
 
-    NES(spikePercentThreshold, zScoreThreshold);
+    percentThresh = spikePercentThreshold;
+    zThresh = zScoreThreshold;
+    cout << "Z score theshold: " << zThresh << endl << "P thresh: " << percentThresh << endl;
+    aReleased = true;
+    bReleased = true;
 }
 
 NES::NES(bool maxtwo, int windowLength, const char *AconfigPath, const char *BconfigPath, const char *csvName, float spikePercentThreshold, float zScoreThreshold) {
@@ -36,7 +41,22 @@ NES::NES(bool maxtwo, int windowLength, const char *AconfigPath, const char *Bco
     addButton("A", windowLength, AconfigPath, numPastWindows);
     addButton("B", windowLength, BconfigPath, numPastWindows);
 
-    NES(csvName, spikePercentThreshold, zScoreThreshold);
+    cout << "Opening csv "  << csvName << endl;
+    csv.open(csvName, std::fstream::out);
+
+    if (csv.is_open()) {
+        // put header in csv
+        csv << "frame number, button pressed, percent fired A, firing rate A, avg FR A, SD A, Z score A, percent fired B, firing rate B, avg FR B, SD B, Z Score B" << endl;
+    } else {
+        cerr << "Error in " << __FILE__ << ": could not open file " << csvName << endl;
+        exit(1);
+    }
+
+    percentThresh = spikePercentThreshold;
+    zThresh = zScoreThreshold;
+    cout << "Z score theshold: " << zThresh << endl << "P thresh: " << percentThresh << endl;
+    aReleased = true;
+    bReleased = true;
 }
 
 NES::~NES() {

@@ -132,7 +132,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     cout << "CSV: " << (path + "/button_data_well_" + to_string(well) + "_NES.csv").c_str() << endl;
     // initialize controller
     NES controller = NES(maxtwo, windowLength, config0.c_str(), config1.c_str(), (path + "/button_data_well_" + to_string(well) + "_NES.csv").c_str());
-
+    cout << "NES initialized" << endl;
     int blanking = 0;
 
     // controller.addButton("A", windowLength, config0.c_str(), 50); //slow button
