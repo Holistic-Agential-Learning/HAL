@@ -107,9 +107,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     std::fstream thresholds;
     thresholds.open(path + "/thresholds_well_" + to_string(well) + ".txt", std::fstream::out);
 
-    std::fstream data;
-    data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
-    data << "frame number, button pressed, percent fired A, firing rate A, avg FR A, SD A, Z score A, percent fired B, firing rate B, avg FR B, SD B, Z Score B" << endl;
+    // std::fstream data;
+    // data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
+    // data << "frame number, button pressed, percent fired A, firing rate A, avg FR A, SD A, Z score A, percent fired B, firing rate B, avg FR B, SD B, Z Score B" << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -123,14 +123,17 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             continue;
         }
     }
+
+    bool maxtwo = FRAMES_PER_SEC == 10000;
+    const char *csvName = path + "/button_data_well_" + to_string(well) + ".csv";
     
     // initialize controller
-    Controller controller = Controller();
+    NES controller = NES(maxtwo, windowLength, config0, config1, csvName);
 
     int blanking = 0;
 
-    controller.addButton("A", windowLength, config0.c_str(), 50); //slow button
-    controller.addButton("B", windowLength, config1.c_str(), 50); //fast button
+    // controller.addButton("A", windowLength, config0.c_str(), 50); //slow button
+    // controller.addButton("B", windowLength, config1.c_str(), 50); //fast button
     
     // initialize the vector with 200 frames
     for (int i = 0; i < windowLength; i++) {

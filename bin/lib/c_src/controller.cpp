@@ -11,7 +11,7 @@ Controller::~Controller() {
     }
 }
 
-virtual void Controller::addButton(string id, int windowLength, const char *configPath, int saveWindows) {
+void Controller::addButton(string id, int windowLength, const char *configPath, int saveWindows) {
     ChannelWindow *win = new ChannelWindow(windowLength, configPath, saveWindows);
 
     if (buttons.count(id) > 0) {

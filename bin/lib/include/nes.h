@@ -14,7 +14,9 @@ class NES : public Controller {
 
         NES(const char *csvName, float spikePercentThreshold=0.03, float zScoreThreshold=3);
 
-        NES(const char *AconfigPath, const char *BconfigPath, int windowLength, const char *csvName, float spikePercentThreshold=0.03, float zScoreThreshold=3);
+        NES(bool maxtwo, int windowLength, const char *AconfigPath, const char *BconfigPath, const char *csvName, float spikePercentThreshold=0.03, float zScoreThreshold=3);
+
+        ~NES();
 
         /**
          * @brief Adds a new button (ChannelWindow) to the Controller 
@@ -26,7 +28,7 @@ class NES : public Controller {
          * @param saveWindows <code>int</code> indicating how many windows to 
          *                  save, default 0
          */
-        void addButton(string id, int windowLength, const char *configPath, int saveWindows=10);
+        // void addButton(string id, int windowLength, const char *configPath, int saveWindows=10);
 
         
 
