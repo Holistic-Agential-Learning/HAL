@@ -35,7 +35,7 @@ class NES : public Controller {
 
     private:
         int currFrame = 0;
-        fstream csv;
+        std::fstream csv;
         float zThresh;
         float percentThresh;
         

@@ -16,7 +16,8 @@ NES::NES(const char *csvName, float spikePercentThreshold, float zScoreThreshold
         // put header in csv
         csv << "frame number, button pressed, percent fired A, firing rate A, avg FR A, SD A, Z score A, percent fired B, firing rate B, avg FR B, SD B, Z Score B" << endl;
     } else {
-        cerr << __FILE__ << ":\n\tError: could not open file " << csvName << endl;
+        cerr << "Error in " << __FILE__ << ": could not open file " << csvName << endl;
+        exit(1);
     }
 
     NES(spikePercentThreshold, zScoreThreshold);
@@ -37,6 +38,7 @@ NES::NES(bool maxtwo, int windowLength, const char *AconfigPath, const char *Bco
 }
 
 NES::~NES() {
+    cout << __FILE__ << ": closing csv..." << endl;
     if (csv.is_open()) csv.close();
 }
 

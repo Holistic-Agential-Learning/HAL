@@ -110,7 +110,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     std::fstream data;
     data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
     data << "frame number, button pressed, percent fired A, firing rate A, avg FR A, SD A, Z score A, percent fired B, firing rate B, avg FR B, SD B, Z Score B" << endl;
-
+    if (data.is_open()) {
+        cout << "successfully opened data" << endl;
+    }
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
 
@@ -125,10 +127,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     }
 
     bool maxtwo = FRAMES_PER_SEC == 10000;
-    const char *csvName = (path + "/button_data_well_" + to_string(well) + "_NES.csv").c_str();
-    
+    string csvName = path + "/button_data_well_" + to_string(well) + "_NES.csv";
+
+    cout << "CSV: " << (path + "/button_data_well_" + to_string(well) + "_NES.csv").c_str() << endl;
     // initialize controller
-    NES controller = NES(maxtwo, windowLength, config0.c_str(), config1.c_str(), csvName);
+    NES controller = NES(maxtwo, windowLength, config0.c_str(), config1.c_str(), (path + "/button_data_well_" + to_string(well) + "_NES.csv").c_str());
 
     int blanking = 0;
 

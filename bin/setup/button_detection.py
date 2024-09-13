@@ -42,7 +42,7 @@ live_chip = True
 wells = [3]
 
 #TODO 
-experiment_name = "live_chip"
+experiment_name = "NES_test"
 
 #TODO
 chip_id = "M07461" 
@@ -51,7 +51,7 @@ chip_id = "M07461"
 maxtwo = False
 
 #TODO 
-experiment_time = 10
+experiment_time = 5
 
 #TODO stimulation electrodes
 a_electrodes = [
@@ -86,7 +86,7 @@ def run_cpp(program_args):
     try:
         subprocess.run(program_args)
     except KeyboardInterrupt:
-        print("{__file__}: ^C signalled")
+        print(f"{__file__}: ^C signalled")
     except Exception as err:
         print(f"An error occurred: {err}")
 
