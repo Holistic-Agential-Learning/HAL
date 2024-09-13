@@ -250,7 +250,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         bool pressed = false;
-        // N means that no button was pressed
+        // 0 indicates that no button was pressed
         string buttonPressed = "0";
        
         if (winA->pastWindowsReady() && winB->pastWindowsReady() && !blanking) {
@@ -270,10 +270,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
             float percentChannelsFiredA = spikeCountA / (float) numChannelsA;
             float percentChannelsFiredB = spikeCountB / (float) numChannelsB;
-
-
-            // get normalized difference
-            float ratio = calcRatio(firingRateA, firingRateB);
 
             bool aPressed = false;
             bool bPressed = false;
