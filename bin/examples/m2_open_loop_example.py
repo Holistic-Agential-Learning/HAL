@@ -10,10 +10,10 @@
 #
 # Run with:
 #
-#       ./m2_open_loop_example.py.py
+#       ./m2_open_loop_example.py
 #
 # Written by Trevor M. Sullivan
-# August 2024
+# September 2024
 
 
 from typing import List
@@ -95,46 +95,33 @@ stim_elecs = [
 ]
 
 if __name__ == '__main__':
+
+    # create folders to save experiment data
     trial_path = hal.make_trial_folders_raw(parent_dir, experiment_name, chip_id, wells)
-    
+
     for well in wells:
-        config_elecs = cfg.read_config_elecs(configs[well])
-        sq0 = hal.get_electrode_square(5000, 6, 1)
-        sq1 = hal.get_electrode_square(10000, 5, 2)
+        rec_elecs = cfg.read_config_elecs(configs[well])
 
-        rec_elecs = sq0 + sq1 + config_elecs
-        
-        # If the last two arguments are not supplied, this function will 
-        # automatically connect and power up the stimulation units on DAC 0. 
-        # If you need to have stimulations on different DAC channels, it's 
-        # better to manually do it yourself. 
-        array = hal.init_well(well, rec_elecs, stim_elecs[well], False, False)
+        # make squares around stimulation electrodes
+        for electrode in stim_elecs[well]:
+            rec_elecs += hal.get_electrode_square(5000, 2)
 
-        stim_units_0 = hal.connect_stim_units_to_stim_electrodes([5000],  array)
-        stim_units_1 = hal.connect_stim_units_to_stim_electrodes([10000],  array)
+        # upload configuration electrodes, connect and power up stimulation electrodes
+        array = hal.init_well(well, rec_elecs, stim_elecs[well])
 
-        # init_well automatically does this--this is only needed when 
-        # manually connecting stimulation units, as shown above
-        array.download()
-        mx.offset()
-
-        # power up each set of stimulation units separately, choosing a 
-        # different DAC channel for each
-        hal.power_up_stim_units(stim_units_0, dac=0)
-        hal.power_up_stim_units(stim_units_1, dac=1)
-
+        # get the paths of relevant files
         rec_dir, h5_name, config = hal.get_file_names(well, experiment_name, trial_path)
 
-        #save the config prior to running the code
+        # save the config prior to running the experiment
         array.save_config(config)
 
-
+        # create stimulations
         stim_a_obj = Stimulation("A", dac_source=0, amplitude=10, phase=500, 
                             pulses_per_train=10, num_trains=1, pulse_interval=1, 
                             pulse_train_interval=1, well=well)
         stim_a = stim_a_obj.build_sequence()
 
-        stim_b_obj = Stimulation("B", dac_source=1, amplitude=10, phase=500, 
+        stim_b_obj = Stimulation("B", dac_source=0, amplitude=20, phase=500, 
                             pulses_per_train=10, num_trains=1, pulse_interval=1, 
                             pulse_train_interval=1, well=well)
         stim_b = stim_b_obj.build_sequence()
