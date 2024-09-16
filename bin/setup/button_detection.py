@@ -30,7 +30,8 @@ all_configs = [
     [],
     [(19753, sq_radius, sq_steps),
      (24593, sq_radius, sq_steps)],
-    [], 
+    [(9711, sq_radius, sq_steps),
+     (5687, sq_radius, sq_steps)], 
     [],
     [] 
 ]
@@ -42,7 +43,7 @@ live_chip = True
 wells = [2]
 
 #TODO 
-experiment_name = "live_chip"
+experiment_name = "NES_test"
 
 #TODO
 chip_id = "M07461" 
@@ -89,7 +90,7 @@ def run_cpp(program_args):
     try:
         subprocess.run(program_args)
     except KeyboardInterrupt:
-        print("{__file__}: ^C signalled")
+        print(f"{__file__}: ^C signalled")
     except Exception as err:
         print(f"An error occurred: {err}")
 
