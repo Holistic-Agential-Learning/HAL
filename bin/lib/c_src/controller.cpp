@@ -1,11 +1,13 @@
 #include "controller.h"
 #include <utility>
 #include <maxlab.h>
+#include <iostream>
 
 Controller::Controller() {
 }
 
 Controller::~Controller() {
+    cout << "freeing buttons" << endl;
     for (const auto& pair: buttons) {
         delete pair.second;
     }
@@ -58,6 +60,10 @@ ChannelWindow *Controller::getButtonWindow(string id) {
     ChannelWindow *win = buttons.at(id);
 
     return win;
+}
+
+bool buttonExists(string id) {
+    return buttons.count();
 }
 
 void Controller::add(maxlab::FilteredFrameData frame) {

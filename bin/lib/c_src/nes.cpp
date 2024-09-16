@@ -60,11 +60,12 @@ NES::NES(bool maxtwo, int windowLength, const char *AconfigPath, const char *Bco
 }
 
 NES::~NES() {
-    cout << __FILE__ << ": closing csv..." << endl;
     if (csv.is_open()) csv.close();
 }
 
 int NES::checkButtons(int frameNo) {
+    if (!(buttonExists("A") && buttonExists("B"))) return -1;
+    
     ChannelWindow *winA = getButtonWindow("A");
     ChannelWindow *winB = getButtonWindow("B");
 
@@ -126,6 +127,10 @@ int NES::checkButtons(int frameNo) {
     return buttonPressed;
 }
 
+bool NES::abExist() {
+    return buttonExists("A") && 
+}
+
 void NES::printValues(int ab, int frameNo, float perA, float valA, float avgA, float sdA, float zA, float perB, float valB, float avgB, float sdB, float zB) {
     csv << frameNo << ", " << ab << ", " ;
     csv << perA << ", "<< valA << ", " << avgA << ", " << sdA << ", " << zA << ", ";
@@ -135,9 +140,3 @@ void NES::printValues(int ab, int frameNo, float perA, float valA, float avgA, f
 float NES::zScore(float value, float avg, float sd) {
     return (value - avg) / sd;
 }
-
-// void NES::addButton(string id, int windowLength, const char *configPath, int saveWindows) override {
-//     if (numButtons == 2) {
-        
-//     }
-// }

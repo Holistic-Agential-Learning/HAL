@@ -38,8 +38,6 @@ class Controller {
         /**
          * @brief Initializes all buttons
          * 
-         *  
-         * 
          */
         void init();
          
@@ -55,7 +53,18 @@ class Controller {
         ChannelWindow *getButtonWindow(string id);
 
         /**
+         * @brief checks if a button exists in the controller
+         * 
+         * @param id <code>string</code> id of the button
+         * @return true 
+         * @return false 
+         */
+        bool buttonExists(string id);
+
+        /**
          * @brief Adds a data frame to all button windows
+         * 
+         * Note that this function will extend the window, not shift it
          * 
          * @param frame <code>maxlab::FilteredFrameData</code> frame to add to 
          *              each window
@@ -63,7 +72,8 @@ class Controller {
         void add(maxlab::FilteredFrameData frame);
 
         /**
-         * @brief Shifts all button windows
+         * @brief Shifts all button windows--the first frame of each window will
+         *        be removed, and a new one will be appended to the end.
          * 
          * @param frame <code>maxlab::FilteredFrameData</code> frame to add to 
          *              each window

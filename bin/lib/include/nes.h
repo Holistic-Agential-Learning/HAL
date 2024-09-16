@@ -30,6 +30,16 @@ class NES : public Controller {
          */
         // void addButton(string id, int windowLength, const char *configPath, int saveWindows=10);
 
+        /**
+         * @brief checks if either button A or button B has been pressed
+         * 
+         * @param frameNo 
+         * @return <code>int</code> code:
+         *         -1: button A or B has not been initialized
+         *         0: neither button A or B was pressed
+         *         1: button A was pressed
+         *         2: button B was pressed
+         */
         int checkButtons(int frameNo);
 
         
@@ -44,6 +54,7 @@ class NES : public Controller {
         bool bReleased;
 
         float zScore(float value, float avg, float sd);
+        bool abExist();
         void printValues(int ab, int frameNo, float perA, float valA, float avgA, float sdA, float zA, float perB, float valB, float avgB, float sdB, float zB);
         
 
