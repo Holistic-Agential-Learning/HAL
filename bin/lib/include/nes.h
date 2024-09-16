@@ -54,7 +54,6 @@ class NES : public Controller {
         bool bReleased;
 
         float zScore(float value, float avg, float sd);
-        bool abExist();
         void printValues(int ab, int frameNo, float perA, float valA, float avgA, float sdA, float zA, float perB, float valB, float avgB, float sdB, float zB);
         
 

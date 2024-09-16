@@ -7,7 +7,6 @@ Controller::Controller() {
 }
 
 Controller::~Controller() {
-    cout << "freeing buttons" << endl;
     for (const auto& pair: buttons) {
         delete pair.second;
     }
@@ -62,8 +61,8 @@ ChannelWindow *Controller::getButtonWindow(string id) {
     return win;
 }
 
-bool buttonExists(string id) {
-    return buttons.count();
+bool Controller::buttonExists(string id) {
+    return buttons.count(id);
 }
 
 void Controller::add(maxlab::FilteredFrameData frame) {

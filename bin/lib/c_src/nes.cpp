@@ -6,13 +6,11 @@
 NES::NES(float spikePercentThreshold, float zScoreThreshold) {
     percentThresh = spikePercentThreshold;
     zThresh = zScoreThreshold;
-    cout << "Z score theshold: " << zThresh << endl << "P thresh: " << percentThresh << endl;
     aReleased = true;
     bReleased = true;
 }
 
 NES::NES(const char *csvName, float spikePercentThreshold, float zScoreThreshold) {
-    cout << "Opening csv "  << csvName << endl;
     csv.open(csvName, std::fstream::out);
 
     if (csv.is_open()) {
@@ -25,23 +23,19 @@ NES::NES(const char *csvName, float spikePercentThreshold, float zScoreThreshold
 
     percentThresh = spikePercentThreshold;
     zThresh = zScoreThreshold;
-    cout << "Z score theshold: " << zThresh << endl << "P thresh: " << percentThresh << endl;
     aReleased = true;
     bReleased = true;
 }
 
 NES::NES(bool maxtwo, int windowLength, const char *AconfigPath, const char *BconfigPath, const char *csvName, float spikePercentThreshold, float zScoreThreshold) {
-    cout << "Initializing NES controller" << endl;
     int framesPerSec = maxtwo ? 10000 : 20000;
 
     // saves 5 seconds of past window data to compare against
     int numPastWindows = (framesPerSec * 5) / windowLength;
-    cout << "Number of past windows to save: " << numPastWindows << endl;
 
     addButton("A", windowLength, AconfigPath, numPastWindows);
     addButton("B", windowLength, BconfigPath, numPastWindows);
 
-    cout << "Opening csv "  << csvName << endl;
     csv.open(csvName, std::fstream::out);
 
     if (csv.is_open()) {
@@ -54,7 +48,6 @@ NES::NES(bool maxtwo, int windowLength, const char *AconfigPath, const char *Bco
 
     percentThresh = spikePercentThreshold;
     zThresh = zScoreThreshold;
-    cout << "Z score theshold: " << zThresh << endl << "P thresh: " << percentThresh << endl;
     aReleased = true;
     bReleased = true;
 }
@@ -125,10 +118,6 @@ int NES::checkButtons(int frameNo) {
     }
 
     return buttonPressed;
-}
-
-bool NES::abExist() {
-    return buttonExists("A") && 
 }
 
 void NES::printValues(int ab, int frameNo, float perA, float valA, float avgA, float sdA, float zA, float perB, float valB, float avgB, float sdB, float zB) {

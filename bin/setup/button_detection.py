@@ -49,7 +49,7 @@ experiment_name = "NES_test"
 chip_id = "M07461" 
 
 #TODO
-maxtwo = False
+maxtwo = True
 
 #TODO 
 experiment_time = 5
