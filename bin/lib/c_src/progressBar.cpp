@@ -1,4 +1,18 @@
+/**
+ * @file progressBar.cpp
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Implementation of the ProgressBar Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "progressBar.h"
+
+#include <string>
+#include <iostream>
 
 using namespace std;
 

@@ -1,8 +1,18 @@
+/**
+ * @file electrodeMap.h
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Header file for the ElectrodeMap Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #ifndef __ELECTRODEMAP_H__
 #define __ELECTRODEMAP_H__
-#include <string>
 
-#include <stdlib.h>
+#include <string>
 #include <map>
 
 using namespace std;

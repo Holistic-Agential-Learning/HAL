@@ -1,16 +1,19 @@
-#include <string>
-#include "electrodeMap.h"
-#include "channelWindow.h"
-#include <vector>
-#include <maxlab.h>
-#include <stdlib.h>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <utility>
+/**
+ * @file waveDetector.h
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Header file for the WaveDetector Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #ifndef __WAVEDETECTOR_H__
 #define __WAVEDETECTOR_H__
+
+#include "maxlab.h"
+#include "channelWindow.h"
 
 using namespace std;
 

@@ -1,7 +1,18 @@
+/**
+ * @file nes.cpp
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Implementation of the NES class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "nes.h"
+
 #include <iostream>
 #include <fstream>
-#include "maxlab.h"
 
 NES::NES(float spikePercentThreshold, float zScoreThreshold) {
     percentThresh = spikePercentThreshold;

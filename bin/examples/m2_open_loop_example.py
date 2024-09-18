@@ -54,7 +54,7 @@ parent_dir = "/home/mxwbio/Desktop/HAL/data/open-loop"
 
 # TODO
 #
-# wells to record from (just use 0 if using the MaxOne)
+# wells to record from (use 0 if using the MaxOne)
 wells = [0] 
 
 # TODO
@@ -65,7 +65,7 @@ chip_id = 16365
 
 # TODO
 #
-# Modify this to contain the full path of configs for each well. Just use the 
+# Modify this to contain the full path of configs for each well. Use the 
 # first element of the list if using the MaxOne
 configs = [
     "/home/mxwbio/Desktop/HAL/test_config_2.cfg", # well 0 config
@@ -80,11 +80,11 @@ configs = [
 # TODO
 #
 # Modify this to contain the stimulation electrodes for each well. Note that 
-# these are electrode numbers (0-26399). Just use the first element of the list 
+# these are electrode numbers (0-26399). Use the first element of the list 
 # if using the MaxOne. 
 #
-# Important note: stimulation electrodes MUST come from the set of recording 
-# electrodes defined above. 
+# Important note: stimulation electrodes MUST be included as recording 
+# electrodes--they are automatically added below
 stim_elecs = [
     [5000, 10000], # well 0 stimulation electrodes
     [], # well 1 stimulation electrodes
@@ -101,10 +101,13 @@ if __name__ == '__main__':
 
     for well in wells:
         rec_elecs = cfg.read_config_elecs(configs[well])
+        stim_squares = []
 
-        # make squares around stimulation electrodes
+        # make 5x5 (2 steps from center) squares around stimulation electrodes
         for electrode in stim_elecs[well]:
-            rec_elecs += hal.get_electrode_square(5000, 2)
+            stim_squares += hal.get_electrode_square(electrode, 2)
+        
+        rec_elecs += stim_squares
 
         # upload configuration electrodes, connect and power up stimulation electrodes
         array = hal.init_well(well, rec_elecs, stim_elecs[well])

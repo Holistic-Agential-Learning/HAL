@@ -1,7 +1,18 @@
+/**
+ * @file controller.cpp
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Implementation of the Controller Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "controller.h"
-#include <utility>
-#include <maxlab.h>
+
 #include <iostream>
+#include "maxlab.h"
 
 Controller::Controller() {
 }

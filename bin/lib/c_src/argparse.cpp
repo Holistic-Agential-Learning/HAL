@@ -1,3 +1,13 @@
+/**
+ * @file argparse.cpp
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Implementation of the argparse Module
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "argparse.h"
 #include <iostream>
 #include <cstring>

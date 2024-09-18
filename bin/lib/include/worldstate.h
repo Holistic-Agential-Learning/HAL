@@ -1,3 +1,17 @@
+/**
+ * @file worldstate.h
+ * @author Nathan Wu (nathan.wu@yale.edu)
+ * @brief Header file for the WorldState Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
+#ifndef __WORLDSTATE_H__
+#define __WORLDSTATE_H__
+
 #include <iostream>
 
 using namespace std;
@@ -54,3 +68,5 @@ class WorldState {
 
         int remainder(int a, int b);
 };
+
+#endif

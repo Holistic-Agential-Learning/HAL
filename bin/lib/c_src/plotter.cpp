@@ -1,20 +1,27 @@
+/**
+ * @file plotter.cpp
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Implementation of the Plotter Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #include "plotter.h"
+
 #include <string>
 #include <iostream>
+#include <zmq.hpp>
 
 using namespace std;
 
 Plotter::Plotter():
     context(1),
-    pubSock(context, ZMQ_PUB)
- {
+    pubSock(context, ZMQ_PUB) 
+{
     cout << "connecting..." << endl;
     pubSock.bind("tcp://*:5555");
-    // pubSock = zmq::socket_t(context, ZMQ_PUB);
-    
-    // pubSock.bind("tcp://*:5555");
-
-    // pubSock = sock;
 }
 
 void Plotter::sync() {
@@ -35,8 +42,8 @@ void Plotter::sync() {
     cout << endl;
 }
 
-void Plotter::sendFrequencyGameData(string buttonPressed, float seconds, int stimLevel, float stimRate) {
-    string data = buttonPressed + ";" + to_string(seconds) + ";" +  to_string(stimLevel) + ";" + to_string(stimRate);
+void Plotter::sendFrequencyGameData(string buttonPressed, float seconds, int level, float stimRate) {
+    string data = buttonPressed + ";" + to_string(seconds) + ";" +  to_string(level) + ";" + to_string(stimRate);
 
     pubSock.send(zmq::buffer(data));
 }

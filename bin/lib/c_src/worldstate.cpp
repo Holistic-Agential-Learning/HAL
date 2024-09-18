@@ -1,5 +1,17 @@
-#include <cassert>
+/**
+ * @file worldstate.cpp
+ * @author Nathan Wu (nathan.wu@yale.edu)
+ * @brief Implementation of the WorldState Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "worldstate.h"
+
+#include <cassert>
 
 void WorldState::validate(){
     assert(world_map.length() == nodes);

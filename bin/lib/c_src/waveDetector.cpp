@@ -1,9 +1,21 @@
+/**
+ * @file waveDetector.cpp
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Implementation of the WaveDetector Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "waveDetector.h"
 
-// #define MEM_ERR() {\
-//     cerr << "Error (" << __FILE__ << ", " << __LINE__ << ": memory allocation failed." << endl;\
-//     exit(1);\
-// }
+#include <iostream>
+#include "maxlab.h"
+#include "channelWindow.h"
+#include "electrodeMap.h"
+
 WaveDetector::WaveDetector() {
 
 }

@@ -1,3 +1,16 @@
+/**
+ * @file argparse.h
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Header file for argparse module
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+#ifndef __ARGPARSE_H__
+#define __ARGPARSE_H__
+
 #include <string>
 
 using namespace std;
@@ -139,3 +152,5 @@ int getIntArgSecure(string name, int defaultValue, int argc, char *argv[]);
 float getFloatArgSecure(string name, float defaultValue, int argc, char *argv[]);
 
 };
+
+#endif

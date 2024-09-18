@@ -1,10 +1,19 @@
-#include <vector>
-#include <iostream>
-#include <stdlib.h>
-#include <string>
+/**
+ * @file progressBar.h
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Header file for the ProgressBar Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #ifndef __PROGRESSBAR_H__
 #define __PROGRESSBAR_H__
+
+#include <vector>
+#include <string>
 
 using namespace std;
 

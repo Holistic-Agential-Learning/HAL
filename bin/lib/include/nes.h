@@ -1,34 +1,72 @@
-#include "controller.h"
-#include <iostream>
-#include <fstream>
+/**
+ * @file nes.h
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Header file for the NES class 
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #ifndef __NES_H__
 #define __NES_H__
+
+#include <fstream>
+#include "controller.h"
 
 using namespace std;
 
 class NES : public Controller {
     public:
 
+        /**
+         * @brief Construct a new <code>NES</code> object
+         * 
+         * @param spikePercentThreshold <code>float</code> percent of channels
+         *                              that spiked threshold (default 0.03)
+         * @param zScoreThreshold <code>float</code> Z score threshold (default
+         *                        3)
+         */
         NES(float spikePercentThreshold=0.03, float zScoreThreshold=3);
 
+        /**
+         * @brief Construct a new <code>NES</code> object
+         * 
+         * @param csvName <code>const char *</code> full path to csv which holds
+         *                button data for post-experiment analysis. If the csv
+         *                doesn't exist, it will automatically be created.
+         * @param spikePercentThreshold <code>float</code> percent of channels
+         *                              that spiked threshold (default 0.03)
+         * @param zScoreThreshold <code>float</code> Z score threshold (default
+         *                        3)
+         */
         NES(const char *csvName, float spikePercentThreshold=0.03, float zScoreThreshold=3);
 
+        /**
+         * @brief Construct a new <code>NES</code> object
+         * 
+         * @param maxtwo <code>bool</code> indicates if the experiment is 
+         *               running on the maxtwo
+         * @param windowLength <code>int</code> length of the windows 
+         *                     representing the buttons, measured in frames
+         * @param AconfigPath <code>const char *</code>
+         * @param BconfigPath <code>const char *</code>
+         * @param csvName <code>const char *</code> full path to csv which holds
+         *                button data for post-experiment analysis. If the csv
+         *                doesn't exist, it will automatically be created.
+         * @param spikePercentThreshold <code>float</code> percent of channels
+         *                              that spiked threshold (default 0.03)
+         * @param zScoreThreshold <code>float</code> Z score threshold (default
+         *                        3)
+         */
         NES(bool maxtwo, int windowLength, const char *AconfigPath, const char *BconfigPath, const char *csvName, float spikePercentThreshold=0.03, float zScoreThreshold=3);
 
-        ~NES();
-
         /**
-         * @brief Adds a new button (ChannelWindow) to the Controller 
+         * @brief Destroy the <code>NES</code> object
          * 
-         * @param id <code>string</code> identifier of the button/config
-         * @param windowLength <code>int</code> length of the window
-         * @param configPath <code>char</code> array representing the full path 
-         *                  of the config file
-         * @param saveWindows <code>int</code> indicating how many windows to 
-         *                  save, default 0
          */
-        // void addButton(string id, int windowLength, const char *configPath, int saveWindows=10);
+        ~NES();
 
         /**
          * @brief checks if either button A or button B has been pressed

@@ -1,9 +1,20 @@
-#include "channelWindow.h"
-#include <map>
-#include <string>
+/**
+ * @file controller.h
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Header file for the Controller Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 
 #ifndef __CONTROLLER_H__
 #define __CONTROLLER_H__
+
+#include <map>
+#include <string>
+#include "channelWindow.h"
 
 using namespace std;
 
@@ -36,7 +47,7 @@ class Controller {
         void addButton(string id, int windowLength, const char *configPath, int saveWindows=0);
 
         /**
-         * @brief Initializes all buttons
+         * @brief Initializes all buttons, regardless of window length
          * 
          */
         void init();
@@ -48,7 +59,7 @@ class Controller {
          * @param id <code>string</code> id of the button
          * @return pointer to a <code>ChannelWindow</code>
          * @throws <code>std::out_of_range</code> if there is not a button with 
-         *         the key <code>id</code>
+         *         the keTrevor Sullivan (trevor.sullivan@tufts.edu)y <code>id</code>
          */
         ChannelWindow *getButtonWindow(string id);
 

@@ -1,6 +1,24 @@
+/**
+ * @file channelWindow.cpp
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Implementation of the ChannelWindow Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "channelWindow.h"
+
 #include <fstream>
 #include <cmath>
+#include <string>
+#include <vector>
+#include <map>
+#include <iostream>
+#include "maxlab.h"
+#include "electrodeMap.h"
 
 using namespace maxlab;
 
@@ -194,12 +212,6 @@ float ChannelWindow::getAvgX() {
 }
 
 float ChannelWindow::firingRate() {
-    // Takes number of channels into account, but seems to make the output 
-    // way too small:
-    
-    // int numChannels = emap.size();
-    // double firingRate = (double) sum / (double) spikeWindow.size();
-    // return firingRate / numChannels;
 
     return (double) sum / (double) spikeWindow.size();
 }

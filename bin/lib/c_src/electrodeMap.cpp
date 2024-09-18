@@ -1,7 +1,17 @@
-#include <electrodeMap.h>
+/**
+ * @file electrodeMap.cpp
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Implementation of the ElectrodeMap Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
+#include "electrodeMap.h"
+
 #include <iostream>
-#include <stdio.h>
-#include <cstdlib>
 
 using namespace std;
 

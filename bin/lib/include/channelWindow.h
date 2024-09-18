@@ -1,14 +1,21 @@
-#include <string>
-#include <electrodeMap.h>
-#include <vector>
-#include <maxlab.h>
-#include <stdlib.h>
-#include <iostream>
-#include <fstream>
-#include <map>
-
+/**
+ * @file channelWindow.h
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @brief Header file for the ChannelWindow Class
+ * @version 0.1
+ * @date 2024-09-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
 #ifndef __CHANNELWINDOW_H__
 #define __CHANNELWINDOW_H__
+
+#include <string>
+#include <vector>
+#include <map>
+#include "maxlab.h"
+#include "electrodeMap.h"
 
 using namespace std;
 
