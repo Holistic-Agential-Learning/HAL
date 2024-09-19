@@ -217,7 +217,7 @@ class Stimulation(ArbitraryStimulation):
     
     def _create_sequence_list(self) -> List[ApiObject]:
         """
-        Create a stim sequence for the given ``Stimulation`` pattern, in list form.
+        Create a stim sequence for the given |Stimulation|_ pattern, in list form.
 
         :return: The sequence as a list of ``ApiObject``s.
         :rtype: ``List[ApiObject]``
@@ -260,18 +260,19 @@ class Stimulation(ArbitraryStimulation):
     @classmethod
     def combine_stimuli(cls, stim1: Self, stim2: Self, token: str)->ArbitraryStimulation:
         """
-        Combine two ``Stimulation`` objects into a sequence that runs them simultaneously.
-            NOTE: A more general version of this function may be written to support combining arbitrary stimuli, not just ``Stimulation`` objects.
-            Currently, this code depends on ``mx.Event`` objects of a specific format to determine when stimuli start and end, making it inappropriate for general use.
-            Not configured to deal with ``mx.DelayCycles`` objects.
+        Combine two |Stimulation|_ objects into a sequence that runs them simultaneously.
+        
+        A more general version of this function may be written to support combining arbitrary stimuli, not just |Stimulation|_ objects.
+        Currently, this code depends on ``mx.Event`` objects of a specific format to determine when stimuli start and end, making it inappropriate for general use.
+        Not configured to deal with ``mx.DelayCycles`` objects.
 
-        :param stim1: The first ``Stimulation`` object.
+        :param stim1: The first |Stimulation|_ object.
         :type stim1: ``Self``
-        :param stim2: The second ``Stimulation`` object.
+        :param stim2: The second |Stimulation|_ object.
         :type stim2: ``Self``
         :param token: The unique identifier token for the sequence.
         :type token: ``str``
-        :return: An ArbitraryStimulation object combining the two ``Stimulation`` objects.
+        :return: An ArbitraryStimulation object combining the two |Stimulation|_ objects.
         :rtype: ``ArbitraryStimulation``
         """     
         def process_delay_times(min_delay, max_delay, min_delay_seq):

@@ -58,8 +58,8 @@ class Controller {
          * 
          * @param id <code>string</code> id of the button
          * @return pointer to a <code>ChannelWindow</code>
-         * @throws <code>std::out_of_range</code> if there is not a button with 
-         *         the keTrevor Sullivan (trevor.sullivan@tufts.edu)y <code>id</code>
+         * @throws std::out_of_range if there is not a button with 
+         *         the ke)y <code>id</code>
          */
         ChannelWindow *getButtonWindow(string id);
 

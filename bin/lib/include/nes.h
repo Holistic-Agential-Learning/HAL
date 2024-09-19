@@ -44,7 +44,8 @@ class NES : public Controller {
         NES(const char *csvName, float spikePercentThreshold=0.03, float zScoreThreshold=3);
 
         /**
-         * @brief Construct a new <code>NES</code> object
+         * @brief Construct a new <code>NES</code> object, creating buttons 
+         * <code>A</code> and <code>B</code>.
          * 
          * @param maxtwo <code>bool</code> indicates if the experiment is 
          *               running on the maxtwo
