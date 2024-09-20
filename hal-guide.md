@@ -45,18 +45,49 @@ which will be provided.
 
 ### Repo Structure
 
-The source for HAL is found in the `bin` folder on the repo.
+The source for HAL is found in the `bin` folder on the repo. There are 3 main folders within `bin`:
+
+* `build` : contains all executables and object files for closed-loop experiments. 
+This folder is automatically created/destroyed by the `Makefile`, located in the 
+top-level directory.
+* `lib` : contains the HAL library modules
+  * `py_src` : source code for Python modules
+  * `include` : header files for C++ modules
+  * `c_src` : source code for C++ modules
+* `setup` : Python scripts for setting up experiments. These initialize the well(s), 
+configure electrodes, create stimulations, and often run a closed-loop program. There are a couple of open-loop experiments here.
+* `src` : C++ source code for closed-loop experiments
+
 
 ### Library
 
-### Creating Experiments
+The documentation for the HAL library is in the source code (found in `bin/lib`), 
+but also on our [website](https://project-hybrot.github.io/overview.html). This 
+site is still under construction, but almost all of the function contracts are there, nicely formatted, with a few visuals and examples.
 
 ### Examples
 
+Here are some files to look at for examples of how we create experiments with 
+HAl and the MaxWell API:
+
+* `bin/examples/m2_open_loop_example.py` : an example open-loop script that showcases
+the MaxWell API and HAL
+* `bin/setup/button_detection.py` : a setup script for testing the logic of 
+button presses for the `NES` class. It sets up some stimulations for testing on 
+a blank chip and creates events, which can be used as markers in the final `h5` 
+file output.
+* `bin/src/button-detection.cpp` : a closed-loop experiment used to test the 
+`NES` class, called by `button_detection.py`. Showcases the `NES` class.
+* `bin/src/new-train-wave.cpp` : a closed-loop experiment that trains the neurons
+to burst in a specific direction by sending different stimulations based on 
+the burst direction. Showcases the `WaveDetector` class.
 
 
+#
+For any questions, feel free to reach out to Wes or Trevor:
 
-
+Wesley Clawson, wesley.clawson@tufts.edu\
+Trevor Sullivan, trevor.sullivan@tufts.edu
 
 
 
