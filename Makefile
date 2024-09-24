@@ -1,3 +1,5 @@
+# Written by Trevor M. Sullivan
+# Summer 2024
 CXX = g++-11
 
 MAXLAB_PATH = /home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab
