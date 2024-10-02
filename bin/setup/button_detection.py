@@ -26,7 +26,8 @@ sq_steps = 2
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [],
+    [(9711, sq_radius, sq_steps),
+     (5687, sq_radius, sq_steps)],
     [],
     [(19753, sq_radius, sq_steps),
      (24593, sq_radius, sq_steps)],
@@ -37,26 +38,26 @@ all_configs = [
 ]
 
 #TODO indicates whether to simply read data, or to stimulate the buttons manually
-live_chip = True
+live_chip = False
 
 #TODO
-wells = [2]
+wells = [0]
 
 #TODO 
-experiment_name = "NES_test"
+experiment_name = "demo"
 
 #TODO
-chip_id = "M07461" 
+chip_id = "23242" 
 
 #TODO
-maxtwo = True
+maxtwo = False
 
 #TODO 
-experiment_time = 5
+experiment_time = 0.5
 
 #TODO stimulation electrodes
 a_electrodes = [
-    [],
+    [9711],
     [],
     [],
     [16315],
@@ -64,7 +65,7 @@ a_electrodes = [
     []
 ]
 b_electrodes = [
-    [],
+    [5687],
     [],
     [],
     [5687],
@@ -164,7 +165,7 @@ if __name__ == '__main__':
         hal.power_up_stim_units(a_units, 0)
         hal.power_up_stim_units(b_units, 1)
 
-        amp = 20
+        amp = 5
 
         stim_a = Stimulation(token="A", dac_source=0, amplitude=amp, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
         stim_seq_a = stim_a.build_sequence()

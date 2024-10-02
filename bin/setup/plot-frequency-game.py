@@ -28,9 +28,8 @@ sq_steps = 2
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [(7455, sq_radius, sq_steps),    #inhib
-     (25899, sq_radius, sq_steps),    #excit
-     "/home/mxwbio/Desktop/HAL/test_config_2.cfg"],
+    ["/home/mxwbio/configs/240802/buttonA.cfg",    #inhib
+     "/home/mxwbio/configs/240802/buttonB.cfg"],  #excit
     [(26203, sq_radius, sq_steps),    #inhib
      (13015, sq_radius, sq_steps),    #excit
      "/home/mxwbio/configs/240828/15h06m13s.cfg"],
@@ -48,10 +47,10 @@ all_configs = [
 wells = [0]
 
 #TODO 
-experiment_name = "cpp_plotter_test"
+experiment_name = "demo"
 
 #TODO
-chip_id = "16365" 
+chip_id = "23242" 
 
 #TODO
 maxtwo = False
@@ -66,12 +65,12 @@ min_frames_per_stim = 5000
 #TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
 ratio_calculation_time = 0
-experiment_time = 3
+experiment_time = 1.8
 post_exp_time = 0
 
 #TODO stimulation electrodes
 freq_electrodes = [
-    [2883,9473,16961,22241],
+    [6180, 21747],
     [3071,6101,12717,22857],
     [2463,13433,15393,21091],
     [],
@@ -80,11 +79,11 @@ freq_electrodes = [
 ]
 
 #TODO guidance electrodes
-dec_guidance_electrodes = []
-inc_guidance_electrodes = []
+dec_guidance_electrodes = [6182]
+inc_guidance_electrodes = [21305]
 
 #TODO desription
-desc = "Evan's test to try the new square button program + frequency game with big buttons, Day 3. Std=4"
+desc = ""
 
 #TODO
 sendEmail = False

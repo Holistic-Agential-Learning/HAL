@@ -9,7 +9,7 @@
 #
 # Run with:
 #
-#       ./m2_open_loop_example.py.py
+#       ./ADAM_conductivity.py
 #
 # Written by Wesley P Clawson
 # September 5, 2024
@@ -38,7 +38,7 @@ import bin.lib.py_src.config as cfg
 # TODO
 #
 # experiment name
-experiment_name = "conductivity-test"
+experiment_name = "conductivity-test-CNTsilk-PEDOTPSS-1.0p" #-low-amp
 
 
 # TODO
@@ -55,7 +55,12 @@ wells = [0]
 # TODO
 #
 # chip ID
-chip_id = 16365
+chip_id = 20660
+
+# CHIP silences
+# 20660 - 481,552,449 -0> 475,725,662,481
+# 20439 - 486,656
+# 20458 - 373,374,300
 
 
 # TODO
@@ -63,7 +68,7 @@ chip_id = 16365
 # Modify this to contain the full path of configs for each well. Just use the 
 # first element of the list if using the MaxOne
 configs = [
-    "/home/mxwbio/Desktop/HAL/default_config.cfg", # well 0 config
+    "/home/mxwbio/configs/240905/Puck_config.cfg", # well 0 config
     "", # well 1 config
     "", # ...
     "",
@@ -81,7 +86,7 @@ configs = [
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
 stim_elecs = [
-    [5000], # do some on left
+    [13703], # do some on left
     [], # well 1 stimulation electrodes
     [], # ... 
     [],
@@ -121,16 +126,35 @@ if __name__ == '__main__':
         #save the config prior to running the code
         array.save_config(config)
 
-
-        stim_a_obj = Stimulation("A", dac_source=0, amplitude=200, phase=200, 
+        # 200 and 650 // 10 and 50
+        stim_a_obj = Stimulation("A-200mv", dac_source=0, amplitude=200, phase=200, 
                             pulses_per_train=10, num_trains=2, pulse_interval=100, 
                             pulse_train_interval=1, well=well)
+        stim_a_dur = stim_a_obj.duration
+
         stim_a = stim_a_obj.build_sequence()
         
-        stim_b_obj = Stimulation("A", dac_source=0, amplitude=650, phase=200, 
+        stim_b_obj = Stimulation("B-650mv", dac_source=0, amplitude=650, phase=200, 
                             pulses_per_train=10, num_trains=2, pulse_interval=100, 
                             pulse_train_interval=1, well=well)
+        stim_b_dur = stim_b_obj.duration
+
         stim_b = stim_b_obj.build_sequence()
+
+
+        stim_c_obj = Stimulation("C-10mv", dac_source=0, amplitude=10, phase=200, 
+                            pulses_per_train=10, num_trains=2, pulse_interval=100, 
+                            pulse_train_interval=1, well=well)
+        stim_c_dur = stim_c_obj.duration
+
+        stim_c = stim_c_obj.build_sequence()
+        
+        stim_d_obj = Stimulation("D-50mv", dac_source=0, amplitude=50, phase=200, 
+                            pulses_per_train=10, num_trains=2, pulse_interval=100, 
+                            pulse_train_interval=1, well=well)
+        stim_d_dur = stim_d_obj.duration
+
+        stim_d = stim_d_obj.build_sequence()
 
         ########################################################################
 
@@ -155,14 +179,30 @@ if __name__ == '__main__':
             print("5 sec pause")
             time.sleep(5)
 
-            print("Sending first sequence...")
+            print("Sending 200mv sequence...")
             stim_a.send()
+            time.sleep(stim_a_dur)
 
             print("5 sec pause")
             time.sleep(5)
 
-            print("Sending second sequence...")
+            print("Sending 650mv sequence...")
             stim_b.send()
+            time.sleep(stim_b_dur)
+
+            print("10 sec pause")
+            time.sleep(10)
+
+            print("Sending 10mv sequence...")
+            stim_c.send()
+            time.sleep(stim_c_dur)
+
+            print("5 sec pause")
+            time.sleep(5)
+
+            print("Sending 50mv sequence...")
+            stim_d.send()
+            time.sleep(stim_d_dur)
 
             print("5 sec pause")
             time.sleep(5)

@@ -284,7 +284,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         // 0 indicates that no button was pressed
         string buttonPressed = "0";
        
-        if (winA->pastWindowsReady() && winB->pastWindowsReady() && !blanking) {
+        if (!guidance && winA->pastWindowsReady() && winB->pastWindowsReady() && !blanking) {
             float firingRateAvgA = winA->avgPastWindows();
             float firingRateAvgB = winB->avgPastWindows();
             float sdA = winA->firingRateSD();
