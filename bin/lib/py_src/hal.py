@@ -4,6 +4,7 @@ import shutil
 from typing import List
 import maxlab as mx
 
+import config as cfg
 
 def get_electrode_square(center: int, radius: int, step_width=1):
     """Generates a square of electrodes centered around a single electrode
@@ -95,7 +96,7 @@ def build_training_sequences(well_no: int):
     end_seq = mx.Sequence(f"end_experiment_{well_no}", persistent = True)
     end_seq.append(mx.Event(well_no, 1, 5, f"end_experiment {well_no}"))
 
-def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
+def init_well(well_no: int, rec_elecs: List[int] | str, stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
     """ Initilizes the well recording electrodes and stimulation electrodes. 
     By default, it will connect the stimulation units and power them, but this 
     can be overridden by setting the last two arguments to False or by passing
@@ -107,8 +108,9 @@ def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect
 
     :param well_no: Well number
     :type well_no: ``int``
-    :param rec_elecs: Recording electrodes, as a list of electrode numbers
-    :type rec_elecs: ``List[int]``
+    :param rec_elecs: Recording electrodes, as a list of electrode numbers OR as a
+                      full path to a MaxWell configuration file
+    :type rec_elecs: ``List[int]`` | str
     :param stim_elecs: Stimulation electrodes, as a list of electrode numbers. 
                        If empty, connecting and powering up will not be 
                        attempted.
@@ -134,8 +136,12 @@ def init_well(well_no: int, rec_elecs: List[int], stim_elecs: List[int], connect
     array = mx.Array(f"stimulation{well_no}")
     array.reset()
     array.clear_selected_electrodes()
+    if type(rec_elecs) is str:
+        elec_nums = cfg.read_config_elecs(rec_elecs)
+    else:
+        elec_nums = rec_elecs
     
-    array.select_electrodes(stim_elecs + rec_elecs)
+    array.select_electrodes(stim_elecs + elec_nums)
     
     array.select_stimulation_electrodes(stim_elecs)
     
