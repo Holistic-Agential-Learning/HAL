@@ -80,7 +80,7 @@ void sync() {
     std::cout << std::endl;
 }
 
-void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim,int well, bool guidance, float spikePercentThreshold) {
+void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance, float spikePercentThreshold) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     int stimType = 0;
@@ -101,7 +101,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     }
     
     // initialize controller
-    NES controller = NES(maxtwo, windowLength, config0.c_str(), config1.c_str(), (path + "/button_data_well_" + to_string(well) + ".csv").c_str());
+    NES controller = NES(FRAMES_PER_SEC == 10000, windowLength, config0.c_str(), config1.c_str(), (path + "/button_data_well_" + to_string(well) + ".csv").c_str());
     cout << "Initializing NES..." << endl;
     controller.init();
 

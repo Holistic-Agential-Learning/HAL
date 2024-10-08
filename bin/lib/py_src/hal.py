@@ -3,8 +3,12 @@ import datetime
 import shutil
 from typing import List
 import maxlab as mx
+import sys
 
-import config as cfg
+top_level_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+sys.path.append(top_level_dir)
+
+import bin.lib.py_src.config as cfg
 
 def get_electrode_square(center: int, radius: int, step_width=1):
     """Generates a square of electrodes centered around a single electrode

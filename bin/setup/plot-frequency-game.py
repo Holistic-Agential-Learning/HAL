@@ -54,10 +54,10 @@ wells = [0]
 parent_dir = "/home/mxwbio/Desktop/HAL/data/frequency-game"
 
 # TODO 
-experiment_name = "demo"
+experiment_name = "NES-test"
 
 # TODO
-chip_id = "23242" 
+chip_id = "20551" 
 
 # TODO
 maxtwo = False
