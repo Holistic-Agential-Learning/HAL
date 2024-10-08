@@ -49,9 +49,7 @@ Options:\n\
 int FRAMES_PER_SEC = 20000;
 
 void sync();
-float calcRatio(float A, float B);
-float zScore(float value, float avg, float sd);
-void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance, float spikePercentThreshold);
+void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance, float spikePercentThreshold);
 
 void signal_interrupt_handler(int sig) {
     cout << " signalled!" << endl;
@@ -82,35 +80,12 @@ void sync() {
     std::cout << std::endl;
 }
 
-float calcRatio(float A, float B) {
-    if (A == 0 && B == 0) {
-        return 0;
-    } else {
-        return (A - B) / (A + B);
-    }
-}
-
-float zScore(float value, float avg, float sd) {
-    return (value - avg) / sd;
-}
-
-void printValues(fstream *data, string ab, int frameNo, float perA, float valA, float avgA, float sdA, float zA, float perB, float valB, float avgB, float sdB, float zB) {
-    *data << frameNo << ", " << ab << ", " ;
-    *data << perA << ", "<< valA << ", " << avgA << ", " << sdA << ", " << zA << ", ";
-    *data << perB << ", "<< valB << ", " << avgB << ", " << sdB << ", " << zB << endl;
-}
-
-
-void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int minFramesPerStim, int maxFramesPerStim,int well, bool guidance, float spikePercentThreshold) {
+void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim,int well, bool guidance, float spikePercentThreshold) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     int stimType = 0;
 
     int windowLength = 1000;
-
-    std::fstream data;
-    data.open(path + "/button_data_well_" + to_string(well) + ".csv", std::fstream::out);
-    data << "frame number, button pressed, percent fired A, firing rate A, avg FR A, SD A, Z score A, percent fired B, firing rate B, avg FR B, SD B, Z Score B" << endl;
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -126,95 +101,14 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     }
     
     // initialize controller
-    Controller controller = Controller();
+    NES controller = NES(maxtwo, windowLength, config0.c_str(), config1.c_str(), (path + "/button_data_well_" + to_string(well) + ".csv").c_str());
+    cout << "Initializing NES..." << endl;
+    controller.init();
 
     int blanking = 0;
 
-    controller.addButton("A", windowLength, config0.c_str(), 49); //slow button
-    controller.addButton("B", windowLength, config1.c_str(), 49); //fast button
-    
-    ProgressBar controllerProgress = ProgressBar(windowLength, "Initializing controller...");
-
-    // initialize the vector with 200 frames
-    for (int i = 0; i < windowLength; i++) {
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
-
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
-            continue;
-        }
-
-        controller.add(frameData);
-        controllerProgress.increment();
-    }
-    cout << endl;
-
     ChannelWindow *winA = controller.getButtonWindow("A");
     ChannelWindow *winB = controller.getButtonWindow("B");
-
-    vector<float> ratios;
-
-    // amount of time to gather data for ratio threshold calculation
-    ProgressBar ratioProgress = ProgressBar(ratioFrames, "Calculating ratio thresholds...");
-
-    /*
-        Calibrate ratio thresholds
-    */
-    for (int i = 0; i < ratioFrames; i++) {
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
-        
-        // If no data was read in, try again (happens when loop finishes before 
-        // the machine takes another sample)
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
-            continue;
-        }        
-        controller.shift(frameData);
-        ratioProgress.increment();
-
-        if (winA->pastWindowsReady() && winB->pastWindowsReady()) {
-            float firingRateAvgA = winA->avgPastWindows();
-            float firingRateAvgB = winB->avgPastWindows();
-            float firingRateA = winA->firingRate();
-            float firingRateB = winB->firingRate();
-            
-            if (firingRateA > 0 && firingRateB > 0) {
-                float ratio = calcRatio(firingRateAvgA, firingRateAvgB);
-                ratios.push_back(ratio);
-            }
-        }
-    }
-    cout << endl;
-
-    float aRatio;
-    float bRatio;
-    int aRatioIndex;
-    int bRatioIndex;
-    int numRatios;
-
-    if (ratios.size() < 10) {
-        aRatio = 0.5;
-        bRatio = -0.5;
-    } else {
-        // sort all ratios
-        sort(ratios.begin(), ratios.end());
-
-        numRatios = ratios.size() - 1;
-
-        // get 10th percentile and 90th percentile
-        aRatioIndex = 0.9 * numRatios;
-        bRatioIndex = 0.1 * numRatios;
-
-        aRatio = ratios[aRatioIndex];
-        bRatio = ratios[bRatioIndex];
-    }
-
-    ratios.clear();
-
-    cout << "A Ratio Threshold: " << aRatio << endl;
-    cout << "B Ratio Threshold: " << bRatio << endl;
 
     int framesPerMin = FRAMES_PER_SEC * 60;
 
@@ -223,21 +117,18 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     float minStimRate = FRAMES_PER_SEC / (float) maxFramesPerStim;
     float maxStimRate = FRAMES_PER_SEC / (float) minFramesPerStim;
 
-    // cout << minStimRate << endl << maxStimRate << endl;
-
     // number of steps to get from the min stim rate to max stim rate
     int numSteps = 10;
 
     // acceleration (the amount to increase/decrease the stim rate by)
     float acc = (maxStimRate - minStimRate) / numSteps;
-    // cout << acc << endl;
 
     // how often the culture is stimulated, in frames
     float stimRate = minStimRate; 
-    cout << "starting plotter..." << endl;
+    cout << "Starting plotter..." << endl;
     Plotter plot = Plotter();
 
-    cout << "syncing..." << endl;
+    cout << "Syncing sockets..." << endl;
     plot.sync();
 
     cout << "Sockets initialized and synced" << endl;
@@ -269,7 +160,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         }
 
         expBar.increment();
-        
 
         if (blanking > 0) {
             blanking--;
@@ -279,55 +169,11 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             controller.shift(frameData);
         }
 
+        int pressed = controller.checkButtons(i);
 
-         bool pressed = false;
-        // 0 indicates that no button was pressed
-        string buttonPressed = "0";
-       
-        if (!guidance && winA->pastWindowsReady() && winB->pastWindowsReady() && !blanking) {
-            float firingRateAvgA = winA->avgPastWindows();
-            float firingRateAvgB = winB->avgPastWindows();
-            float sdA = winA->firingRateSD();
-            float sdB = winB->firingRateSD();
-            float firingRateA = winA->firingRate();
-            float firingRateB = winB->firingRate();
-            float zScoreA = zScore(firingRateA, firingRateAvgA, sdA);
-            float zScoreB = zScore(firingRateB, firingRateAvgB, sdB);
-            int spikeCountA = winA->totalSpikeCount();
-            int spikeCountB = winB->totalSpikeCount();
-
-            int numChannelsA = winA->numChannels();
-            int numChannelsB = winB->numChannels();
-
-            float percentChannelsFiredA = spikeCountA / (float) numChannelsA;
-            float percentChannelsFiredB = spikeCountB / (float) numChannelsB;
-
-            bool aPressed = false;
-            bool bPressed = false;
-
-            // Button A was pressed
-            if (aReleased && bReleased && zScoreA > zScoreThreshold && percentChannelsFiredA > spikePercentThreshold) {
-                aPressed = true;
-            // Button B was pressed 
-            } else if (aReleased && bReleased && zScoreB > zScoreThreshold && percentChannelsFiredB > spikePercentThreshold) {
-                bPressed = true;
-            } 
-
-            // check if the button is currently being "pressed"
-            aReleased = !aPressed;
-            bReleased = !bPressed;
-
-            // ensure that only A or B gets pressed
-            if (aPressed && bPressed) {
-                if (percentChannelsFiredA >= percentChannelsFiredB) {
-                    bPressed = false;
-                } else aPressed = false;
-            }
-
-            // Button A was pressed
-            if (aPressed) {
-                buttonPressed = "1";
-
+        if (!blanking && !guidance) {
+            if (pressed == 1) {
+                // Button A was pressed
                 if (stimRate > minStimRate) {
                     stimRate -= acc;
                     stimType--;
@@ -337,15 +183,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 expBar.clear();
                 cout << i << ": button A pressed " << stimType << " " << stimRate << endl;
                 expBar.print();
-               
+            
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
                 plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, stimType, stimRate);
-
-            // Button B was pressed 
-            } else if (bPressed) {
-                buttonPressed = "2";
-
+            } else if (pressed == 2) {
+                // Button B was pressed
                 if (stimRate < maxStimRate) {
                     stimRate += acc;
                     stimType++;
@@ -359,13 +202,12 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                 maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
 
                 plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, stimType, stimRate);
-            } 
-
-            printValues(&data, buttonPressed, i, percentChannelsFiredA, firingRateA, firingRateAvgA, sdA, zScoreA, percentChannelsFiredB, firingRateB, firingRateAvgB, sdB, zScoreB);
+            }
         }
 
         float numSeconds = (float) i / FRAMES_PER_SEC;
 
+        // Guidance system -- simulates the frequency game by stimulating the buttons
         if(guidance) {
             //starts at the very firts frame and inc every 10 sec
             if (increase && i % guidanceRate == 0 && i != 0) {
@@ -418,7 +260,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
     cout << "program over - starting post recording " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
-    data.close();
 } 
 
 // run with ./prints-bursts frames threshold
@@ -431,7 +272,6 @@ int main(int argc, char * argv[]) {
     // optional arguments
     bool maxtwo = checkOption("--maxtwo", argc, argv);
     float minutes = getFloatArgSecure("--minutes", 0.5, argc, argv);
-    float ratioTime = getFloatArgSecure("--ratio-time", 5, argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
     bool guidance = checkOption("--guidance", argc, argv);
 
@@ -452,10 +292,9 @@ int main(int argc, char * argv[]) {
     }
     
     int frames = minutes * 60 * FRAMES_PER_SEC;
-    int ratioFrames = ratioTime * 60 * FRAMES_PER_SEC;
 
     try {
-        runExperiment(path, config0, config1, frames, 0, lower, upper, well, guidance, spikePercent);
+        runExperiment(path, config0, config1, frames, lower, upper, well, guidance, spikePercent);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());

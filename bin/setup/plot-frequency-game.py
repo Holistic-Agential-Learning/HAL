@@ -17,14 +17,14 @@ import matplotlib.pyplot as plt
 import pickle
 import bin.lib.py_src.plotter as plotter
 
-#TODO optional variables if you want to use the same radius and density for all
+# TODO optional variables if you want to use the same radius and density for all
 # generated squares
 sq_radius = 10
 sq_steps = 2
 
 # With this the button is width is: 2 * 17.5 um * sq_radius * sq_steps
 
-#TODO configs
+# TODO configs
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
@@ -43,32 +43,38 @@ all_configs = [
     [] # not this one
 ]
 
-#TODO
+# TODO
 wells = [0]
 
-#TODO 
+# TODO
+#
+# full path to parent directory of experiment data
+#
+# data for each trial will be saved in "parent_dir/experiment_name/chip_id/date/trial"
+parent_dir = "/home/mxwbio/Desktop/HAL/data/frequency-game"
+
+# TODO 
 experiment_name = "demo"
 
-#TODO
+# TODO
 chip_id = "23242" 
 
-#TODO
+# TODO
 maxtwo = False
 
-#TODO toggle guidance system
+# TODO toggle guidance system
 guidance = True 
 
-#TODO bounds for stim rates
+# TODO bounds for stim rates
 max_frames_per_stim = 200000
 min_frames_per_stim = 5000
 
-#TODO ratio calculation time, experiment time, pre/post time, all in minutes
+# TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
-ratio_calculation_time = 0
 experiment_time = 1.8
 post_exp_time = 0
 
-#TODO stimulation electrodes
+# TODO stimulation electrodes
 freq_electrodes = [
     [6180, 21747],
     [3071,6101,12717,22857],
@@ -78,19 +84,36 @@ freq_electrodes = [
     []
 ]
 
-#TODO guidance electrodes
-dec_guidance_electrodes = [6182]
-inc_guidance_electrodes = [21305]
+# TODO guidance electrodes
+dec_guidance_electrodes = [
+    [6182],
+    [],
+    [],
+    [],
+    [],
+    []
+]
+inc_guidance_electrodes = [
+    [21305],
+    [],
+    [],
+    [],
+    [],
+    []
+]
 
-#TODO desription
+# TODO 
+#
+# experiment description
 desc = ""
 
-#TODO
+# TODO
 sendEmail = False
 
 
 def thread_cpp(program_args):
-    """Runs closed-loop program
+    """Runs closed-loop program, intended to be used by a separate thread IF 
+    using the live plotter (since Matplotlib works best on the main thread)
 
     :param program_args: arguments of the program to run
     :type program_args: List[str]
@@ -103,15 +126,40 @@ def thread_cpp(program_args):
         print(f"An error occurred: {err}")
 
 def get_square(dims):
+    """
+    Returns an electrode square based on a dimensions tuple
+
+    :param dims: "dimensions" of the square: center electrode, "radius", and 
+                 number of steps
+    :type dims: Tuple[int, int, int]
+    :return: electrodes corresponding to the square
+    :rtype: List[int]
+    """
     return hal.get_electrode_square(dims[0], dims[1], dims[2])
 
 def get_elecs(src):
+    """
+    Returns electrodes of a configuration file OR a dimensions tuple
+
+    :param src: configuration file or square "dimensions" tuple
+    :type src: Tuple[int, int, int] | str
+    :return: list of electrodes
+    :rtype: List[int]
+    """
     if isinstance(src, str):
         return cfg.read_config_elecs(src)
     else:
         return get_square(src)
 
 def merge_configs(configs):
+    """
+    Merges electrodes from multiple sources
+
+    :param configs: list of configuration files or square dimensions
+    :type configs: List[str | Tuple[int, int, int]]
+    :return: list of electrodes
+    :rtype: List[int]
+    """
     s = set()
     for config in configs:
         elec_nums = get_elecs(config)
@@ -129,14 +177,14 @@ def merge_configs(configs):
 
 
 if __name__ == '__main__':
-    trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/frequency-game", experiment_name, chip_id, wells) #TODO
+    trial_path = hal.make_trial_folders_raw(parent_dir, experiment_name, chip_id, wells)
     
     mx.initialize()
 
     for well in wells:
         mx.activate([well])
         mx.set_primary_well(well)
-        stim_electrodes = freq_electrodes[well] + dec_guidance_electrodes + inc_guidance_electrodes
+        stim_electrodes = freq_electrodes[well] + dec_guidance_electrodes[well] + inc_guidance_electrodes[well]
         rec_electrodes = freq_electrodes[well] + merge_configs(all_configs[well])
 
         print(f"stimulation electrodes: {stim_electrodes}")
@@ -146,18 +194,14 @@ if __name__ == '__main__':
             raise RuntimeError("The system didn't initialize correctly.")
         time.sleep(mx.Timing.waitInit)
         print(f"Initializing well {well}...")
-        
-        array = mx.Array(f"stimulation{well}")
-        array.reset()
-        array.clear_selected_electrodes()
-        array.select_electrodes(stim_electrodes + rec_electrodes)
-        array.select_stimulation_electrodes(stim_electrodes)
-        array.route()
-        array.download([well])
+
+        # manually connect and power stimulation elecs/units since we are using 
+        # different DACS
+        array = hal.init_well(well, rec_electrodes, stim_electrodes, connect=False, power_up=False)
         
         freq_units = hal.connect_stim_units_to_stim_electrodes(freq_electrodes[well], array)
-        inc_units = hal.connect_stim_units_to_stim_electrodes(inc_guidance_electrodes, array)
-        dec_units = hal.connect_stim_units_to_stim_electrodes(dec_guidance_electrodes, array)
+        inc_units = hal.connect_stim_units_to_stim_electrodes(inc_guidance_electrodes[well], array)
+        dec_units = hal.connect_stim_units_to_stim_electrodes(dec_guidance_electrodes[well], array)
 
         directory_name, file_name, config_file_name = hal.get_file_names(well, experiment_name, trial_path)
 
@@ -166,6 +210,10 @@ if __name__ == '__main__':
 
         new_buttons = cfg.get_buttons(config_file_name, [get_elecs(all_configs[well][0]), get_elecs(all_configs[well][1])], directory_name)
         
+        # TODO TODO
+        #
+        # test this -- it should be in init_well; does it matter if it happens
+        # before or after connecting stimulation units?
         array.download([well]) 
         mx.offset() 
         mx.clear_events() 
@@ -195,8 +243,6 @@ if __name__ == '__main__':
         program_args.append(str(well))
         program_args.append("--minutes")
         program_args.append(str(experiment_time))
-        program_args.append("--ratio-time")
-        program_args.append(str(ratio_calculation_time))
         if maxtwo:
             program_args.append("--maxtwo")
         program_args.append("--lower")
@@ -228,9 +274,7 @@ if __name__ == '__main__':
             mx.send(mx.Event(well, 1, 5, f"start_experiment {well}"))
             thread.start()
 
-            # plot on the main thread (since Matplotlib only works on the main 
-            # thread)
-            # plot(directory_name + "/" + file_name, min_frames_per_stim, max_frames_per_stim)
+            # plot on the main thread (since Matplotlib only works on the main thread)
             p = plotter.Plotter(directory_name + "/" + file_name, maxtwo, min_frames_per_stim, max_frames_per_stim)
             p.plot_frequency_game()
 
@@ -244,7 +288,7 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             print("Keyboard Interrupt")
         except Exception as err: 
-            print(f"An error occurred ({err}). Aborting...")
+            print(f"An error occurred ({err}) while recording for well {well}. Aborting...")
 
         ########################################################################
 
