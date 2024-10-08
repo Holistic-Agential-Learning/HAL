@@ -120,7 +120,6 @@ def merge_configs(configs):
     return list(s)
 
 
-
 if __name__ == '__main__':
     trial_path = hal.make_trial_folders_raw("/home/mxwbio/Desktop/HAL/data/button_detection", experiment_name, chip_id, wells) #TODO
     

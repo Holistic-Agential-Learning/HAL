@@ -220,7 +220,7 @@ def make_trial_folders(experiment_parameters):
     json_path = f"{home_folder}/{experiment_parameters['NAME']}.json"
 
     full_folder_path = f"{home_folder}/{today_str}"
-    print(f"full_folder_path: {full_folder_path}")
+    # print(f"full_folder_path: {full_folder_path}")
 
     if not os.path.exists(full_folder_path):
         os.makedirs(full_folder_path)
@@ -237,7 +237,7 @@ def make_trial_folders(experiment_parameters):
             
         trial += 1
     
-    print(f"Trial path: {trial_path}")
+    # print(f"Trial path: {trial_path}")
     
     wells = experiment_parameters['WELLS']
 
@@ -245,12 +245,12 @@ def make_trial_folders(experiment_parameters):
     for well in wells:
         well_path = f"{trial_path}/well{well}"
 
-        print(f"Making well folder: {well_path}")
+        # print(f"Making well folder: {well_path}")
 
         os.makedirs(well_path)
 
         json_copy = f"{well_path}/arguments.json"
-        print(f"Creating {json_copy}")
+        # print(f"Creating {json_copy}")
 
         # shutil.copyfile(json_path, json_copy)
 

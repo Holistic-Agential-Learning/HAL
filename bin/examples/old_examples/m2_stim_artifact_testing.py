@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-# m2_stimulation_assay_example
+# m2_stim_artifact_testing
 #
 # This is an open loop testing script that should stimulate all 6 wells at various frequencies, 
 # at varying amplitudes on a blank chip, to get a baseline level of stimulation artifact. 
-# Chips should not have water in them, but CMM. 
+# Chips should not have water in them, but CMM or DPBS. 
 #
 # Run with:
 #
@@ -34,43 +34,55 @@ from bin.lib.py_src.stimulation import Stimulation
 ################################################################################
 # GLOBAL VARIABLES
 
-# @edit
+# TODO
 #
-# file name of the h5 file where the recording data is stored
-file_name = "stimulation_artifact_test_fix" 
+# parent directory of experiment data
+parent_dir = "/home/mxwbio/Desktop/HAL/data/stimulation_artifact/"
 
-
-# @edit
+# TODO
 #
-# directory to store recording file
-recording_dir = "/home/mxwbio/Desktop/HAL/data/testing/"
+# name of the experiment
+experiment_name = "6_well_test" 
 
+# TODO
+chip_id = "M012345"
 
-# @edit
+# TODO
 #
 # wells to record from (just use 0 if using the MaxOne)
-wells = [0] #, 1, 2, 3, 4, 5] 
+# Any missing wells here will cause the program to ignore their respective 
+# recording and stimulatoin electrodes
+wells = [0, 1, 2, 3, 4, 5] 
+
+# TODO 
+#
+# description of the experiment, stored in the h5 file under "description"
+description = "stimulates all 6 wells at various frequencies, at varying amplitudes on a blank chip, to get a baseline level of stimulation artifact."
 
 
-# @edit
+# TODO
 #
 # Modify this to contain the FULL PATH of configs for each well. Just use the 
 # first element of the list if using the MaxOne
-
 with open("/home/mxwbio/Desktop/HAL/Ephaptic/configs/caspfiguration_center.txt", 'r') as f:
-    center_config = [int(row[0]) for row in csv.reader(f, delimiter='\t')]
+    center_rec_elecs = [int(row[0]) for row in csv.reader(f, delimiter='\t')]
 
 
-configs = [center_config] # well 0 config
-#     center_config, # well 1 config
-#     center_config, # well 2 config
-#     center_config, # well 3 config
-#     center_config, # well 4 config
-#     center_config, # well 5 config
-# ]
+# TODO
+#
+# recording electrodes for each well as either a list of integers or a full 
+# path to a MaxWell electrode configuration file
+recording_electrodes = [
+    center_rec_elecs, # well 0 config
+    center_rec_elecs, # well 1 config
+    center_rec_elecs, # well 2 config
+    center_rec_elecs, # well 3 config
+    center_rec_elecs, # well 4 config
+    center_rec_elecs, # well 5 config
+]
 
 
-# @edit
+# TODO
 #
 # Modify this to contain the stimulation electrodes for each well. Note that 
 # these are electrode numbers (0-26399). Just use the first element of the list 
@@ -78,95 +90,26 @@ configs = [center_config] # well 0 config
 #
 # Important note: stimulation electrodes MUST come from the set of recording 
 # electrodes defined above. 
-stimulation_electrodes = [[13310]] # well 1 stimulation electrodes
-#     [13310], # well 2 stimulation electrodes
-#     [13310], # well 3 stimulation electrodes 
-#     [13310], # well 4 stimulation electrodes
-#     [13310], # well 5 stimulation electrodes
-#     [13310]  # well 6 stimulation electrodes
-# ]
-
-
-################################################################################
-# HELPER FUNCTIONS
-
-# function for connecting stimulation units to stimulation electrodes
-def connect_stim_units_to_stim_electrodes(
-    stim_electrodes: List[int], array: mx.Array
-) -> List[int]:
-    stim_units: List[int] = []
-    for stim_el in stim_electrodes:
-        array.connect_electrode_to_stimulation(stim_el)
-        stim = array.query_stimulation_at_electrode(stim_el)
-        if len(stim) == 0:
-            raise RuntimeError(
-                f"No stimulation channel can connect to electrode: \
-                    {str(stim_el)}"
-            )
-        stim_unit_int = int(stim)
-        if stim_unit_int in stim_units:
-            raise RuntimeError(
-                f"Two electrodes connected to the same stim unit. This is not \
-                  allowed. Please Select a neighboring electrode of {stim_el}!"
-            )
-        else:
-            stim_units.append(stim_unit_int)
-    return stim_units
-
-# function for reading in electrode numbers from a config
-def get_config_electrodes(config_file):
-    file = open(config_file, "r")
-    contents = file.read()
-    electrode_nums = []
-    curr_word = ''
-
-    for char in contents:
-        # character before electrode number
-        if (char == '('):
-            curr_word = ''
-
-        # character after electrode number
-        elif (char == ')'):
-            electrode_nums.append(int(curr_word))
-            curr_word = ''
-        
-        # all electrodes have been processed
-        elif (char == 'H'):
-            break
-        else:                                                                       
-            curr_word = curr_word + char
-    
-    file.close()
-    
-    return electrode_nums
-
-# parses json that was created with the GUI
-def parse_json(json_name):
-    global file_name, recording_dir, wells, configs
-    f = open(json_name, "r")
-    params = json.load(f)
-    f.close()
-
-    wells = params['WELLS']
-
-    file_name = params['NAME']
-    recording_dir = params['FOLDER']
-
-    for well in wells:
-        configs[well] = params['CONFIGS'][str(well)]['PATH']
+stimulation_electrodes = [
+    [13310], # well 1 stimulation electrodes
+    [13310], # well 2 stimulation electrodes
+    [13310], # well 3 stimulation electrodes 
+    [13310], # well 4 stimulation electrodes
+    [13310], # well 5 stimulation electrodes
+    [13310]  # well 6 stimulation electrodes
+]
 
 ################################################################################
 # MAIN
 #
 if __name__ == "__main__":
 
-    # used only if the script is called from HAL/init
-    # parses the josn that was created with the GUI
-    if len(sys.argv) > 1:
-        parse_json(sys.argv[1])
-
     ############################################################################
     # SETUP EXPERIMENT
+
+    # creates folders for experiment data
+    trial_path = hal.make_trial_folders_raw(parent_dir, experiment_name, chip_id, wells) #TODO
+    
     mx.initialize()
     sleep(5)
     if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
@@ -180,56 +123,30 @@ if __name__ == "__main__":
 
         print(f"Setting up well {well}...")
 
-        # activate the current well
-        mx.activate([well])
-        mx.set_primary_well(well)
 
         # get config file and recording electrode numbers
-        # config_file = configs[well]
-        # recording_electrodes = get_config_electrodes(config_file)
-        recording_electrodes = configs[well] 
+        rec_elecs = recording_electrodes[well] 
 
         # grab the stimulation electrodes
         stim_elecs = stimulation_electrodes[well]
-        print(f"Stimulation electrodes: {stim_elecs}")
+        # print(f"Stimulation electrodes: {stim_elecs}")
 
-        array = mx.chip.Array("stimulation")
+        # upload recording electrodes and power up stimulation units
+        array = hal.init_well(well, rec_elecs, stim_elecs)
 
-        # set recording and stimulation electrodes
-        #
-        # Note: stimulation electrodes must also be recording electrodes
-        #array.reset()
-        array.clear_selected_electrodes( )
-        array.select_electrodes(recording_electrodes)
-        array.select_stimulation_electrodes(stim_elecs)
-        array.route()
-
-        # connect stimulation units
-        stimulation_units = hal.connect_stim_units_to_stim_electrodes(
-            stim_elecs, array
-        )
-
-        # download data to the well
-        array.download([well])
-
-        # power up stimulation units
-        for stim_unit in stimulation_units:
-            mx.send(
-                mx.StimulationUnit(stim_unit)
-                .power_up(True)
-                .connect(True)
-                .set_voltage_mode()
-                .dac_source(0)
-            )
+        # TODO optional: save configuration for each well for future reference
+        # array.save_config(f"{trial_path}/{experiment_name}_well{well}.cfg")
 
     mx.activate(wells)
 
-    print("Offsetting...")
-    sleep(mx.Timing.waitAfterDownload)
-    mx.offset()
-    sleep(15)
+    # TODO come back to this after testing...offset happens for each well in 
+    # hal.init_well
+    # why do we need to sleep so much here? can we take this out?
+    # print("Offsetting...")
+    # sleep(mx.Timing.waitAfterDownload)
+    # mx.offset()
+    # sleep(15)
 
-    mx.clear_events()
 
     print("Making stimulations...")
 
@@ -238,56 +155,59 @@ if __name__ == "__main__":
     amp_list = [10, 100, 150, 200, 300, 500, 700]
     freq_list = [0.5, 1, 5, 10, 50, 100]
 
-    stim_array = [None]*6   # A list for 6 wells
-    for wid in range(6):
-        stim_array[wid] = [None]*len(amp_list)
-        for i, stim_amp in enumerate(amp_list):
-            stim_array[wid][i] = Stimulation.from_frequency(str(freq_list[wid]) + "_Hz", 0,
-                                    frequency=freq_list[wid],
-                                    duration=max(10/freq_list[wid], 2),
-                                    amplitude = stim_amp,
-                                    phase = 200,
-                                    well=0
-                                    )
+    # ask Wes 
+
+    stim_array = []  # list of stimulations with varying amplitudes and frequencies
+
+    for freq in freq_list:
+        amp_stims = []
+        for amp in amp_list:
+            amp_stims.append(Stimulation.from_frequency(f"{freq}_Hz-{amp}_mV", 
+                                    dac_source = 0,
+                                    frequency = freq,
+                                    duration = max(10 / freq, 2),
+                                    amplitude = amp,
+                                    phase = 200))
+        stim_array.append(amp_stims)
             
-    stim_seq_array = [None]*6   # A list for 6 wells
-    for wid in range(6):
-        stim_seq_array[wid] = [None]*len(amp_list)
-        for i, stim_amp in enumerate(amp_list):
-            stim_seq_array[wid][i] = stim_array[wid][i].build_sequence()
+    stim_seq_array = []   # A list for 6 wells
+    for freq_idx in len(freq_list):
+        amp_seqs = []
+        for amp_idx in len(amp_list):
+            amp_seqs.append(stim_array[freq_idx][amp_idx].build_sequence())
+        stim_seq_array.append(amp_seqs)
 
 
     ############################################################################
     # RUN EXPERIMENT
 
     s = mx.Saving()
-    s.open_directory(recording_dir)
-    s.start_file(file_name)
+    s.open_directory(trial_path)
+    s.start_file(experiment_name)
 
     for well in wells:
-        s.group_define(well, "all_channels", list(range(1024)))
+        s.group_define(well, f"all_channels{well}", list(range(1024)))
 
     s.start_recording(wells)
 
     
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    # @edit
+    # TODO
     #
     # Send stimulations and configure experiment timings here
 
     print("Starting recording...")
     sleep(5)
-
-    for wid in range(6):
-        for i, stim_amp in enumerate(amp_list):
-            mx.set_primary_well(0)
-            mx.activate([0])
-            print("Sending stimulations to well " + str(0) + " at " + str(freq_list[wid]) + "Hz")
-            stim_seq_array[wid][i].send()
-            sleep(stim_array[wid][i].duration + 0.5)
-
-    print("Sleeping for a hot 10 seconds b/c holy moly...")
-    sleep(10)
+    for well in wells:
+        mx.set_primary_well(well)
+        mx.activate([well])
+        for freq_idx in len(freq_list):
+            for amp_idx in len(amp_list):
+                print(f"Sending stimulation to well {well} at {freq_list[freq_idx]} Hz and {amp_list[amp_idx]} mV")
+                stim_seq_array[freq_idx][amp_idx].send()
+                sleep(stim_array[freq_idx][amp_idx].duration + 0.5)
+            print("Pausing for 10 seconds before next well...")
+            sleep(10)
 
     # end of recording
     #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
