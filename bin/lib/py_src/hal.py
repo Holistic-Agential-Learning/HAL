@@ -250,7 +250,7 @@ def make_trial_folders(experiment_parameters):
 
     return trial_path
 
-def make_trial_folders_raw(parent_path, experiment_name, chip_id, wells):
+def make_trial_folders_raw(parent_path: str, experiment_name: str, chip_id: str | int, wells: List[int]) -> str:
     """ Creates folders for saving data without using a dict, in the HAL 
     specified folder format (see :ref:`getting_started:Folder Structure`).
 
@@ -261,10 +261,40 @@ def make_trial_folders_raw(parent_path, experiment_name, chip_id, wells):
     :type experiment_name: ``string``
 
     :param chip_id: chip id
-    :type chip_id: ``int``
+    :type chip_id: ``string`` | ``int``
 
     :param wells: list of wells that the experiment will run on 
     :type wells: ``List[int]``
+
+    :return: Returns the full path of the *trial folder*
+    :rtype: ``string``
+    """
+
+    # create all folders except for well folders
+    trial_path = make_trial_folders_parallel(parent_path, experiment_name, chip_id)
+    
+    # create well folders
+    for well in wells:
+        well_path = f"{trial_path}/well{well}"
+
+        os.makedirs(well_path)
+
+    return trial_path
+
+def make_trial_folders_parallel(parent_path: str, experiment_name: str, chip_id: str | int) -> str:
+    """
+     Creates folders for saving data in the HAL specified folder format for 
+     parallel experiments (i.e. when recording multiple wells at once; 
+     see :ref:`getting_started:Folder Structure`).
+
+    :param parent_path: full path of the parent folder
+    :type parent_path: ``string``
+
+    :param experiment_name: name of experiment
+    :type experiment_name: ``string``
+
+    :param chip_id: chip id
+    :type chip_id: ``string`` | ``int``
 
     :return: Returns the full path of the *trial folder*
     :rtype: ``string``
@@ -290,18 +320,10 @@ def make_trial_folders_raw(parent_path, experiment_name, chip_id, wells):
             break
             
         trial += 1
-    
-    # print(f"Trial path: {trial_path}")
-    
-    # create well folders
-    for well in wells:
-        well_path = f"{trial_path}/well{well}"
-
-        # print(f"Making well folder: {well_path}")
-
-        os.makedirs(well_path)
 
     return trial_path
+
+
 
 def write_closed_loop_args(s: mx.Saving, arguments: List[str]):
     """Writes arguments of closed-loop C++ program to the experiment h5 file
