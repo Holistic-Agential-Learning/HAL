@@ -2,7 +2,8 @@
 
 # m2_stimulation_assay_example
 #
-# This is a basic example for running custom stimulations on the MaxOne/Two.
+# This is a basic example for running custom stimulations on the MaxOne/Two, 
+# using only the MaxWell API
 #  
 # Intruction comments for creating your own experiments are dispersed 
 # throughout the file and are tagged with '@edit'. Large chunks of code to edit
@@ -221,11 +222,8 @@ if __name__ == "__main__":
 
     mx.clear_events()
 
-    print("Making stimulations...")
 
-    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    # @edit
-    #
+# This was copied from 'other files - I think should let me 
     # Define stimulation sequences here.
     # 
     # Notes:

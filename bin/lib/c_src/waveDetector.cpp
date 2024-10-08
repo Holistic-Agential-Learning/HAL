@@ -1,6 +1,6 @@
 /**
  * @file waveDetector.cpp
- * @author Trevor Sullivan (trevor.sullivan@tufts.edu)
+ * @author Trevor Sullivan (trevor.sullivan@tufts.edu) and Nathan Wu (nathan.wu@yale.edu)
  * @brief Implementation of the WaveDetector Class
  * @version 0.1
  * @date 2024-09-18
