@@ -52,6 +52,9 @@ num_hours = 24
 record_time = 15
 
 # TODO
+#
+# if mailx is installed, the addresses in the list will received an email
+# when the program ends
 emails = ["trevor.sullivan@tufts.edu"]
 
 

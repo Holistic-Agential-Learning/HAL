@@ -110,6 +110,13 @@ def init_well(well_no: int, rec_elecs: List[int] | str, stim_elecs: List[int], c
     will also be selected for recording, so they don't need to be in the 
     recording electrodes list.
 
+    **Important Note:** This function will pick recording electrodes by adding 
+    ``stim_elecs`` and ``rec_elecs``, meaning that ``rec_elecs`` does not have 
+    to contain everything in ``stim_elecs``. However, if the number of electrodes
+    in both lists combined is greater than 1020, then some of the electrodes 
+    *will not be chosen*. 
+
+
     :param well_no: Well number
     :type well_no: ``int``
     :param rec_elecs: Recording electrodes, as a list of electrode numbers OR as a

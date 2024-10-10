@@ -204,10 +204,7 @@ float ChannelWindow::getAvgX() {
         }
     }
     float average = avgSum / count;
-    if (sum > 0 && avgSum == 0 && count == 0) {
-        cout << "average is nan, sum is " << sum << endl;  
-        debug("average is nan");
-    }
+    
     return average;
 }
 

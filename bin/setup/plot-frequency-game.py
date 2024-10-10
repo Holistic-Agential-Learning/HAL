@@ -149,7 +149,7 @@ def get_elecs(src):
     if isinstance(src, str):
         return cfg.read_config_elecs(src)
     else:
-        return get_square(src)
+        return hal.get_electrode_square(*src) # unpacks tuple into arguments
 
 def merge_configs(configs):
     """
