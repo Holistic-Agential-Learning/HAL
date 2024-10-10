@@ -55,15 +55,15 @@ def make_config(data, file_name):
 
     f.write(to_write)
 
-def read_config_elecs(file: str):
+def read_config_elecs(config_path: str):
     """Gets electrode numbers from a MaxWell electrode configuration file.
 
     :param file: full path of config 
     :type file: ``str``
     :return: list of electrodes
-    :rtype: ``int``
+    :rtype: ``List[int]``
     """
-    data = read_config(file)
+    data = read_config(config_path)
 
     elecs = [int(e[1]) for e in data]
 

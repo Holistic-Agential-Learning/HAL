@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-labMembers=("trevor.sullivan@tufts.edu")
+# requires mailx and fortune 
+#
+# emails an experiment complete message to all arguments (assumed to be
+# valid emails)
+#
+# adds a fortune in the body of the email :)
 
 for email in "$@"; do
     echo "notifying $email..."

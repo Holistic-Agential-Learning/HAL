@@ -50,7 +50,7 @@ def coord_to_elec(coord):
             
 def get_file_names(well_no: int, experiment_name: str, trial_path: str):
     """Returns names and paths for recording directory, config, and 
-    h5 file.
+    h5 file for sequential experiments.
 
     :param well_no: well number
     :type well_no: int
@@ -357,6 +357,17 @@ def write_exp_description(s: mx.Saving, description: str) -> None:
     :type description: ``str``
     """
     s.write_assay_property("description", description)
+
+def write_exp_notes(s: mx.Saving, notes: str) -> None:
+    """Writes experiment notes as a property to the experiment h5 file
+    under key "notes"
+
+    :param s: Experiment to save the stimulation electrodes for
+    :type s: ``mx.Saving``
+    :param notes: notes of the experiment
+    :type notes: ``str``
+    """
+    s.write_assay_property("notes", notes)
 
 def write_stim_electrodes(s: mx.Saving, stim_electrodes: List[int]):
     """Writes the stimulation electrodes as a property to the experiment h5 file
