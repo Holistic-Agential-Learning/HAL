@@ -47,6 +47,7 @@ Options:\n\
 #define MINUTES_DEFAULT 15
 
 int FRAMES_PER_SEC = 20000;
+Plotter plot = Plotter();
 
 void sync();
 void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance, float spikePercentThreshold);
@@ -54,6 +55,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 void signal_interrupt_handler(int sig) {
     cout << " signalled!" << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+    plot.close();
     exit(sig);
 }
 
@@ -126,7 +128,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     // how often the culture is stimulated, in frames
     float stimRate = minStimRate; 
     cout << "Starting plotter..." << endl;
-    Plotter plot = Plotter();
+    
 
     cout << "Syncing sockets..." << endl;
     plot.sync();
