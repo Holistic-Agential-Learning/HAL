@@ -114,7 +114,8 @@ def init_well(well_no: int, rec_elecs: List[int] | str, stim_elecs: List[int], c
     ``stim_elecs`` and ``rec_elecs``, meaning that ``rec_elecs`` does not have 
     to contain everything in ``stim_elecs``. However, if the number of electrodes
     in both lists combined is greater than 1020, then some of the electrodes 
-    *will not be chosen*. 
+    *will not be chosen*. If that happens, ``stim_elecs`` will have preference 
+    over ``rec_elecs``. 
 
 
     :param well_no: Well number
