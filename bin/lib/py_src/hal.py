@@ -10,6 +10,28 @@ sys.path.append(top_level_dir)
 
 import bin.lib.py_src.config as cfg
 
+def build_frequency_list(num_levels: int, lower: int, upper: int):
+    diff = upper - lower
+    acceleration = diff / (num_levels - 1) 
+    full_list = [lower]
+    curr_level = lower
+
+    for _ in range(1, num_levels):
+        curr_level += acceleration
+        full_list.append(curr_level)
+
+    return full_list
+
+
+def write_frequency_list(file_path: str, frequencies: List[float]):
+    freq_strs = list(map(str, frequencies))
+    output = ",".join(freq_strs)
+    
+    with open(file_path, "w") as file:
+        file.write(output)
+        
+    
+
 def get_electrode_square(center: int, radius: int, step_width=1):
     """Generates a square of electrodes centered around a single electrode
 

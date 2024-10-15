@@ -35,27 +35,35 @@ using namespace argparse;
 #define SYS_START_BUFFER 5 * FRAMES_PER_SEC
 #define WINDOW 0.01 * FRAMES_PER_SEC
 
-#define USAGE "Usage: ./plot-frequency-game --config0 <config_path>  --config1 <config_path> --folder <folder_path>\n\n\
+#define USAGE "Usage: \n\
+  ./plot-frequency-game --config0 <file>  --config1 <file> --folder <path> \
+(--stim-freq-file <file> | --stim-freqs <value>) [--maxtwo] [--guidance] \
+[--minutes <value>] [--well <value>] [--spike-percent-thresh <value>]\n\n\
 Options:\n\
-\t[--maxtwo]             Indicates running on the MaxTwo\n\
-\t[--minutes <value>]    Number of minutes to run, float \n\
-\t[--well <value>]       Well number, int (default 0)\n\
-\t[--lower <value>]                     minimum frames between stimulations \
-(i.e. the upper bound on stimulation rate), int (default 5000)\n\
-\t[--upper <value>]                     maximum frames between stimulations \
-(i.e. the lower bound on stimulation rate), int (default 200000)\n\
-\t[--guidance]                          run the guidance system at the \
+  --config0 <file>                      Full path to configuration file for \
+button A, string\n\
+  --config1 <file>                      Full path to configuration file for \
+button B, string\n\
+  --folder <path>                       Full path to data folder created by \
+the setup script, string\n\
+  --stim-freq-file <value>              Full path to stimulation frequency \
+file \n\
+  --stim-freqs <value>                  Comma-separated stimulation \
+frequencies in Hz, float\n\
+  --maxtwo                              Indicates running on the MaxTwo\n\
+  --guidance                            Run the guidance system at the \
 beginning of the experiment\n\
-\t[--spike-percent-thresh <value>]      percent of channels in a button that \
-need to fire for a button press\n"
+  --minutes <value>                     Number of minutes to run, float \n\
+  --well <value>                        Well number, int (default 0)\n\
+  --spike-percent-thresh <value>        Percent of channels in a button that \
+need to spike for a button press\n"
 
 int FRAMES_PER_SEC = 20000;
 
 // needs to be global to close connection in case of interrupt 
-Plotter plot = Plotter();
+Plotter plot;
 
-void sync();
-void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance, float spikePercentThreshold);
+// void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance, float spikePercentThreshold);
 
 void signal_interrupt_handler(int sig) {
     cout << " signalled!" << endl;
@@ -64,33 +72,58 @@ void signal_interrupt_handler(int sig) {
     exit(sig);
 }
 
-/**
- * @brief Syncs with Python plotter 
- * 
- * 
- */
-void sync() {
-    zmq::context_t context{1};
+// grabs floats from string, comma separated
+vector<float> parseFloats(string floatList) {
+    size_t startIdx = 0;
+    size_t target = 0;
+    vector<float> freqs;
+    while ((target = floatList.find(",", startIdx)) != string::npos) {
+        string value = floatList.substr(startIdx, target);
+        startIdx = target + 1;
+        freqs.push_back(stof(value.c_str()));
+    } 
 
-    zmq::socket_t socket{context, zmq::socket_type::req};
-    socket.connect("tcp://localhost:5556");
+    freqs.push_back(stof(floatList.substr(startIdx, target).c_str()));
 
-    const std::string data{"sync"};
+    return freqs;
 
-    std::cout << "Sending sync..." << std::endl;
-    socket.send(zmq::buffer(data), zmq::send_flags::none);
-    
-    zmq::message_t reply{};
-    socket.recv(reply, zmq::recv_flags::none);
-
-    std::cout << "Received " << reply.to_string(); 
-    std::cout << std::endl;
 }
 
-void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance, float spikePercentThreshold) {
+// gets list of frequencies from either
+vector<float> getFrequencies(int argc, char *argv[]) {
+    bool isFile = checkOption("--stim-freq-file", argc, argv);
+    string freqString = "";
+
+    if (isFile) {
+        // read from file
+        string freqFile = getStringArg("--stim-freq-file", argc, argv);
+        ifstream file;
+
+        file.open(freqFile.c_str());
+        if (!file.is_open()) {
+            cerr << "Error: failed to open " << freqFile << endl;
+            exit(1);
+        }
+
+        getline(file, freqString);
+
+    } else {
+        // from the command line or nonexistent
+        freqString = getStringArg("--stim-freqs", argc, argv, USAGE);
+    }
+
+    return parseFloats(freqString);
+}
+
+
+
+void runExperiment(string path, string config0, string config1, vector<float> frequencies, int frames, int well, bool guidance, float spikePercentThreshold) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
-    int stimType = 0;
+    int level = 0;
+    int maxLevel = frequencies.size() - 1;
+    float stimRate = frequencies[level];
+    int framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
 
     int windowLength = 1000;
 
@@ -120,37 +153,19 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     int framesPerMin = FRAMES_PER_SEC * 60;
 
     ProgressBar expBar = ProgressBar(frames, "Frequency game running...");
-    
-    float minStimRate = FRAMES_PER_SEC / (float) maxFramesPerStim;
-    float maxStimRate = FRAMES_PER_SEC / (float) minFramesPerStim;
 
-    // number of steps to get from the min stim rate to max stim rate
-    int numSteps = 10;
-
-    // acceleration (the amount to increase/decrease the stim rate by)
-    float acc = (maxStimRate - minStimRate) / numSteps;
-
-    // how often the culture is stimulated, in frames
-    float stimRate = minStimRate; 
     cout << "Starting plotter..." << endl;
-    
+    plot = Plotter();
 
     cout << "Syncing sockets..." << endl;
     plot.sync();
 
     cout << "Sockets initialized and synced" << endl;
 
-    int framesPerStim = 200000;
-
     int guidanceRate = 100000;
     bool increase = true;
 
-    bool aReleased = true;
-    bool bReleased = true;
-
     maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
-
-    float zScoreThreshold = 3;
 
     /*
         Run Experiment
@@ -181,34 +196,34 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         if (!blanking && !guidance) {
             if (pressed == 1) {
                 // Button A was pressed
-                if (stimRate > minStimRate) {
-                    stimRate -= acc;
-                    stimType--;
+                if (level > 0) {
+                    level--;
+                    stimRate = frequencies[level];
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                 }
 
                 expBar.clear();
-                cout << i << ": button A pressed " << stimType << " " << stimRate << endl;
+                cout << i << ": button A pressed " << level << " " << stimRate << endl;
                 expBar.print();
             
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
-                plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, stimType, stimRate);
+                plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, level, stimRate);
             } else if (pressed == 2) {
                 // Button B was pressed
-                if (stimRate < maxStimRate) {
-                    stimRate += acc;
-                    stimType++;
+                if (level < maxLevel) {
+                    level++;
+                    stimRate = frequencies[level];
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                 }
 
                 expBar.clear();
-                cout << i << ": button B pressed " << stimType << " " << stimRate << endl;
+                cout << i << ": button B pressed " << level << " " << stimRate << endl;
                 expBar.print();
 
                 maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
 
-                plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, stimType, stimRate);
+                plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, level, stimRate);
             }
         }
 
@@ -218,9 +233,9 @@ void runExperiment(string path, string config0, string config1, int frames, int 
         if(guidance) {
             //starts at the very firts frame and inc every 10 sec
             if (increase && i % guidanceRate == 0 && i != 0) {
-                if (stimRate < maxStimRate) {
-                    stimRate += acc;
-                    stimType++;
+                if (level < maxLevel) {
+                    level++;
+                    stimRate = frequencies[level];
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                     expBar.clear();
                     cout << i << ": Speed increased by guidance" << endl;
@@ -229,14 +244,14 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     maxlab::verifyStatus(maxlab::sendSequence("inc_guidance"));
                     
                     // send to plotter for testing 
-                    plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, stimType, stimRate);
+                    plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, level, stimRate);
                 } else {
                     increase = false;
                 }
             } else if (!increase && i % guidanceRate == 0) {
-                if (stimRate > minStimRate) {
-                    stimRate -= acc;
-                    stimType--;
+                if (level > 0) {
+                    level--;
+                    stimRate = frequencies[level];
                     framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
                     expBar.clear();
                     cout << i << ": Speed decreased by guidance" << endl;
@@ -244,8 +259,8 @@ void runExperiment(string path, string config0, string config1, int frames, int 
                     expBar.print();
                     maxlab::verifyStatus(maxlab::sendSequence("dec_guidance"));
 
-                    plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, stimType, stimRate);
-                } if (stimRate == minStimRate) {
+                    plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, level, stimRate);
+                } if (stimRate == 0) {
                     guidance = false;
                 }
             }
@@ -260,7 +275,7 @@ void runExperiment(string path, string config0, string config1, int frames, int 
             maxlab::verifyStatus(maxlab::sendSequence("stim"));
             blanking=500;
         }
-              
+               
     }
     // tell plotter that the program is over
     plot.close();
@@ -271,19 +286,19 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
+
     // required arguments
     string path = getStringArg("--folder", argc, argv, USAGE);
     string config0 = getStringArg("--config0", argc, argv, USAGE);
     string config1 = getStringArg("--config1", argc, argv, USAGE);
+
+    vector<float> freqs = getFrequencies(argc, argv);
 
     // optional arguments
     bool maxtwo = checkOption("--maxtwo", argc, argv);
     float minutes = getFloatArgSecure("--minutes", 0.5, argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
     bool guidance = checkOption("--guidance", argc, argv);
-
-    int lower = getIntArgSecure("--lower", 5000, argc, argv);
-    int upper = getIntArgSecure("--upper", 200000, argc, argv);
 
     float spikePercent = getFloatArgSecure("--spike-percent-thresh", 0.03, argc, argv);
 
@@ -301,7 +316,7 @@ int main(int argc, char * argv[]) {
     int frames = minutes * 60 * FRAMES_PER_SEC;
 
     try {
-        runExperiment(path, config0, config1, frames, lower, upper, well, guidance, spikePercent);
+        runExperiment(path, config0, config1, freqs, frames, well, guidance, spikePercent);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());

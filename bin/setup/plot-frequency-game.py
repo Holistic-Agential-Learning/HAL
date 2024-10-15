@@ -65,14 +65,15 @@ maxtwo = False
 # TODO toggle guidance system
 guidance = True 
 
-# TODO bounds for stim rates
-max_frames_per_stim = 200000
-min_frames_per_stim = 5000
+# TODO stimulation frequency at each level, starting with level 0
+# measured in Hz
+stim_freqs = []
 
 # TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
 experiment_time = 1.8
 post_exp_time = 0
+
 
 # TODO stimulation electrodes
 freq_electrodes = [
@@ -204,9 +205,12 @@ if __name__ == '__main__':
         dec_units = hal.connect_stim_units_to_stim_electrodes(dec_guidance_electrodes[well], array)
 
         directory_name, file_name, config_file_name = hal.get_file_names(well, experiment_name, trial_path)
-
+        
         print(config_file_name)
         array.save_config(config_file_name)
+
+        stim_freq_file = trial_path + f"/frequencies_well{well}.txt"
+        hal.write_frequency_list(stim_freq_file, stim_freqs)
 
         new_buttons = cfg.get_buttons(config_file_name, [get_elecs(all_configs[well][0]), get_elecs(all_configs[well][1])], directory_name)
         
@@ -245,10 +249,8 @@ if __name__ == '__main__':
         program_args.append(str(experiment_time))
         if maxtwo:
             program_args.append("--maxtwo")
-        program_args.append("--lower")
-        program_args.append(str(min_frames_per_stim))
-        program_args.append("--upper")
-        program_args.append(str(max_frames_per_stim))
+        program_args.append("--stim-freq-file")
+        program_args.append(stim_freq_file)
         if guidance:
             program_args.append("--guidance")
 
@@ -275,7 +277,7 @@ if __name__ == '__main__':
             thread.start()
 
             # plot on the main thread (since Matplotlib only works on the main thread)
-            p = plotter.Plotter(directory_name + "/" + file_name, maxtwo, min_frames_per_stim, max_frames_per_stim)
+            p = plotter.Plotter(directory_name + "/" + file_name, maxtwo, stim_freqs[0], stim_freqs[len(stim_freqs - 1)])
             p.plot_frequency_game()
 
             thread.join()
