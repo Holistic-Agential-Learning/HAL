@@ -40,13 +40,18 @@ Options:\n\
 \t[--maxtwo]             Indicates running on the MaxTwo\n\
 \t[--minutes <value>]    Number of minutes to run, float \n\
 \t[--well <value>]       Well number, int (default 0)\n\
-\t[--ratio-time <value>] Time to calculate button ratios before the experiment\
- begins.\n"
-
-#define FRAMES_DEFAULT 15*60*20000
-#define MINUTES_DEFAULT 15
+\t[--lower <value>]                     minimum frames between stimulations \
+(i.e. the upper bound on stimulation rate), int (default 5000)\n\
+\t[--upper <value>]                     maximum frames between stimulations \
+(i.e. the lower bound on stimulation rate), int (default 200000)\n\
+\t[--guidance]                          run the guidance system at the \
+beginning of the experiment\n\
+\t[--spike-percent-thresh <value>]      percent of channels in a button that \
+need to fire for a button press\n"
 
 int FRAMES_PER_SEC = 20000;
+
+// needs to be global to close connection in case of interrupt 
 Plotter plot = Plotter();
 
 void sync();
