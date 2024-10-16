@@ -18,12 +18,12 @@ class Plotter:
     :param max_frames: maximum number of frames in between stimulations
     :type max_frames: int
     """
-    def __init__(self, file_path: str, maxtwo: bool, min_frames: int, max_frames: int):
+    def __init__(self, file_path: str, maxtwo: bool, min_hz: int, max_hz: int):
         
         self.fname = file_path
         frame_rate = 10000.0 if maxtwo else 20000.0
-        self.upper = frame_rate / min_frames + 0.5
-        self.lower = frame_rate / max_frames - 0.5
+        self.upper = max_hz + 0.5
+        self.lower = min_hz - 0.5
 
         self.plot_lock = threading.Lock()
         self.data_cond = threading.Condition(self.plot_lock)

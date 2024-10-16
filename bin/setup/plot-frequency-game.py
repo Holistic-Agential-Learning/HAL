@@ -54,7 +54,7 @@ wells = [0]
 parent_dir = "/home/mxwbio/Desktop/HAL/data/frequency-game"
 
 # TODO 
-experiment_name = "NES-test"
+experiment_name = "stim-freq-test"
 
 # TODO
 chip_id = "20551" 
@@ -68,7 +68,6 @@ guidance = True
 # TODO stimulation frequency at each level, starting with level 0
 # measured in Hz
 stim_freqs = hal.build_frequency_list(11, 0.05, 2)
-print(f"Stimulation frequency at each level: {stim_freqs}")
 
 # TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
@@ -189,7 +188,7 @@ if __name__ == '__main__':
         stim_electrodes = freq_electrodes[well] + dec_guidance_electrodes[well] + inc_guidance_electrodes[well]
         rec_electrodes = freq_electrodes[well] + merge_configs(all_configs[well])
 
-        print(f"stimulation electrodes: {stim_electrodes}")
+        # print(f"stimulation electrodes: {stim_electrodes}")
 
         time.sleep(5)
         if mx.send(mx.Core().enable_stimulation_power(True)) != "Ok":
@@ -270,15 +269,17 @@ if __name__ == '__main__':
 
         try:
             time.sleep(60 * pre_exp_time)   # Pre
-
+            print("completed pre-exp recording")
             # run closed-loop program on another thread
             thread = threading.Thread(target = thread_cpp, args = [program_args])
-
+            print("Thread initialized")
             mx.send(mx.Event(well, 1, 5, f"start_experiment {well}"))
+            print("Starting thread...")
             thread.start()
+            print("thread running")
 
             # plot on the main thread (since Matplotlib only works on the main thread)
-            p = plotter.Plotter(directory_name + "/" + file_name, maxtwo, stim_freqs[0], stim_freqs[len(stim_freqs - 1)])
+            p = plotter.Plotter(directory_name + "/" + file_name, maxtwo, stim_freqs[0], stim_freqs[len(stim_freqs) - 1])
             p.plot_frequency_game()
 
             thread.join()

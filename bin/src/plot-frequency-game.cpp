@@ -61,7 +61,7 @@ need to spike for a button press\n"
 int FRAMES_PER_SEC = 20000;
 
 // needs to be global to close connection in case of interrupt 
-Plotter plot;
+Plotter plot = Plotter();
 
 // void runExperiment(string path, string config0, string config1, int frames, int minFramesPerStim, int maxFramesPerStim, int well, bool guidance, float spikePercentThreshold);
 
@@ -152,7 +152,7 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
     ProgressBar expBar = ProgressBar(frames, "Frequency game running...");
 
     cout << "Starting plotter..." << endl;
-    plot = Plotter();
+    // plot = Plotter();
 
     cout << "Syncing sockets..." << endl;
     plot.sync();
