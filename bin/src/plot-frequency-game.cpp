@@ -147,9 +147,6 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
 
     int blanking = 0;
 
-    ChannelWindow *winA = controller.getButtonWindow("A");
-    ChannelWindow *winB = controller.getButtonWindow("B");
-
     int framesPerMin = FRAMES_PER_SEC * 60;
 
     ProgressBar expBar = ProgressBar(frames, "Frequency game running...");

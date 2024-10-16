@@ -98,7 +98,7 @@ class Plotter:
 
         freqpath = plt.subplot(311)
         freqpath.set_title("Stimulation Frequency")
-        freqpath.set_ylabel("Stimulations per Second")
+        freqpath.set_ylabel("Stimulations per Second (Hz)")
         freqpath.set_xlabel("Time (s)")
         freqpath.set_ylim(self.lower, self.upper)
 

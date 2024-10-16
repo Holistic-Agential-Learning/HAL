@@ -67,7 +67,8 @@ guidance = True
 
 # TODO stimulation frequency at each level, starting with level 0
 # measured in Hz
-stim_freqs = []
+stim_freqs = hal.build_frequency_list(11, 0.05, 2)
+print(f"Stimulation frequency at each level: {stim_freqs}")
 
 # TODO ratio calculation time, experiment time, pre/post time, all in minutes
 pre_exp_time = 0
