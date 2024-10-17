@@ -27,8 +27,7 @@ ChannelWindow::ChannelWindow() {
     sum = 0;
     spikeWindow = vector<maxlab::FilteredFrameData>();
     newWindowCount = 0;
-    savesWindows = false;
-    pastData = vector<float>();
+    pastData = vector<struct WindowData>();
     numPastWindows = 0;
 }
 
@@ -37,7 +36,6 @@ ChannelWindow::ChannelWindow(int length, ElectrodeMap electrodeMap, int toSave) 
     size = length;
     sum = 0;
     newWindowCount = 0;
-    savesWindows = toSave;
     numPastWindows = toSave;
 }
 
@@ -46,7 +44,6 @@ ChannelWindow::ChannelWindow(int length, const char *configPath, int toSave) {
     size = length;
     sum = 0;
     newWindowCount = 0;
-    savesWindows = toSave;
     numPastWindows = toSave;
 }
 
@@ -105,15 +102,22 @@ void ChannelWindow::addFrame(maxlab::FilteredFrameData frame) {
     
     spikeWindow.push_back(frame);
 
-    if (savesWindows) {
+    if (numPastWindows) {
         newWindowCount++;
         
         // a completely new, unique window has been created
         if (newWindowCount == size) {
-            pastData.push_back(firingRate());
+            pastData.push_back(getWindowData());
             newWindowCount = 0;
         }
     }
+}
+
+struct WindowData ChannelWindow::getWindowData() {
+    struct WindowData winData;
+    winData.firingRate = firingRate();
+
+    return winData;
 }
 
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
@@ -134,7 +138,7 @@ void ChannelWindow::shiftFrame(maxlab::FilteredFrameData frame) {
     addFrame(frame);
 
     // a completely new, unique window has been created
-    if (savesWindows && pastData.size() == numPastWindows + 1 && newWindowCount == 0) {
+    if (numPastWindows && pastData.size() == numPastWindows + 1 && newWindowCount == 0) {
         pastData.erase(pastData.begin());
     }
 }
@@ -163,19 +167,19 @@ ElectrodeMap ChannelWindow::electrodeMap() {
     return emap;
 }
 
-vector<float> ChannelWindow::pastWindows() {
-    return pastData;
-}
+// vector<float> ChannelWindow::pastWindows() {
+//     return pastData;
+// }
 
 bool ChannelWindow::pastWindowsReady() {
-    return (savesWindows && newWindowCount == 0); 
+    return (numPastWindows && newWindowCount == 0); 
 }
 
 float ChannelWindow::avgPastWindows() {
     float sum = 0;
 
-    for (int i = 0; i < pastData.size(); i++) {
-        sum += pastData[i];
+    for (struct WindowData d: pastData) {
+        sum += d.firingRate;
     }
 
     return sum / pastData.size();
@@ -215,17 +219,18 @@ float ChannelWindow::firingRate() {
 
 float ChannelWindow::firingRateSD() {
     float sumPastWindows = 0;
-    for (float rate: pastData) {
-        sumPastWindows += rate;
+    for (struct WindowData data: pastData) {
+        sumPastWindows += data.firingRate;
     }
-    float mean = sumPastWindows / numPastWindows;
+    float mean = sumPastWindows / pastData.size();
 
     float devSum = 0;
-    for (float rate: pastData) {
+    for (struct WindowData data: pastData) {
+        float rate = data.firingRate;
         devSum += (rate - mean) * (rate - mean);
     }
 
-    return sqrt(devSum / numPastWindows);
+    return sqrt(devSum / pastData.size());
 }
 
 void ChannelWindow::debug(string message) {

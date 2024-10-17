@@ -19,6 +19,10 @@
 
 using namespace std;
 
+struct WindowData {
+    float firingRate;
+};
+
 /**
  * Add description for the <code>ChannelWindow</code> class
  */
@@ -145,7 +149,7 @@ class ChannelWindow {
          * 
          * @return <code>vector<float></code> 
          */
-        vector<float> pastWindows();
+        // vector<float> pastWindows();
 
         /**
          * @brief Returns the average firing rate of all the past windows
@@ -156,7 +160,7 @@ class ChannelWindow {
 
         /**
          * @brief Computes the average x coordinate of all the spike events in 
-         *          the window
+         *          the window, counting each channel only once.
          * 
          * @return <code>float</code> 
          */
@@ -214,9 +218,8 @@ class ChannelWindow {
         int size;
         int sum;
 
-        bool savesWindows;
         int numPastWindows;
-        vector<float> pastData;
+        vector<struct WindowData> pastData;
 
         int newWindowCount;
         
@@ -236,6 +239,8 @@ class ChannelWindow {
         void shiftOrAdd(maxlab::FilteredFrameData frame);
         void addFrame(maxlab::FilteredFrameData frame);
         void shiftFrame(maxlab::FilteredFrameData frame);
+
+        struct WindowData getWindowData();
 
 
 
