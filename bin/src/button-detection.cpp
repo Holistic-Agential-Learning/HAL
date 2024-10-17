@@ -183,16 +183,16 @@ void runExperiment(string path, string config0, string config1, int frames, int 
 
         if (!isLive) {
             // stimulate config A every second that's a multiple of 10
-            if (i % (FRAMES_PER_SEC * 10) == 0) {
+            if (i % (FRAMES_PER_SEC * 10) == 0 && i != 0) {
                 expBar.clear();
-                cout << "Pressing A" << endl;
+                cout << i << ": Pressing A" << endl;
                 expBar.print();
                 maxlab::verifyStatus(maxlab::sendSequence("A"));
 
             // stimulation config B every second that's a multiple of 5 (but not 10)
-            } else if (i % (FRAMES_PER_SEC * 5) == 0) {
+            } else if (i % (FRAMES_PER_SEC * 5) == 0 && i != 0) {
                 expBar.clear();
-                cout << "Pressing B" << endl;
+                cout << i << ": Pressing B" << endl;
                 expBar.print();
                 maxlab::verifyStatus(maxlab::sendSequence("B"));
             }

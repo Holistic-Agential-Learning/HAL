@@ -26,7 +26,7 @@ sq_steps = 2
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    [(9711, sq_radius, sq_steps),
+    [(17217, sq_radius, sq_steps),
      (5687, sq_radius, sq_steps)],
     [],
     [(19753, sq_radius, sq_steps),
@@ -44,10 +44,10 @@ live_chip = False
 wells = [0]
 
 #TODO 
-experiment_name = "demo"
+experiment_name = "button_verification"
 
 #TODO
-chip_id = "23242" 
+chip_id = "20551" 
 
 #TODO
 maxtwo = False
@@ -57,7 +57,7 @@ experiment_time = 0.5
 
 #TODO stimulation electrodes
 a_electrodes = [
-    [9711],
+    [17217],
     [],
     [],
     [16315],
@@ -80,7 +80,9 @@ spike_percent_threshold = 0.03
 desc = "Verifying the button detection. New button releasing logic. window=1000 frames, std threshold=3"
 
 #TODO
-sendEmail = True
+#
+# emails to notify after the experiment ends
+emails = []
 
 def run_cpp(program_args):
     """Runs closed-loop program
@@ -161,12 +163,12 @@ if __name__ == '__main__':
         mx.offset() 
         mx.clear_events() 
 
-        hal.power_up_stim_units(a_units, 0)
+        hal.power_up_stim_units(a_units, 2)
         hal.power_up_stim_units(b_units, 1)
 
-        amp = 5
+        amp = 15
 
-        stim_a = Stimulation(token="A", dac_source=0, amplitude=amp, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
+        stim_a = Stimulation(token="A", dac_source=2, amplitude=amp, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
         stim_seq_a = stim_a.build_sequence()
         
         stim_b = Stimulation(token="B", dac_source=1, amplitude=amp, phase=200, pulses_per_train=1, num_trains=1, pulse_interval=0,  pulse_train_interval=0, well=wells[0])
@@ -225,5 +227,5 @@ if __name__ == '__main__':
         s.group_delete_all()
         print("finished recording - safe to exit.")
 
-    if (sendEmail):
-        subprocess.run(["./mail.sh", "trevor.sullivan@tufts.edu"])
+    for email in emails:
+        subprocess.run(["./mail.sh", email])

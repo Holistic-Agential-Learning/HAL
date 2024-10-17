@@ -54,7 +54,7 @@ wells = [0]
 parent_dir = "/home/mxwbio/Desktop/HAL/data/frequency-game"
 
 # TODO 
-experiment_name = "stim-freq-test"
+experiment_name = "win-struct-test"
 
 # TODO
 chip_id = "20551" 
@@ -109,8 +109,9 @@ inc_guidance_electrodes = [
 desc = ""
 
 # TODO
-sendEmail = False
-
+#
+# emails to notify after the experiment ends
+emails = []
 
 def thread_cpp(program_args):
     """Runs closed-loop program, intended to be used by a separate thread IF 
@@ -303,5 +304,5 @@ if __name__ == '__main__':
         s.group_delete_all()
         print("finished recording - safe to exit.")
 
-    if (sendEmail):
-        subprocess.run(["./mail.sh"])
+    for email in emails:
+        subprocess.run(["./mail.sh", email])
