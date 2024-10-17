@@ -57,20 +57,8 @@ void ChannelWindow::init() {
             continue;
         }
 
-        addFrame(frameData);
+        shiftFrame(frameData);
     }
-}
-
-void ChannelWindow::shiftOrAdd(maxlab::FilteredFrameData frame) {
-    if (spikeWindow.size() < size) {
-        addFrame(frame);
-    } else {
-        shiftFrame(frame);
-    }
-}
-
-void ChannelWindow::add(maxlab::FilteredFrameData frame) {
-    addFrame(frame);
 }
 
 void ChannelWindow::addFrame(maxlab::FilteredFrameData frame) {
@@ -121,7 +109,11 @@ struct WindowData ChannelWindow::getWindowData() {
 }
 
 void ChannelWindow::shift(maxlab::FilteredFrameData frame) {
-    shiftFrame(frame);
+    if (spikeWindow.size() < size) {
+        addFrame(frame);
+    } else {
+        shiftFrame(frame);
+    }
 }
 
 void ChannelWindow::shiftFrame(maxlab::FilteredFrameData frame) {

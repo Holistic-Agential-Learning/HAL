@@ -68,24 +68,7 @@ class ChannelWindow {
          * before calling this function.
          * 
          */
-        void init();
-
-
-        /**
-         * @brief Adds a data frame to the window.
-         * 
-         * Adds only the <code>maxlab::spikeEvents</code> that are found in the given 
-         * config or <code>ElectrodeMap</code>, and increments the total spike sum 
-         * accordingly. 
-         * 
-         * @param frame <code>maxlab::FilteredFrameData</code> struct to add to 
-         *              the window
-         * 
-         * @return None
-         * 
-         */
-        void add(maxlab::FilteredFrameData frame);
-        
+        void init();        
 
         /**
          * @brief Shifts window, appending new data frame to the end
@@ -94,7 +77,10 @@ class ChannelWindow {
          * total sum accordingly, and adding the new frame to the end. Similar
          * to add, the sum will only be incremented for each channel in frame 
          * that exists in the electrode map. Note that it will only count the 
-         * <code>maxlab::spikeEvents</code> that are found in the given config
+         * <code>maxlab::spikeEvents</code> that are found in the given config.
+         * 
+         * If the window has no been initialized, this function will simply add
+         * the frame to the end of the window.
          * 
          * @param frame <code>maxlab::FilteredFrameData</code> struct to add to 
          *              the window
@@ -236,7 +222,6 @@ class ChannelWindow {
          */
         int addEvent(maxlab::SpikeEvent se);
 
-        void shiftOrAdd(maxlab::FilteredFrameData frame);
         void addFrame(maxlab::FilteredFrameData frame);
         void shiftFrame(maxlab::FilteredFrameData frame);
 

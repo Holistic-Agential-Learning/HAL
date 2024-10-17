@@ -73,18 +73,11 @@ class Controller {
         bool buttonExists(string id);
 
         /**
-         * @brief Adds a data frame to all button windows
-         * 
-         * Note that this function will extend the window, not shift it
-         * 
-         * @param frame <code>maxlab::FilteredFrameData</code> frame to add to 
-         *              each window
-         */
-        void add(maxlab::FilteredFrameData frame);
-
-        /**
          * @brief Shifts all button windows--the first frame of each window will
          *        be removed, and a new one will be appended to the end.
+         * 
+         * For any window that has not been fully initialized, the first frame 
+         * will not be removed.
          * 
          * @param frame <code>maxlab::FilteredFrameData</code> frame to add to 
          *              each window

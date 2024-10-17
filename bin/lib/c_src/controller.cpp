@@ -48,7 +48,7 @@ void Controller::init() {
         for (const auto& pair: buttons) {
             ChannelWindow *button = pair.second;
             if (i + button->length() > maxLength) {
-                button->add(frameData);
+                button->shift(frameData);
             }
         }
     }
@@ -74,13 +74,6 @@ ChannelWindow *Controller::getButtonWindow(string id) {
 
 bool Controller::buttonExists(string id) {
     return buttons.count(id);
-}
-
-void Controller::add(maxlab::FilteredFrameData frame) {
-
-    for (const auto& pair: buttons) {
-        (pair.second)->add(frame);
-    }
 }
 
 void Controller::shift(maxlab::FilteredFrameData frame) {

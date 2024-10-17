@@ -18,6 +18,10 @@ top-level directory.
 configure electrodes, create stimulations, and often run a closed-loop program. There are a couple of open-loop experiments here.
 * `src` : C++ source code for closed-loop experiments
 
+Several directories (such as `src`) contain an `archive` subdirectory. This 
+contains old experiments or test scripts that are *not* guaranteed to be 
+compatible with the current state of HAL.  
+
 Work-in-progress documentation: [https://project-hal.github.io/](https://project-hal.github.io/)
 
 Wesley Clawson, Trevor Sullivan, Nathan Wu, and Viraj Cz

@@ -221,19 +221,20 @@ void runTrainWaveDirection(string path, ElectrodeMap emap, map<string, int> stim
     vector<FilteredFrameData> frameWindow;
     cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
 
+    window.init();
 
-    // initialize the vector with 200 frames
-    for (int i = 0; i < window.length(); i++) {
-        maxlab::FilteredFrameData frameData;
-        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+    // // initialize the vector with 200 frames
+    // for (int i = 0; i < window.length(); i++) {
+    //     maxlab::FilteredFrameData frameData;
+    //     maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
-        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
-            continue;
-        }
+    //     if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+    //         i--;
+    //         continue;
+    //     }
 
-        window.add(frameData);
-    }
+    //     window.add(frameData);
+    // }
 
     cout << "Window initialized" << endl;
     // start processing frames
