@@ -87,10 +87,9 @@ struct args {
     string path;
 };
 
-float get_avg_side(ChannelWindow window);
 float framesToSeconds(int frames);
-void runExperiment(string path, string configPath, int frames, float threshold, int well, int polling_window_size, int num_polling_windows, int num_stims);
-int get_max_element(vector<int> v);
+void runExperiment(string path, string configPath, int frames, float threshold, int well, int pollingWindowSize, int numPollingWindows, int num_stims);
+int getMaxElement(vector<int> v);
 void printUsage();
 struct args getArgs(int argc, char *argv[]);
 
@@ -181,12 +180,12 @@ int main(int argc, char * argv[]) {
     int pulse_duration = (int) (params.pulse_duration * FRAMES_PER_SEC);
     float stim_rate = params.stim_rate; //stims per sec
     int polling_rate = 1000; //1000 per sec
-    int polling_window_size = int(FRAMES_PER_SEC / polling_rate); //1 ms
-    int num_polling_windows = polling_rate * RANDOM_WINDOW_GEN_TIME;
+    int pollingWindowSize = int(FRAMES_PER_SEC / polling_rate); //1 ms
+    int numPollingWindows = polling_rate * RANDOM_WINDOW_GEN_TIME;
     int num_stims = (int) (stim_rate * RANDOM_WINDOW_GEN_TIME);
     //5000 discrete time bins in which stimuli can occur. These occur over 5 seconds
 
-    if (pulse_duration * 2 > polling_window_size){
+    if (pulse_duration * 2 > pollingWindowSize){
         cout << "pulse duration * 2 > polling window size" << endl;
         exit(2);
     }
@@ -195,7 +194,7 @@ int main(int argc, char * argv[]) {
     cout << "Min frames: " << MIN_FRAMES << endl;
 
     try {
-        runExperiment(path, params.config_path, frames, threshold, well, polling_window_size, num_polling_windows, num_stims);
+        runExperiment(path, params.config_path, frames, threshold, well, pollingWindowSize, numPollingWindows, num_stims);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -206,10 +205,8 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(string path, string configPath, int frames, float threshold, int well, int polling_window_size, int num_polling_windows, int num_stims) {
+void runExperiment(string path, string configPath, int frames, float threshold, int well, int pollingWindowSize, int numPollingWindows, int num_stims) {
     // Open data stream and check that no errors occurred
-    vector <int> stimVector;
-
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     std::fstream file;
@@ -232,6 +229,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         }
     }
     cout << "Finished buffer, looking for spikes..." << endl;
+    vector <int> stimVector = generateRandomStim(numPollingWindows, num_stims);
 
     // amount of blanking time
     int blanking = 0;
@@ -284,35 +282,17 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         int waveVal = sensor.processFrame(frameData, i);
         int spikeCount = window->totalSpikeCount();
 
-        if (i == 0){
-            maxlab::verifyStatus(maxlab::sendSequence(("before-training" + to_string(well)).c_str()));
-            cout << i << ": before training" << endl;
-            training = false;
-
+        if (i % (pollingWindowSize * numPollingWindows) == 0) {
+            stimVector = generateRandomStim(numPollingWindows, num_stims);
         }
-        else if (i == (int)((float)(frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence(("training" + to_string(well)).c_str()));
-            cout << i << ": training" << endl;
-            training = true;
-            stimVector = generateRandomStim(num_polling_windows, num_stims);
+        if((i % pollingWindowSize) == 0 && !previousBurstInDesiredDirection){
+            // does this actually need to be casted? assumption: no
+            stimulate = stimVector[((i % (pollingWindowSize * numPollingWindows)) / pollingWindowSize)];
         }
-        else if (i == (int)((float)(2*frames)/3)) {
-            maxlab::verifyStatus(maxlab::sendSequence(("after-training" + to_string(well)).c_str()));
-            cout << i << ": after training" << endl;
-            training = false;
+        else{
+            stimulate = false;
         }
-
-        if (training){
-            if (i % (polling_window_size * num_polling_windows) == 0) {
-                stimVector = generateRandomStim(num_polling_windows, num_stims);
-            }
-            if((i % polling_window_size) == 0 && !previousBurstInDesiredDirection){
-                stimulate = stimVector[(int) ((i % (polling_window_size * num_polling_windows)) / polling_window_size)];
-            }
-            else{
-                stimulate = 0;
-            }
-        }
+        
 
         if (blanking > 0) {
             blanking--;
@@ -376,8 +356,8 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         if (stimulate && !bursting){
             maxlab::verifyStatus(maxlab::sendSequence("pulse"));
             cout << i << ": PULSE SENT" << endl;
-            // blanking += int(FRAMES_PER_SEC) / 2 + polling_window_size;
-            blanking += int(FRAMES_PER_SEC)/10 +  polling_window_size;
+            // blanking += int(FRAMES_PER_SEC) / 2 + pollingWindowSize;
+            blanking += int(FRAMES_PER_SEC)/10 +  pollingWindowSize;
         }
     } 
 
@@ -395,7 +375,7 @@ vector<int> generateRandomStim(int length, int numStims){
     while (stimIndices.size() != numStims){
         int randInt = rand()%length;
         if(find(stimIndices.begin(), stimIndices.end(), randInt) == stimIndices.end()) {
-            /* v does not contains x */
+            /* v does not contain x */
             stimIndices.push_back(randInt);
         }
     }
@@ -413,7 +393,7 @@ float framesToSeconds(int frames) {
     return seconds;
 }
 
-int get_max_element(vector<int> v){
+int getMaxElement(vector<int> v){
     int maxVal = INT_MIN;
     for(int i = 0; i < v.size(); i++){
         maxVal = max(v[i], maxVal);
