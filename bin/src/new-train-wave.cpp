@@ -58,16 +58,26 @@ Options:
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
 
-#define USAGE "Usage: ./train-wave-direction --config <config_path> \n\n\
+#define USAGE "Usage: ./new-train-wave --config <file> --folder \
+<path> [--maxtwo] [--pulse-duration <value>] [--threshold <value>] \
+[--minutes <value>] [--well <value>]\n\n\
 Options:\n\
-\t[--maxtwo]             Indicates running on the MaxTwo\n\
-\t[--pulse_duration <value>]     Duration of a single pulse\n\
-\t[--threshold <value>]  Threshold for burst detection (must be a decimal between 0 and 1)\n\
-\t[--minutes <value>]     Number of minutes to run\n\
-\t[--well <value>]       Well number\n"
+\t--config <file>                 Full path to configuration file for \
+experiment\n\
+\t--folder <path>                 Full path to parent folder for saving data\n\
+\t--maxtwo                        Indicates running on the MaxTwo\n\
+\t--pulse-duration <value>        Duration of a single pulse, in second, \
+default 0.0002\n\
+\t--stim-rate <value>             Duration of a single pulse, in stimulations \
+per second, default 5\n\
+\t--threshold <value>             Threshold for burst detection, float between \
+0 and 1, defalt (window length) / 1000\n\
+\t--minutes <value>               Number of minutes to run the experiment, \
+default 15\n\
+\t--well <value>                  Well number, default 0\n"
 
 #define THRESHOLD_DEFAULT WINDOW/1000
-#define FRAMES_DEFAULT 15*60*20000
+#define FRAMES_DEFAULT 15 * 60 * 20000
 #define MINUTES_DEFAULT 15
 
 #define STIM_RATE_DEFAULT 5 // stims per second
@@ -76,72 +86,12 @@ Options:\n\
 
 int FRAMES_PER_SEC = 20000;
 
-struct args {
-    bool maxtwo;
-    string config_path;
-    float pulse_duration;
-    float stim_rate;
-    float threshold;
-    float minutes;
-    int well;
-    string path;
-};
-
 float framesToSeconds(int frames);
 void runExperiment(string path, string configPath, int frames, float threshold, int well, int pollingWindowSize, int numPollingWindows, int num_stims);
 int getMaxElement(vector<int> v);
-void printUsage();
-struct args getArgs(int argc, char *argv[]);
 
 
 vector<int> generateRandomStim(int length, int numStims);
-
-void printUsage() {
-    cout << USAGE << endl;
-}
-
-struct args getArgs(int argc, char *argv[]) {
-    struct args ret;
-    if (!checkOption("--config", argc, argv) || !checkOption("--folder", argc, argv)) {
-        printUsage();
-        exit(2);
-    }
-    ret.config_path = getStringArg("--config", argc, argv);
-    ret.maxtwo = checkOption("--maxtwo", argc, argv);
-    ret.path = getStringArg("--folder", argc, argv);
-
-    if (checkOption("--threshold", argc, argv)) {
-        ret.threshold = getFloatArg("--threshold", argc, argv);
-    } else {
-        ret.threshold = THRESHOLD_DEFAULT;
-    }
-
-    if (checkOption("--stim_rate", argc, argv)) {
-        ret.stim_rate = getFloatArg("--stim_rate", argc, argv);
-    } else {
-        ret.stim_rate = STIM_RATE_DEFAULT;
-    }
-
-    if (checkOption("--pulse_duration", argc, argv)) {
-        ret.pulse_duration = getFloatArg("--pulse_duration", argc, argv);
-    } else {
-        ret.pulse_duration = 0.0002;
-    }
-
-    if (checkOption("--well", argc, argv)) {
-        ret.well = getIntArg("--well", argc, argv);
-    } else {
-        ret.well = 0;
-    }
-
-    if (checkOption("--minutes", argc, argv)) {
-        ret.minutes = getFloatArg("--minutes", argc, argv);
-    } else {
-        ret.minutes = MINUTES_DEFAULT;
-    }
-
-    return ret; 
-}
 
 /* signal_interrupt_handler
  * 
@@ -156,36 +106,41 @@ void signal_interrupt_handler(int sig) {
 
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
-    srand(1);    
+    srand(1);
+    cout << USAGE << endl;
+    exit(1);
+ 
+    string folderPath = getStringArg("--folder", argc, argv, USAGE);
+    string configPath = getStringArg("--config", argc, argv, USAGE);
+    float threshold = getFloatArgSecure("--threshold", THRESHOLD_DEFAULT, argc, argv);
+    bool maxtwo = checkOption("--maxtwo", argc, argv);
+    int well = getIntArgSecure("--well", 0, argc, argv);
 
-    struct args params = getArgs(argc, argv);
-    cout << "Running experiment on Max" << (params.maxtwo ? "Two" : "One") << " for " << params.minutes << " minutes..." << endl;
-    cout << "Config: " << params.config_path << endl;
-    cout << "Threshold: " << params.threshold << endl;
-    cout << "Well: " << params.well << endl;
-    ElectrodeMap emap = ElectrodeMap(params.config_path.c_str());
-    int well = params.well;
+    // WHEN WORKING ON SETUP, CHANGE "_" to "-" for stim rate and pulse duration
+    float stimRate = getFloatArgSecure("--stim-rate", STIM_RATE_DEFAULT, argc, argv);
+    float pulseDurationSecs = getFloatArgSecure("--pulse-duration", 0.0002, argc, argv);
+    float minutes = getFloatArgSecure("--minutes", MINUTES_DEFAULT, argc, argv);
+
+    cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << " for " << minutes << " minutes..." << endl;
+    cout << "Config: " << configPath << endl;
+    cout << "Threshold: " << threshold << endl;
+    cout << "Well: " << well << endl;
+    ElectrodeMap emap = ElectrodeMap(configPath.c_str());
     
-    if (params.maxtwo) {
+    if (maxtwo) {
         FRAMES_PER_SEC = 10000;
     }
 
-    int frames = params.minutes*60*FRAMES_PER_SEC;
+    int frames = minutes * 60 * FRAMES_PER_SEC;
     
-    float threshold = params.threshold;
-
-    string path = params.path;
-
-
-    int pulse_duration = (int) (params.pulse_duration * FRAMES_PER_SEC);
-    float stim_rate = params.stim_rate; //stims per sec
-    int polling_rate = 1000; //1000 per sec
-    int pollingWindowSize = int(FRAMES_PER_SEC / polling_rate); //1 ms
-    int numPollingWindows = polling_rate * RANDOM_WINDOW_GEN_TIME;
-    int num_stims = (int) (stim_rate * RANDOM_WINDOW_GEN_TIME);
+    int pulseDuration = pulseDurationSecs * FRAMES_PER_SEC;
+    int pollingRate = 1000; //1000 per sec
+    int pollingWindowSize = FRAMES_PER_SEC / pollingRate; //1 ms
+    int numPollingWindows = pollingRate * RANDOM_WINDOW_GEN_TIME;
+    int numStims = stimRate * RANDOM_WINDOW_GEN_TIME;
     //5000 discrete time bins in which stimuli can occur. These occur over 5 seconds
 
-    if (pulse_duration * 2 > pollingWindowSize){
+    if (pulseDuration * 2 > pollingWindowSize){
         cout << "pulse duration * 2 > polling window size" << endl;
         exit(2);
     }
@@ -194,7 +149,7 @@ int main(int argc, char * argv[]) {
     cout << "Min frames: " << MIN_FRAMES << endl;
 
     try {
-        runExperiment(path, params.config_path, frames, threshold, well, pollingWindowSize, numPollingWindows, num_stims);
+        runExperiment(folderPath, configPath, frames, threshold, well, pollingWindowSize, numPollingWindows, numStims);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
