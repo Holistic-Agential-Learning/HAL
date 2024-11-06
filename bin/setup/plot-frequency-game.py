@@ -273,11 +273,8 @@ if __name__ == '__main__':
             print("completed pre-exp recording")
             # run closed-loop program on another thread
             thread = threading.Thread(target = thread_cpp, args = [program_args])
-            print("Thread initialized")
             mx.send(mx.Event(well, 1, 5, f"start_experiment {well}"))
-            print("Starting thread...")
             thread.start()
-            print("thread running")
 
             # plot on the main thread (since Matplotlib only works on the main thread)
             p = plotter.Plotter(directory_name + "/" + file_name, maxtwo, stim_freqs[0], stim_freqs[len(stim_freqs) - 1])
