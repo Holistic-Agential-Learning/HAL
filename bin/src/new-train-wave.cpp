@@ -325,12 +325,13 @@ vector<int> generateRandomStim(int length, int numStims) {
         if(find(stimIndices.begin(), stimIndices.end(), randInt) == stimIndices.end()) {
             /* v does not contain x */
             stimIndices.push_back(randInt);
+            zeroesVector[randInt] = 1;
         }
     }
 
-    for (int i = 0; i < stimIndices.size(); i++) {
-        zerosVector[stimIndices[i]] = 1;
-    }
+    // for (int i = 0; i < stimIndices.size(); i++) {
+    //     zerosVector[stimIndices[i]] = 1;
+    // }
     
     return zerosVector;
 }
