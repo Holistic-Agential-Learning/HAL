@@ -58,6 +58,7 @@ Options:
 #define CHIP_WIDTH 220  //87
 #define CHIP_HEIGHT 120
 
+
 #define USAGE "Usage: ./new-train-wave --config <file> --folder \
 <path> [--maxtwo] [--pulse-duration <value>] [--threshold <value>] \
 [--minutes <value>] [--well <value>]\n\n\
@@ -107,8 +108,6 @@ void signal_interrupt_handler(int sig) {
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
     srand(1);
-    cout << USAGE << endl;
-    exit(1);
  
     string folderPath = getStringArg("--folder", argc, argv, USAGE);
     string configPath = getStringArg("--config", argc, argv, USAGE);
@@ -240,79 +239,73 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         if (i % (pollingWindowSize * numPollingWindows) == 0) {
             stimVector = generateRandomStim(numPollingWindows, num_stims);
         }
-        if((i % pollingWindowSize) == 0 && !previousBurstInDesiredDirection){
+        if((i % pollingWindowSize) == 0 && !previousBurstInDesiredDirection)  {
             // does this actually need to be casted? assumption: no
             stimulate = stimVector[((i % (pollingWindowSize * numPollingWindows)) / pollingWindowSize)];
         }
-        else{
+        else {
             stimulate = false;
         }
         
 
         if (blanking > 0) {
             blanking--;
-            if (blanking != 0) {
-                continue;
-            }
         }
 
         
-
-        if (i % (int)(FRAMES_PER_SEC * 0.01) == 0){
-            monitoringLoc = window->getAvgX();
-            alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
-        }
-   
-        if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity){
-            locs[locCounter] = window->getAvgX();
-            burstSpikeCounts[locCounter] = spikeCount;
-            locCounter++;
-        }
-
-
-        if (waveVal == Wave::burstStart) {
-            locs[0] = window->getAvgX(); // starting location
-            burstSpikeCounts[0] = spikeCount;
-            locCounter = 1;
-        } else if (waveVal == Wave::leftToRight || waveVal == Wave::rightToLeft) {
-
-            int left_to_right = waveVal == Wave::leftToRight;
-            string loc_string = left_to_right ? "left to right" : "right to left";
-            cout << loc_string << endl;
-            file << "BURST" << endl;
-
-            WaveMetadata metadata = sensor.getMetadata();
-
-            // leftToRight, rightToLeft
-            for(int m = 0; m < capacity; m++) {
-                file << metadata.burstStartFrame + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
+        if (!blanking) {
+            if (i % (int)(FRAMES_PER_SEC * 0.01) == 0) {
+                monitoringLoc = window->getAvgX();
+                alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
             }
-            file << metadata.maxSpikesFrame + SYS_START_BUFFER + WINDOW;
-
-            file << endl;
-            
-            for(int m = 0; m < capacity; m++) {
-                file << locs[m] << ", ";
+    
+            if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity) {
+                locs[locCounter] = window->getAvgX();
+                burstSpikeCounts[locCounter] = spikeCount;
+                locCounter++;
             }
-            file << metadata.maxSpikesLoc << ", ";
 
-            file << loc_string << endl;
-            for(int m = 0; m < capacity; m++) {
-                file << burstSpikeCounts[m] << ", ";
+
+            if (waveVal == Wave::burstStart) {
+                locs[0] = window->getAvgX(); // starting location
+                burstSpikeCounts[0] = spikeCount;
+                locCounter = 1;
+            } else if (waveVal == Wave::leftToRight || waveVal == Wave::rightToLeft) {
+
+                int leftToRight = waveVal == Wave::leftToRight;
+                string locString = leftToRight ? "left to right" : "right to left";
+                cout << locString << endl;
+
+                // is this necessary?
+                file << "BURST" << endl;
+
+                WaveMetadata metadata = sensor.getMetadata();
+
+                // leftToRight, rightToLeft
+                for(int m = 0; m < capacity; m++) {
+                    file << metadata.burstStartFrame + SYS_START_BUFFER + WINDOW + m * (int)(FRAMES_PER_SEC * 0.01) << ", ";
+                }
+                file << metadata.maxSpikesFrame + SYS_START_BUFFER + WINDOW << endl;
+                
+                for(int m = 0; m < capacity; m++) {
+                    file << locs[m] << ", ";
+                }
+                file << metadata.maxSpikesLoc << ", " << locString << endl;
+
+                for(int m = 0; m < capacity; m++) {
+                    file << burstSpikeCounts[m] << ", ";
+                }
+                file << metadata.maxSpikes << endl;       
+
+                previousBurstInDesiredDirection = leftToRight;
             }
-            file << metadata.maxSpikes;
-            
-            file << endl;       
-
-            previousBurstInDesiredDirection = left_to_right;
         }
 
         //STIMULATE IF APPROPRIATE
         if (stimulate && !bursting){
             maxlab::verifyStatus(maxlab::sendSequence("pulse"));
-            cout << i << ": PULSE SENT" << endl;
-            // blanking += int(FRAMES_PER_SEC) / 2 + pollingWindowSize;
-            blanking += int(FRAMES_PER_SEC)/10 +  pollingWindowSize;
+            // cout << i << ": PULSE SENT" << endl;
+            blanking += FRAMES_PER_SEC / 10 +  pollingWindowSize;
         }
     } 
 
@@ -322,20 +315,20 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
     alldata_file.close();
 }
 
-vector<int> generateRandomStim(int length, int numStims){
+vector<int> generateRandomStim(int length, int numStims) {
     //length >> numStims.
     vector<int> zerosVector(length, 0);
     vector<int> stimIndices;
 
-    while (stimIndices.size() != numStims){
-        int randInt = rand()%length;
+    while (stimIndices.size() != numStims) {
+        int randInt = rand() % length;
         if(find(stimIndices.begin(), stimIndices.end(), randInt) == stimIndices.end()) {
             /* v does not contain x */
             stimIndices.push_back(randInt);
         }
     }
 
-    for (int i = 0; i < stimIndices.size(); i++){
+    for (int i = 0; i < stimIndices.size(); i++) {
         zerosVector[stimIndices[i]] = 1;
     }
     
@@ -348,9 +341,9 @@ float framesToSeconds(int frames) {
     return seconds;
 }
 
-int getMaxElement(vector<int> v){
+int getMaxElement(vector<int> v) {
     int maxVal = INT_MIN;
-    for(int i = 0; i < v.size(); i++){
+    for(int i = 0; i < v.size(); i++) {
         maxVal = max(v[i], maxVal);
     }
     return maxVal;

@@ -110,7 +110,7 @@ if __name__ == '__main__':
         duration = single_pulse.get_duration()
         single_pulse.build_sequence(initial_delay = 0)
         
-        program_args = [f"./bin/build/new-train-wave", "--config", config_name, "--folder", dir, "--pulse_duration", str(duration)]
+        program_args = [f"./bin/build/new-train-wave", "--config", config_name, "--folder", dir, "--pulse-duration", str(duration)]
         
         if maxtwo:
             program_args.append("--maxtwo")
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         program_args.append(str(experiment_time))
         program_args.append("--well")
         program_args.append(str(well))
-        program_args.append("--stim_rate")
+        program_args.append("--stim-rate")
         program_args.append(str(stim_rate))
 
         
