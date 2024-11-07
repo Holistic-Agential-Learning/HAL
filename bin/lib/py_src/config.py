@@ -64,7 +64,7 @@ def read_config_elecs(config_path: str):
     :rtype: ``List[int]``
     """
     data = read_config(config_path)
-
+    
     elecs = [int(e[1]) for e in data]
 
     return elecs

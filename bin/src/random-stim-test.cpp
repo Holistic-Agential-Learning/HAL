@@ -151,6 +151,8 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
 
     bool stimulate = false;
 
+    string stimName = "pulse" + to_string(well);
+
     // start processing frames
     for (int i = 0; i < frames; i++) {
 
@@ -183,8 +185,8 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
 
         //STIMULATE IF APPROPRIATE
         if (stimulate){
-            maxlab::verifyStatus(maxlab::sendSequence("pulse"));
-            // cout << i << ": PULSE SENT" << endl;
+            maxlab::verifyStatus(maxlab::sendSequence(stimName.c_str()));
+            cout << i << ": PULSE SENT" << endl;
             blanking = pollingWindowSize;
         }
     } 

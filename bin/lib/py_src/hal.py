@@ -186,11 +186,10 @@ def init_well(well_no: int, rec_elecs: List[int] | str, stim_elecs: List[int], c
     
     array.download([well_no])
     mx.offset()
+    mx.clear_events() 
 
     if power_up:
         power_up_stim_units(stimulation_units)
-
-    mx.clear_events() 
 
     return array
 

@@ -23,7 +23,7 @@ import bin.lib.py_src.hal as hal
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    "",
+    "/home/mxwbio/configs/240610/10h27m43s.cfg",
     "",
     "",
     "",
@@ -45,17 +45,17 @@ wells = [0]
 parent_dir = "/home/mxwbio/Desktop/HAL/data/wave-training"
 
 #TODO 
-experiment_name = "stim_removal"
+experiment_name = "random-stim-test"
 
 #TODO
-chip_id = "20551" 
+chip_id = "25247" 
 
 #TODO
 maxtwo = False
 
 #TODO 
 pre_exp_time = 0
-experiment_time = 5
+experiment_time = 1
 post_exp_time = 0
 
 #TODO
@@ -66,7 +66,7 @@ stim_rate = 5
 
 #TODO stimulation electrodes
 stim_electrodes = [
-    [],
+    [14867],
     [],
     [],
     [],
@@ -96,6 +96,8 @@ if __name__ == '__main__':
     for well in wells:
         rec_electrodes = all_configs[well]
 
+        print(stim_electrodes[well])
+
         array = hal.init_well(well, rec_electrodes, stim_electrodes[well])
 
         dir, h5, config_name = hal.get_file_names(well, experiment_name, trial_path)
@@ -104,13 +106,11 @@ if __name__ == '__main__':
         
         ############################################################################
 
-        mx.offset()
-
-        single_pulse = Stimulation(f"pulse{well}", 0, 50, 200, 1, 1, 10, 1, well = well)
+        single_pulse = Stimulation(f"pulse{well}", 0, 250, 200, 1, 1, 10, 1, well = well)
         duration = single_pulse.get_duration()
         single_pulse.build_sequence(initial_delay = 0)
         
-        program_args = [f"./bin/build/new-train-wave", "--config", config_name, "--folder", dir, "--pulse-duration", str(duration)]
+        program_args = [f"./bin/build/random-stim-test", "--config", config_name, "--folder", dir, "--pulse-duration", str(duration)]
         
         if maxtwo:
             program_args.append("--maxtwo")
