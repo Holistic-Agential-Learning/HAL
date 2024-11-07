@@ -325,7 +325,7 @@ vector<int> generateRandomStim(int length, int numStims) {
         if(find(stimIndices.begin(), stimIndices.end(), randInt) == stimIndices.end()) {
             /* v does not contain x */
             stimIndices.push_back(randInt);
-            zeroesVector[randInt] = 1;
+            zerosVector[randInt] = 1;
         }
     }
 
