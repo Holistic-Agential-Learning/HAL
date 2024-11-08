@@ -16,3 +16,4 @@
 #include "progressBar.h"
 #include "plotter.h"
 #include "nes.h"
+#include "stimVector.h"
