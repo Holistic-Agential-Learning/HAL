@@ -1,5 +1,8 @@
 #include "stimVector.h"
 #include <stdlib.h>
+#include <iostream>
+
+using namespace std;
 
 StimVector::StimVector(int type, int stimRate, bool maxtwo, float interval, float shuffleFrequency) {
     // TODO: check bounds 
@@ -9,7 +12,7 @@ StimVector::StimVector(int type, int stimRate, bool maxtwo, float interval, floa
     intvl = interval * fps;
     length = shuffleFrequency * fps;
     
-    stims = calloc(length, sizeof(int));
+    stims = (int *) calloc(length, sizeof(int));
 
     leftover = 0;
 
@@ -21,7 +24,7 @@ StimVector::StimVector(int type, int stimRate, bool maxtwo, float interval, floa
 void StimVector::generateRandom() {
     //length >> numStims.
     free(stims);
-    stims = calloc(length, sizeof(int));
+    stims = (int *) calloc(length, sizeof(int));
     stimIdxs.clear();
     int numStims = stimsPS * (length / fps);
 
@@ -31,6 +34,7 @@ void StimVector::generateRandom() {
             /* v does not contain x */
             stimIdxs[randInt] = true;
             stims[randInt] = 1;
+            cout << randInt << endl;
         }
     }
 }
