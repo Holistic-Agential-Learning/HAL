@@ -25,6 +25,8 @@ class StimVector {
 
         ~StimVector();
 
+        int stimulate(int frame);
+
     private:
         int fps;
         int stimType;

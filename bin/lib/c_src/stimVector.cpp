@@ -16,9 +16,22 @@ StimVector::StimVector(int type, int stimRate, bool maxtwo, float interval, floa
 
     leftover = 0;
 
-    if (type) {
+    if (stimType) {
         generateRandom();
     } 
+}
+
+int StimVector::stimulate(int frame) {
+    if (frame % length * intvl == 0) {
+        if (stimType) {
+            generateRandom();
+        }
+    }
+    if (frame % 10 == 0) {
+        return stims[(frame % (intvl * length)) / intvl];
+    } else {
+        return 0;
+    }
 }
 
 void StimVector::generateRandom() {
@@ -34,7 +47,6 @@ void StimVector::generateRandom() {
             /* v does not contain x */
             stimIdxs[randInt] = true;
             stims[randInt] = 1;
-            cout << randInt << endl;
         }
     }
 }
