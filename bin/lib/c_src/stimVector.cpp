@@ -10,7 +10,7 @@ StimVector::StimVector(int type, int stimRate, bool maxtwo, float interval, floa
     stimsPS = stimRate;
     fps = maxtwo ? 10000 : 20000;
     intvl = interval * fps;
-    length = shuffleFrequency * fps;
+    length = (shuffleFrequency * fps) / intvl;
     
     stims = (int *) calloc(length, sizeof(int));
 
@@ -39,7 +39,7 @@ void StimVector::generateRandom() {
     free(stims);
     stims = (int *) calloc(length, sizeof(int));
     stimIdxs.clear();
-    int numStims = stimsPS * (length / fps);
+    int numStims = stimsPS * (length * intvl / fps);
 
     while (stimIdxs.size() < numStims) {
         int randInt = rand() % length;
@@ -47,6 +47,7 @@ void StimVector::generateRandom() {
             /* v does not contain x */
             stimIdxs[randInt] = true;
             stims[randInt] = 1;
+            
         }
     }
 }

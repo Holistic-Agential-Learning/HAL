@@ -144,7 +144,8 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         }
     }
     cout << "Finished buffer, looking for spikes..." << endl;
-    vector <int> stimVector = generateRandomStim(numPollingWindows, numStims);
+    bool maxtwo = (FRAMES_PER_SEC == 10000);
+    StimVector stimVector = StimVector(1, 5, maxtwo);
 
     // amount of blanking time
     int blanking = 0;    
@@ -165,18 +166,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
             i--;
             continue;
         }
-
-
-        if (i % (pollingWindowSize * numPollingWindows) == 0) {
-            cout << "Generating a new stimulation vector" << endl;
-            stimVector = generateRandomStim(numPollingWindows, numStims);
-        }
-
-        if((i % pollingWindowSize) == 0)  {
-            stimulate = stimVector[((i % (pollingWindowSize * numPollingWindows)) / pollingWindowSize)];
-        } else {
-            stimulate = false;
-        }
+        stimulate = stimVector.stimulate(i);
         
 
         if (blanking > 0) {
@@ -193,27 +183,6 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
-}
-
-vector<int> generateRandomStim(int length, int numStims) {
-    //length >> numStims.
-    vector<int> zerosVector(length, 0);
-    vector<int> stimIndices;
-
-    while (stimIndices.size() != numStims) {
-        int randInt = rand() % length;
-        if(find(stimIndices.begin(), stimIndices.end(), randInt) == stimIndices.end()) {
-            /* v does not contain x */
-            stimIndices.push_back(randInt);
-            zerosVector[randInt] = 1;
-        }
-    }
-
-    // for (int i = 0; i < stimIndices.size(); i++) {
-    //     zerosVector[stimIndices[i]] = 1;
-    // }
-    
-    return zerosVector;
 }
 
 

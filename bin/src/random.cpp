@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     srand(time(NULL));
-    StimVector v = StimVector();
+    StimVector v = StimVector(1, 5, true);
 
     for (int i = 0; i < 200000; i++) {
         int stim = v.stimulate(i);
