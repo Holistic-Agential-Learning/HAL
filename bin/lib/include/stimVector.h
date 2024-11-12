@@ -10,8 +10,8 @@ class StimVector {
         /**
          * @brief Construct a new Stim Vector object
          * 
-         * @param type <code>int</code> vector type: 0 for regular, and and 
-         * anything else for random, default <code>1</code>
+         * @param isRandom <code>bool</code> indicates whether the object should
+         * simulate a random or regular stimulation pattern 
          * @param stimRate <code>int</code> stimulation rate in stimulations 
          * per second; must be >= 0 and <= FPS, default <code>5</code>
          * @param maxtwo <code>bool</code> indicates if the program is running 
@@ -21,23 +21,39 @@ class StimVector {
          * @param shuffleFrequency <code>float</code> length of shuffle window, 
          * in seconds, default <code>5</code>
          */
-        StimVector(int type=1, int stimRate=5, bool maxtwo=false, float interval=0.001, float shuffleFrequency=5);
+        StimVector(bool isRandom=true, int stimRate=5, bool maxtwo=false, float interval=0.001, float shuffleFrequency=5);
 
         ~StimVector();
 
         int stimulate(int frame);
 
     private:
+        // machine (Mx1 or Mx2) frame/sample rate
         int fps;
-        int stimType;
-        int stimsPS;
+        
+        // indicates if stimulation is random or regular
+        bool random;
+        
+        // stimulations per second
+        int stimsPerSec;
+
+        // number of frames in between each stimulation (for regular)
+        int framesPerStim;
+        
+        // how often to check for stimulation, in frames
         int intvl;
+
+        // length of window (for re-rolling random stimulations)
         int length;
+
+        // array for random stimulations
         int *stims;
+
+        /* keeps track of which indices have been chosen for stimulation for 
+        random generation */
         map<int, bool> stimIdxs;
 
         int leftover;
 
         void generateRandom();
-        void generateRegular();
 };

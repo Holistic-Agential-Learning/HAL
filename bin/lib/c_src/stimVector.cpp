@@ -4,11 +4,12 @@
 
 using namespace std;
 
-StimVector::StimVector(int type, int stimRate, bool maxtwo, float interval, float shuffleFrequency) {
+StimVector::StimVector(bool isRandom, int stimRate, bool maxtwo, float interval, float shuffleFrequency) {
     // TODO: check bounds 
-    stimType = type;
-    stimsPS = stimRate;
+    random = isRandom;
+    stimsPerSec = stimRate;
     fps = maxtwo ? 10000 : 20000;
+    framesPerStim = (1.0 / stimRate) * fps;
     intvl = interval * fps;
     length = (shuffleFrequency * fps) / intvl;
     
@@ -16,30 +17,37 @@ StimVector::StimVector(int type, int stimRate, bool maxtwo, float interval, floa
 
     leftover = 0;
 
-    if (stimType) {
+    if (random) {
         generateRandom();
-    } 
+    }
 }
 
 int StimVector::stimulate(int frame) {
-    if (frame % length * intvl == 0) {
-        if (stimType) {
+    if (random) {
+        if (frame % (length * intvl) == 0) {
             generateRandom();
         }
-    }
-    if (frame % 10 == 0) {
-        return stims[(frame % (intvl * length)) / intvl];
+        if (frame % 10 == 0) {
+            int stim = (frame % (intvl * length)) / intvl;
+            cout << stim << endl;
+            return stims[stim];
+        } else {
+            return 0;
+        }
     } else {
-        return 0;
+        if (stimsPerSec == 0) {
+            return 0;
+        } else {
+            return ((frame % framesPerStim) == 0);
+        }
     }
 }
 
 void StimVector::generateRandom() {
-    //length >> numStims.
     free(stims);
     stims = (int *) calloc(length, sizeof(int));
     stimIdxs.clear();
-    int numStims = stimsPS * (length * intvl / fps);
+    int numStims = stimsPerSec * (length * intvl / fps);
 
     while (stimIdxs.size() < numStims) {
         int randInt = rand() % length;
@@ -47,11 +55,12 @@ void StimVector::generateRandom() {
             /* v does not contain x */
             stimIdxs[randInt] = true;
             stims[randInt] = 1;
-            
         }
     }
 }
 
 StimVector::~StimVector() {
-    free(stims);
+    if (random) {
+        free(stims);
+    }
 }

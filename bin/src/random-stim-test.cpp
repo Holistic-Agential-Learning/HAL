@@ -145,7 +145,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
     }
     cout << "Finished buffer, looking for spikes..." << endl;
     bool maxtwo = (FRAMES_PER_SEC == 10000);
-    StimVector stimVector = StimVector(1, 5, maxtwo);
+    StimVector stimVector = StimVector(false, 5, maxtwo);
 
     // amount of blanking time
     int blanking = 0;    
