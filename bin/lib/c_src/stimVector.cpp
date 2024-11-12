@@ -9,34 +9,31 @@ StimVector::StimVector(bool isRandom, int stimRate, bool maxtwo, float interval,
     random = isRandom;
     stimsPerSec = stimRate;
     fps = maxtwo ? 10000 : 20000;
-    framesPerStim = (1.0 / stimRate) * fps;
+    framesPerStim = stimRate ? (1.0 / stimRate) * fps : 0;
     intvl = interval * fps;
     length = (shuffleFrequency * fps) / intvl;
     
-    stims = (int *) calloc(length, sizeof(int));
-
-    leftover = 0;
+    stims = (bool *) calloc(length, sizeof(bool));
 
     if (random) {
         generateRandom();
     }
 }
 
-int StimVector::stimulate(int frame) {
+bool StimVector::stimulate(int frame) {
     if (random) {
         if (frame % (length * intvl) == 0) {
             generateRandom();
         }
         if (frame % 10 == 0) {
             int stim = (frame % (intvl * length)) / intvl;
-            cout << stim << endl;
             return stims[stim];
         } else {
-            return 0;
+            return false;
         }
     } else {
         if (stimsPerSec == 0) {
-            return 0;
+            return false;
         } else {
             return ((frame % framesPerStim) == 0);
         }
@@ -45,7 +42,7 @@ int StimVector::stimulate(int frame) {
 
 void StimVector::generateRandom() {
     free(stims);
-    stims = (int *) calloc(length, sizeof(int));
+    stims = (bool *) calloc(length, sizeof(bool));
     stimIdxs.clear();
     int numStims = stimsPerSec * (length * intvl / fps);
 
@@ -54,7 +51,7 @@ void StimVector::generateRandom() {
         if (!stimIdxs.count(randInt)) {
             /* v does not contain x */
             stimIdxs[randInt] = true;
-            stims[randInt] = 1;
+            stims[randInt] = true;
         }
     }
 }

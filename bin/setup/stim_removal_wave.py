@@ -31,6 +31,11 @@ all_configs = [
     ""
 ]
 
+# stimulation type for right vs left bursts: 0 for none, 1 for regular, 2 for 
+# random
+right = 2
+left = 0
+
 #TODO indicates whether to simply read data, or to stimulate the buttons manually
 live_chip = False
 
@@ -124,8 +129,10 @@ if __name__ == '__main__':
         program_args.append(str(well))
         program_args.append("--stim-rate")
         program_args.append(str(stim_rate))
-
-        
+        program_args.append("--right-type")
+        program_args.append(str(right))
+        program_args.append("--left-type")
+        program_args.append(str(left))
 
         #############################################################################
 

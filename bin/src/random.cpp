@@ -8,10 +8,10 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     srand(time(NULL));
-    StimVector v = StimVector(1, 5, true);
+    StimVector v = StimVector(false, 5, true);
 
     for (int i = 0; i < 200000; i++) {
-        int stim = v.stimulate(i);
+        bool stim = v.stimulate(i);
         if (stim) {
             cout << i << endl;
         }

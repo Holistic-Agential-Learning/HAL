@@ -69,8 +69,8 @@ experiment\n\
 \t--maxtwo                        Indicates running on the MaxTwo\n\
 \t--pulse-duration <value>        Duration of a single pulse, in second, \
 default 0.0002\n\
-\t--stim-rate <value>             Duration of a single pulse, in stimulations \
-per second, default 5\n\
+\t--stim-rate <value>             Stimulation rate, in stimulations per \
+second, default 5\n\
 \t--threshold <value>             Threshold for burst detection, float between \
 0 and 1, defalt (window length) / 1000\n\
 \t--minutes <value>               Number of minutes to run the experiment, \
@@ -88,7 +88,7 @@ default 15\n\
 int FRAMES_PER_SEC = 20000;
 
 float framesToSeconds(int frames);
-void runExperiment(string path, string configPath, int frames, float threshold, int well, int pollingWindowSize, int numPollingWindows, int num_stims);
+void runExperiment(string path, string configPath, int frames, int well, float threshold, int pollingWindowSize, int rightStimType, int leftStimType);
 int getMaxElement(vector<int> v);
 
 
@@ -115,6 +115,9 @@ int main(int argc, char * argv[]) {
     bool maxtwo = checkOption("--maxtwo", argc, argv);
     int well = getIntArgSecure("--well", 0, argc, argv);
 
+    int leftToRight = getIntArgSecure("--right-type", 2, argc, argv);
+    int rightToLeft = getIntArgSecure("--left-type", 0, argc, argv);
+
     // WHEN WORKING ON SETUP, CHANGE "_" to "-" for stim rate and pulse duration
     float stimRate = getFloatArgSecure("--stim-rate", STIM_RATE_DEFAULT, argc, argv);
     float pulseDurationSecs = getFloatArgSecure("--pulse-duration", 0.0002, argc, argv);
@@ -132,14 +135,17 @@ int main(int argc, char * argv[]) {
 
     int frames = minutes * 60 * FRAMES_PER_SEC;
     
+    // pulse duration in frames
     int pulseDuration = pulseDurationSecs * FRAMES_PER_SEC;
     int pollingRate = 1000; //1000 per sec
+
+    // window size (in pollingRate units)
     int pollingWindowSize = FRAMES_PER_SEC / pollingRate; //1 ms
     int numPollingWindows = pollingRate * RANDOM_WINDOW_GEN_TIME;
     int numStims = stimRate * RANDOM_WINDOW_GEN_TIME;
-    //5000 discrete time bins in which stimuli can occur. These occur over 5 seconds
+    //5000 discrete time bins in which stimuli can occur. These occur over 5 secods
 
-    if (pulseDuration * 2 > pollingWindowSize){
+    if (pulseDuration * 2 > pollingWindowSize) {
         cout << "pulse duration * 2 > polling window size" << endl;
         exit(2);
     }
@@ -148,7 +154,7 @@ int main(int argc, char * argv[]) {
     cout << "Min frames: " << MIN_FRAMES << endl;
 
     try {
-        runExperiment(folderPath, configPath, frames, threshold, well, pollingWindowSize, numPollingWindows, numStims);
+        runExperiment(folderPath, configPath, frames, well, threshold, pollingWindowSize, leftToRight, rightToLeft);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -159,7 +165,7 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(string path, string configPath, int frames, float threshold, int well, int pollingWindowSize, int numPollingWindows, int num_stims) {
+void runExperiment(string path, string configPath, int well, int frames, float threshold, int pollingWindowSize, int rightStimType, int leftStimType) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
@@ -182,9 +188,10 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
             continue;
         }
     }
+    bool maxtwo = FRAMES_PER_SEC == 10000;
     cout << "Finished buffer, looking for spikes..." << endl;
-    vector <int> stimVector = generateRandomStim(numPollingWindows, num_stims);
-
+    StimVector rightStim = StimVector(rightStimType == 2, rightStimType ? 5 : 0, maxtwo);
+    StimVector leftStim = StimVector(leftStimType == 2, leftStimType ? 5 : 0, maxtwo);
     // amount of blanking time
     int blanking = 0;
 
@@ -197,7 +204,6 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
     // spike count for each calculated location, mirroring locs
     vector <int> burstSpikeCounts(capacity);
     
-    bool training = false;
     bool stimulate = false;
     bool bursting = false;
 
@@ -211,7 +217,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
     
     float monitoringLoc = 0;
 
-    int previousBurstInDesiredDirection = 0;
+    int previousBurst = 0;
 
     cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
 
@@ -236,17 +242,13 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
         int waveVal = sensor.processFrame(frameData, i);
         int spikeCount = window->totalSpikeCount();
 
-        if (i % (pollingWindowSize * numPollingWindows) == 0) {
-            stimVector = generateRandomStim(numPollingWindows, num_stims);
-        }
-        if((i % pollingWindowSize) == 0 && !previousBurstInDesiredDirection)  {
-            // does this actually need to be casted? assumption: no
-            stimulate = stimVector[((i % (pollingWindowSize * numPollingWindows)) / pollingWindowSize)];
-        }
-        else {
+        if (previousBurst == 1) {
+            stimulate = rightStim.stimulate(i);
+        } else if (previousBurst == -1) {
+            stimulate = leftStim.stimulate(i);
+        } else {
             stimulate = false;
         }
-        
 
         if (blanking > 0) {
             blanking--;
@@ -272,7 +274,7 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
                 locCounter = 1;
             } else if (waveVal == Wave::leftToRight || waveVal == Wave::rightToLeft) {
 
-                int leftToRight = waveVal == Wave::leftToRight;
+                bool leftToRight = waveVal == Wave::leftToRight;
                 string locString = leftToRight ? "left to right" : "right to left";
                 cout << locString << endl;
 
@@ -296,8 +298,8 @@ void runExperiment(string path, string configPath, int frames, float threshold, 
                     file << burstSpikeCounts[m] << ", ";
                 }
                 file << metadata.maxSpikes << endl;       
-
-                previousBurstInDesiredDirection = leftToRight;
+                
+                previousBurst = leftToRight ? 1 : -1;
             }
         }
 

@@ -25,7 +25,7 @@ class StimVector {
 
         ~StimVector();
 
-        int stimulate(int frame);
+        bool stimulate(int frame);
 
     private:
         // machine (Mx1 or Mx2) frame/sample rate
@@ -47,13 +47,11 @@ class StimVector {
         int length;
 
         // array for random stimulations
-        int *stims;
+        bool *stims;
 
         /* keeps track of which indices have been chosen for stimulation for 
         random generation */
         map<int, bool> stimIdxs;
-
-        int leftover;
 
         void generateRandom();
 };
