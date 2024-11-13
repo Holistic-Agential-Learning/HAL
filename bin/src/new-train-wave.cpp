@@ -89,10 +89,6 @@ int FRAMES_PER_SEC = 20000;
 
 float framesToSeconds(int frames);
 void runExperiment(string path, string configPath, int frames, int well, float threshold, int pollingWindowSize, int rightStimType, int leftStimType);
-int getMaxElement(vector<int> v);
-
-
-vector<int> generateRandomStim(int length, int numStims);
 
 /* signal_interrupt_handler
  * 
@@ -317,37 +313,7 @@ void runExperiment(string path, string configPath, int well, int frames, float t
     alldata_file.close();
 }
 
-vector<int> generateRandomStim(int length, int numStims) {
-    //length >> numStims.
-    vector<int> zerosVector(length, 0);
-    vector<int> stimIndices;
-
-    while (stimIndices.size() != numStims) {
-        int randInt = rand() % length;
-        if(find(stimIndices.begin(), stimIndices.end(), randInt) == stimIndices.end()) {
-            /* v does not contain x */
-            stimIndices.push_back(randInt);
-            zerosVector[randInt] = 1;
-        }
-    }
-
-    // for (int i = 0; i < stimIndices.size(); i++) {
-    //     zerosVector[stimIndices[i]] = 1;
-    // }
-    
-    return zerosVector;
-}
-
-
 float framesToSeconds(int frames) {
     float seconds = (float) frames / (float) FRAMES_PER_SEC;
     return seconds;
-}
-
-int getMaxElement(vector<int> v) {
-    int maxVal = INT_MIN;
-    for(int i = 0; i < v.size(); i++) {
-        maxVal = max(v[i], maxVal);
-    }
-    return maxVal;
 }
