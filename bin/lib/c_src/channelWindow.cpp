@@ -136,8 +136,9 @@ void ChannelWindow::shiftFrame(maxlab::FilteredFrameData frame) {
 }
 
 FilteredFrameData ChannelWindow::get(int idx) {
-    if (idx >= size || idx < 0) {
-        exit(1);
+    if (idx >= spikeWindow.size() || idx < 0) {
+        cerr << "ChannelWindow::get(): index " << idx << "out of bounds" << endl;
+        throw out_of_range;
     }
 
     return spikeWindow[idx];
