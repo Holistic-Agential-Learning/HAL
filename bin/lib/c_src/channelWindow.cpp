@@ -57,7 +57,7 @@ void ChannelWindow::init() {
             continue;
         }
 
-        shiftFrame(frameData);
+        addFrame(frameData);
     }
 }
 
