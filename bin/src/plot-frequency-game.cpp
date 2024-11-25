@@ -125,6 +125,11 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
     float stimRate = frequencies[level];
     int framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
 
+    fstream freqGameCsv;
+    freqGameCsv.open((path + "/freq_game_data.csv").c_str(), std::fstream::out);
+
+    freqGameCsv << "frame number,button pressed,stimulation level,stimulation frequency" << endl;
+
     int windowLength = 1000;
 
     // activate interrupt handler
@@ -141,7 +146,7 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
     }
     
     // initialize controller
-    NES controller = NES(FRAMES_PER_SEC == 10000, windowLength, config0.c_str(), config1.c_str(), (path + "/button_data_well_" + to_string(well) + ".csv").c_str());
+    NES controller = NES(FRAMES_PER_SEC == 10000, windowLength, config0.c_str(), config1.c_str(), (path + "/NES_data_well_" + to_string(well) + ".csv").c_str());
     cout << "Initializing NES..." << endl;
     controller.init();
 
@@ -152,7 +157,6 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
     ProgressBar expBar = ProgressBar(frames, "Frequency game running...");
 
     cout << "Starting plotter..." << endl;
-    // plot = Plotter();
 
     cout << "Syncing sockets..." << endl;
     plot.sync();
@@ -206,6 +210,8 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
                 plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, level, stimRate);
+
+                freqGameCsv << i << "," << "A," << level << "," << stimRate << endl;
             } else if (pressed == 2) {
                 // Button B was pressed
                 if (level < maxLevel) {
@@ -221,6 +227,8 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
                 maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
 
                 plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, level, stimRate);
+
+                freqGameCsv << i << "," << "B," << level << "," << stimRate << endl;
             }
         }
 
