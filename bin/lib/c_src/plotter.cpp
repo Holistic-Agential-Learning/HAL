@@ -20,7 +20,6 @@ Plotter::Plotter():
     context(1),
     pubSock(context, ZMQ_PUB) 
 {
-    cout << "connecting..." << endl;
     pubSock.bind("tcp://*:5555");
 }
 

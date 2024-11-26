@@ -10,7 +10,20 @@ sys.path.append(top_level_dir)
 
 import bin.lib.py_src.config as cfg
 
-def build_frequency_list(num_levels: int, lower: int, upper: int):
+def build_frequency_list(num_levels: int, lower: float, upper: float) -> List[float]:
+    """creates a list of stimulation frequencies for frequency game. Given the 
+    inclusive bounds and the number of levels, it automatically generates 
+    a list of floats with corresponding frequencies.   
+
+    :param num_levels: number of frequencies to generate
+    :type num_levels: int
+    :param lower: lower bound, in Hz
+    :type lower: float
+    :param upper: upper bound, in Hz
+    :type upper: float
+    :return: list of frequencies
+    :rtype: List[float]
+    """
     diff = upper - lower
     acceleration = diff / (num_levels - 1) 
     full_list = [lower]
@@ -24,6 +37,14 @@ def build_frequency_list(num_levels: int, lower: int, upper: int):
 
 
 def write_frequency_list(file_path: str, frequencies: List[float]):
+    """Writes a list of floats, representing stimulation frequency levels for 
+    frequency game, to a file.
+
+    :param file_path: Path of file to write to
+    :type file_path: str
+    :param frequencies: List of frequencies
+    :type frequencies: List[float]
+    """
     freq_strs = list(map(str, frequencies))
     output = ",".join(freq_strs)
     
