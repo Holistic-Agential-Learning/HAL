@@ -54,14 +54,12 @@ class Plotter:
         while not done:
 
             try:
-                # print("waiting for message")
                 message = socket.recv()
             
 
                 with self.data_cond:
                     if (message == b"stop"):
                         self.plot_data.append("stop")
-                        print("stop detected!")
                         done = True
                         
                     else:
@@ -116,8 +114,6 @@ class Plotter:
         fig.tight_layout()
         fig.canvas.draw()
 
-        print("plot initialized")
-
         done = False
         try:
             while not done:
@@ -129,7 +125,6 @@ class Plotter:
                     for item in self.plot_data:
                         if (item == "stop"):
                             done = True
-                            print("plotter: stop detected")
                         else:
                             b, t, s, r = item
                             if (b == "A"):

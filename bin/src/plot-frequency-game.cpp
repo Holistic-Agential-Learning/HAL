@@ -40,6 +40,7 @@ using namespace argparse;
 (--stim-freq-file <file> | --stim-freqs <value>) [--maxtwo] [--guidance] \
 [--minutes <value>] [--well <value>] [--spike-percent-thresh <value>]\n\n\
 Options:\n\
+  --help                                Show this screen \n\
   --config0 <file>                      Full path to configuration file for \
 button A, string\n\
   --config1 <file>                      Full path to configuration file for \
@@ -89,7 +90,7 @@ vector<float> parseFloats(string floatList) {
 
 }
 
-// gets list of frequencies from either
+// gets list of frequencies from either command line or file
 vector<float> getFrequencies(int argc, char *argv[]) {
     bool isFile = checkOption("--stim-freq-file", argc, argv);
     string freqString = "";
@@ -125,6 +126,11 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
     float stimRate = frequencies[level];
     int framesPerStim = (1 / stimRate) * FRAMES_PER_SEC;
 
+    fstream freqGameCsv;
+    freqGameCsv.open((path + "/freq_game_data.csv").c_str(), std::fstream::out);
+
+    freqGameCsv << "frame number,button pressed,stimulation level,stimulation frequency" << endl;
+
     int windowLength = 1000;
 
     // activate interrupt handler
@@ -141,7 +147,7 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
     }
     
     // initialize controller
-    NES controller = NES(FRAMES_PER_SEC == 10000, windowLength, config0.c_str(), config1.c_str(), (path + "/button_data_well_" + to_string(well) + ".csv").c_str());
+    NES controller = NES(FRAMES_PER_SEC == 10000, windowLength, config0.c_str(), config1.c_str(), (path + "/NES_data_well_" + to_string(well) + ".csv").c_str());
     cout << "Initializing NES..." << endl;
     controller.init();
 
@@ -150,9 +156,6 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
     int framesPerMin = FRAMES_PER_SEC * 60;
 
     ProgressBar expBar = ProgressBar(frames, "Frequency game running...");
-
-    cout << "Starting plotter..." << endl;
-    // plot = Plotter();
 
     cout << "Syncing sockets..." << endl;
     plot.sync();
@@ -206,6 +209,8 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
                 maxlab::verifyStatus(maxlab::sendSequence("A-pressed"));
 
                 plot.sendFrequencyGameData("A", i / (float) FRAMES_PER_SEC, level, stimRate);
+
+                freqGameCsv << i << "," << "A," << level << "," << stimRate << endl;
             } else if (pressed == 2) {
                 // Button B was pressed
                 if (level < maxLevel) {
@@ -221,6 +226,8 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
                 maxlab::verifyStatus(maxlab::sendSequence("B-pressed"));
 
                 plot.sendFrequencyGameData("B", i / (float) FRAMES_PER_SEC, level, stimRate);
+
+                freqGameCsv << i << "," << "B," << level << "," << stimRate << endl;
             }
         }
 
@@ -283,6 +290,12 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
 
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
+
+    if (checkOption("--help", argc, argv)) {
+        cout << USAGE << endl;
+        plot.close();
+        exit(0);
+    }
 
     // required arguments
     string path = getStringArg("--folder", argc, argv, USAGE);

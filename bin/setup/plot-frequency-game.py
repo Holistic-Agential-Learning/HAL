@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+
+# plot-frequency-game.py
+#
+# This is the setup script for the frequency game experiment. It runs 
+# plot-frequency-game.cpp, and run a plotter a separate thread. 
+#
+# Written by Trevor M. Sullivan
+# November 2024
+
 from typing import List
 import time
 import sys
@@ -54,10 +63,10 @@ wells = [0]
 parent_dir = "/home/mxwbio/Desktop/HAL/data/frequency-game"
 
 # TODO 
-experiment_name = "win-struct-test"
+experiment_name = "final-checks"
 
 # TODO
-chip_id = "20551" 
+chip_id = "25247" 
 
 # TODO
 maxtwo = False
@@ -67,6 +76,9 @@ guidance = True
 
 # TODO stimulation frequency at each level, starting with level 0
 # measured in Hz
+#
+# This script will write these values to a file, and pass in the path to the 
+# closed-loop script
 stim_freqs = hal.build_frequency_list(11, 0.05, 2)
 
 # TODO ratio calculation time, experiment time, pre/post time, all in minutes

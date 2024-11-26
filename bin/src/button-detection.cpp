@@ -44,10 +44,6 @@ Options:\n\
 
 int FRAMES_PER_SEC = 20000;
 
-void sync();
-float calcRatio(float A, float B);
-float zScore(float value, float avg, float sd);
-// void printValues(fstream *data, string ab, int frameNo, float ratio, float valA, float avgA, float zA, float valB, float avgB, float zB);
 void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool isLive, float spikePercentThreshold);
 
 void signal_interrupt_handler(int sig) {
@@ -56,56 +52,12 @@ void signal_interrupt_handler(int sig) {
     exit(sig);
 }
 
-/**
- * @brief Syncs with Python plotter 
- * 
- * 
- */
-void sync() {
-    zmq::context_t context{1};
-
-    zmq::socket_t socket{context, zmq::socket_type::req};
-    socket.connect("tcp://localhost:5556");
-
-    const std::string data{"sync"};
-
-    std::cout << "Sending sync..." << std::endl;
-    socket.send(zmq::buffer(data), zmq::send_flags::none);
-    
-    zmq::message_t reply{};
-    socket.recv(reply, zmq::recv_flags::none);
-
-    std::cout << "Received " << reply.to_string(); 
-    std::cout << std::endl;
-}
-
-float calcRatio(float A, float B) {
-    if (A == 0 && B == 0) {
-        return 0;
-    } else {
-        return (A - B) / (A + B);
-    }
-}
-
-float zScore(float value, float avg, float sd) {
-    return (value - avg) / sd;
-}
-
-void printValues(fstream *data, string ab, int frameNo, float perA, float valA, float avgA, float sdA, float zA, float perB, float valB, float avgB, float sdB, float zB) {
-    *data << frameNo << ", " << ab << ", " ;
-    *data << perA << ", "<< valA << ", " << avgA << ", " << sdA << ", " << zA << ", ";
-    *data << perB << ", "<< valB << ", " << avgB << ", " << sdB << ", " << zB << endl;
-}
-
-
 void runExperiment(string path, string config0, string config1, int frames, int ratioFrames, int well, bool isLive, float spikePercentThreshold) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
     int stimType = 0;
 
     int windowLength = 1000;
-    std::fstream thresholds;
-    thresholds.open(path + "/thresholds_well_" + to_string(well) + ".txt", std::fstream::out);
 
     // activate interrupt handler
     signal(SIGINT, signal_interrupt_handler);
@@ -121,7 +73,6 @@ void runExperiment(string path, string config0, string config1, int frames, int 
     }
 
     bool maxtwo = FRAMES_PER_SEC == 10000;
-    string csvName = path + "/button_data_well_" + to_string(well) + "_NES.csv";
 
     // initialize controller
     NES controller = NES(maxtwo, windowLength, config0.c_str(), config1.c_str(), (path + "/button_data_well_" + to_string(well) + "_NES.csv").c_str());
