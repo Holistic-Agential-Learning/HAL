@@ -6,6 +6,8 @@
 # valid emails)
 #
 # adds a fortune in the body of the email :)
+#
+# Written by Trevor M. Sullivan
 
 for email in "$@"; do
     echo "notifying $email..."
