@@ -21,7 +21,7 @@ import bin.lib.py_src.hal as hal
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    "",
+    "/home/mxwbio/configs/241203/25269_DIV17.cfg",
     "",
     "",
     "",
@@ -58,9 +58,9 @@ maxtwo = False
 
 #TODO 
 # in minutes, float
-pre_exp_time = 20
-experiment_time = 20
-post_exp_time = 20
+pre_exp_time = 1
+experiment_time = 3
+post_exp_time = 1
 
 #TODO
 #
@@ -156,11 +156,11 @@ if __name__ == '__main__':
         s.start_recording([well])
         
         ############################################################################
-
         print(f"{get_time()}: Recording well {well} for {pre_exp_time} minutes...")
         time.sleep(pre_exp_time * 60)
 
-        print(f"Running experiment on well {well}")
+        print(f"Running experiment on well {well} for {experiment_time} minutes...")
+        print(program_args)
         mx.send(mx.Event(well, 1, 1, f"start_experiment {well}"))
 
         try:

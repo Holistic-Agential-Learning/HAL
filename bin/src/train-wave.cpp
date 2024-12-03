@@ -151,7 +151,7 @@ int main(int argc, char * argv[]) {
     cout << "Min frames: " << MIN_FRAMES << endl;
 
     try {
-        runExperiment(folderPath, configPath, frames, well, threshold, pollingWindowSize, leftToRight, rightToLeft);
+        runExperiment(folderPath, configPath, well, frames, threshold, pollingWindowSize, leftToRight, rightToLeft);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
