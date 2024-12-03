@@ -23,8 +23,18 @@ class StimVector {
          */
         StimVector(bool isRandom=true, int stimRate=5, bool maxtwo=false, float interval=0.001, float shuffleFrequency=5);
 
+        /**
+         * @brief Destroy the Stim Vector object
+         * 
+         */
         ~StimVector();
 
+        /**
+         * @brief Check if a pulse should be sent on the current frame
+         * 
+         * @param frame <code>int</code> representing current frame
+         * @return <code>bool</code>
+         */
         bool stimulate(int frame);
 
     private:

@@ -13,6 +13,7 @@
 #include <string>
 #include "hal.h"
 #include <map>
+#include <time.h>
 
 using namespace std;
 using namespace maxlab;
@@ -72,7 +73,7 @@ default 0.0002\n\
 \t--stim-rate <value>             Stimulation rate, in stimulations per \
 second, default 5\n\
 \t--threshold <value>             Threshold for burst detection, float between \
-0 and 1, defalt (window length) / 1000\n\
+0 and 1, default (window length) / 1000\n\
 \t--minutes <value>               Number of minutes to run the experiment, \
 default 15\n\
 \t--well <value>                  Well number, default 0\n"
@@ -103,7 +104,7 @@ void signal_interrupt_handler(int sig) {
 
 // run with ./prints-bursts frames threshold
 int main(int argc, char * argv[]) {
-    srand(1);
+    
  
     string folderPath = getStringArg("--folder", argc, argv, USAGE);
     string configPath = getStringArg("--config", argc, argv, USAGE);

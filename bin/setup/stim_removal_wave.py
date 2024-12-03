@@ -59,6 +59,7 @@ chip_id = "25247"
 maxtwo = False
 
 #TODO 
+# in minutes, float
 pre_exp_time = 0
 experiment_time = 1
 post_exp_time = 0

@@ -1,6 +1,9 @@
 #include "stimVector.h"
 #include <stdlib.h>
 #include <iostream>
+#include <time.h>
+#include <random>
+
 
 using namespace std;
 
@@ -16,6 +19,7 @@ StimVector::StimVector(bool isRandom, int stimRate, bool maxtwo, float interval,
     stims = (bool *) calloc(length, sizeof(bool));
 
     if (random) {
+        srand(time(NULL));
         generateRandom();
     }
 }
