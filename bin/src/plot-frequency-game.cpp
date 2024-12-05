@@ -166,7 +166,7 @@ void runExperiment(string path, string config0, string config1, vector<float> fr
     bool increase = true;
 
     maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
-
+    
     /*
         Run Experiment
     */

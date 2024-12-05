@@ -115,6 +115,8 @@ if __name__ == '__main__':
         single_pulse = Stimulation(f"pulse{well}", 0, 250, 200, 1, 1, 10, 1, well = well)
         duration = single_pulse.get_duration()
         single_pulse.build_sequence(initial_delay = 0)
+
+        hal.build_training_sequences(well)
         
         program_args = [f"./bin/build/random-stim-test", "--config", config_name, "--folder", dir, "--pulse-duration", str(duration)]
         
@@ -124,6 +126,10 @@ if __name__ == '__main__':
         #TODO: put them on top to change from run to run
         program_args.append("--threshold")
         program_args.append(str(threshold))
+        program_args.append("--pre-recording")
+        program_args.append(str(pre_exp_time))
+        program_args.append("--post-recording")
+        program_args.append(str(post_exp_time))
         program_args.append("--minutes")
         program_args.append(str(experiment_time))
         program_args.append("--well")
@@ -157,11 +163,7 @@ if __name__ == '__main__':
         
         ############################################################################
 
-        print(f"{get_time()}: Recording well {well} for {pre_exp_time} minutes...")
-        time.sleep(pre_exp_time * 60)
-
         print(f"Running experiment on well {well}")
-        mx.send(mx.Event(well, 1, 1, f"start_experiment {well}"))
 
         try:
             subprocess.run(program_args)
@@ -170,10 +172,7 @@ if __name__ == '__main__':
         except Exception as err:
             print(err)
 
-        mx.send(mx.Event(well, 1, 2, f"end_experiment {well}"))
-        print(f"{get_time()}: Recording well {well} for {post_exp_time} minutes...")
 
-        time.sleep(post_exp_time * 60)
 
         ############################################################################
 

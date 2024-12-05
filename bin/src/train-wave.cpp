@@ -89,7 +89,7 @@ default 15\n\
 int FRAMES_PER_SEC = 20000;
 
 float framesToSeconds(int frames);
-void runExperiment(string path, string configPath, int frames, int well, float threshold, int pollingWindowSize, int rightStimType, int leftStimType);
+void runExperiment(string path, string configPath, int preFrames, int frames, int postFrames, int well, float threshold, int pollingWindowSize, int rightStimType, int leftStimType);
 
 /* signal_interrupt_handler
  * 
@@ -103,9 +103,7 @@ void signal_interrupt_handler(int sig) {
 }
 
 // run with ./prints-bursts frames threshold
-int main(int argc, char * argv[]) {
-    
- 
+int main(int argc, char * argv[]) { 
     string folderPath = getStringArg("--folder", argc, argv, USAGE);
     string configPath = getStringArg("--config", argc, argv, USAGE);
     float threshold = getFloatArgSecure("--threshold", THRESHOLD_DEFAULT, argc, argv);
@@ -120,6 +118,9 @@ int main(int argc, char * argv[]) {
     float pulseDurationSecs = getFloatArgSecure("--pulse-duration", 0.0002, argc, argv);
     float minutes = getFloatArgSecure("--minutes", MINUTES_DEFAULT, argc, argv);
 
+    float pre = getIntArgSecure("--pre-recording", 5, argc, argv);
+    float post = getIntArgSecure("--post-recording", 5, argc, argv);
+
     cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << " for " << minutes << " minutes..." << endl;
     cout << "Config: " << configPath << endl;
     cout << "Threshold: " << threshold << endl;
@@ -130,8 +131,9 @@ int main(int argc, char * argv[]) {
         FRAMES_PER_SEC = 10000;
     }
 
+    int preFrames = pre * 60 * FRAMES_PER_SEC;
     int frames = minutes * 60 * FRAMES_PER_SEC;
-    
+    int postFrames = post * 60 * FRAMES_PER_SEC;
     // pulse duration in frames
     int pulseDuration = pulseDurationSecs * FRAMES_PER_SEC;
     int pollingRate = 1000; //1000 per sec
@@ -151,7 +153,7 @@ int main(int argc, char * argv[]) {
     cout << "Min frames: " << MIN_FRAMES << endl;
 
     try {
-        runExperiment(folderPath, configPath, well, frames, threshold, pollingWindowSize, leftToRight, rightToLeft);
+        runExperiment(folderPath, configPath, well, preFrames, frames, postFrames, threshold, pollingWindowSize, leftToRight, rightToLeft);
     } catch (int err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -162,7 +164,7 @@ int main(int argc, char * argv[]) {
 }
 
 
-void runExperiment(string path, string configPath, int well, int frames, float threshold, int pollingWindowSize, int rightStimType, int leftStimType) {
+void runExperiment(string path, string configPath, int well, int preFrames, int frames, int postFrames, float threshold, int pollingWindowSize, int rightStimType, int leftStimType) {
     // Open data stream and check that no errors occurred
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
@@ -208,6 +210,7 @@ void runExperiment(string path, string configPath, int well, int frames, float t
     int maxSpikesFrame = 0;
     int maxSpikes = 0;
     float maxSpikesLoc = 0;
+    int lastBurstStartFrame = 0;
 
     // number of locs that are currently being stored
     int locCounter = 0;
@@ -216,12 +219,28 @@ void runExperiment(string path, string configPath, int well, int frames, float t
 
     int previousBurst = 0;
 
+    cout << "Recording " << framesToSeconds(preFrames) / 60.0 << "minutes of neuron activity" << endl;
+    ProgressBar preBar = ProgressBar(preFrames, "Recording...");
+
+    maxlab::verifyStatus(maxlab::sendSequence(("pre_recording_start_" + to_string(well)).c_str()));
+    for (int i = 0; i < preFrames; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+        preBar.increment();
+    }
+    cout << endl;
+
     cout << "Processing " << framesToSeconds(frames) / 60.0 << " minutes of neuron activity with a spike threshold of " << threshold << endl;
 
     // gets wave detector object and initializes window
     WaveDetector sensor = WaveDetector(WINDOW, configPath.c_str(), threshold, MIN_FRAMES, FRAMES_PER_SEC, 0.2, 0.2);
     ChannelWindow *window = sensor.getWindow();
-
+    ProgressBar expBar = ProgressBar(frames, "Training...");
+    maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
     // start processing frames
     for (int i = 0; i < frames; i++) {
 
@@ -234,6 +253,8 @@ void runExperiment(string path, string configPath, int well, int frames, float t
             i--;
             continue;
         }
+
+        expBar.increment();
 
         // const SpikeEvent *spike = frameData.spikeEvents;
         int waveVal = sensor.processFrame(frameData, i);
@@ -258,7 +279,7 @@ void runExperiment(string path, string configPath, int well, int frames, float t
                 alldata_file << i + SYS_START_BUFFER + WINDOW << ", " << spikeCount << ", " << monitoringLoc << endl;
             }
     
-            if ((i == burstStart + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity) {
+            if (bursting && (i == lastBurstStartFrame + (FRAMES_PER_SEC * 0.01 * locCounter)) && locCounter < capacity) {
                 locs[locCounter] = window->getAvgX();
                 burstSpikeCounts[locCounter] = spikeCount;
                 locCounter++;
@@ -269,11 +290,16 @@ void runExperiment(string path, string configPath, int well, int frames, float t
                 locs[0] = window->getAvgX(); // starting location
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
+                bursting = true;
+                lastBurstStartFrame = i;
             } else if (waveVal == Wave::leftToRight || waveVal == Wave::rightToLeft) {
 
                 bool leftToRight = waveVal == Wave::leftToRight;
                 string locString = leftToRight ? "left to right" : "right to left";
+                
+                expBar.clear();
                 cout << locString << endl;
+                expBar.print();
 
                 // is this necessary?
                 file << "BURST" << endl;
@@ -307,6 +333,19 @@ void runExperiment(string path, string configPath, int well, int frames, float t
             blanking += FRAMES_PER_SEC / 10 +  pollingWindowSize;
         }
     } 
+
+    cout << "Recording " << framesToSeconds(postFrames) / 60.0 << "minutes of neuron activity" << endl;
+    ProgressBar postBar = ProgressBar(postFrames, "Recording...");
+    maxlab::verifyStatus(maxlab::sendSequence(("post_recording_start_" + to_string(well)).c_str()));
+    for (int i = 0; i < postFrames; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+        postBar.increment();
+    }
 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
