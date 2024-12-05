@@ -116,6 +116,8 @@ if __name__ == '__main__':
         duration = single_pulse.get_duration()
         single_pulse.build_sequence(initial_delay = 0)
         
+        hal.build_training_sequences(well)
+        
         program_args = [f"./bin/build/train-wave", "--config", config_name, "--folder", dir, "--pulse-duration", str(duration)]
         
         if maxtwo:
@@ -124,6 +126,10 @@ if __name__ == '__main__':
         #TODO: put them on top to change from run to run
         program_args.append("--threshold")
         program_args.append(str(threshold))
+        program_args.append("--pre-recording")
+        program_args.append(str(pre_exp_time))
+        program_args.append("--post-recording")
+        program_args.append(str(post_exp_time))
         program_args.append("--minutes")
         program_args.append(str(experiment_time))
         program_args.append("--well")

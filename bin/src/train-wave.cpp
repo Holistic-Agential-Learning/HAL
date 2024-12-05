@@ -219,7 +219,7 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
 
     int previousBurst = 0;
 
-    cout << "Recording " << framesToSeconds(preFrames) / 60.0 << "minutes of neuron activity" << endl;
+    cout << "Recording " << framesToSeconds(preFrames) / 60.0 << " minutes of neuron activity" << endl;
     ProgressBar preBar = ProgressBar(preFrames, "Recording...");
 
     maxlab::verifyStatus(maxlab::sendSequence(("pre_recording_start_" + to_string(well)).c_str()));
@@ -333,8 +333,9 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
             blanking += FRAMES_PER_SEC / 10 +  pollingWindowSize;
         }
     } 
+    cout << endl;
 
-    cout << "Recording " << framesToSeconds(postFrames) / 60.0 << "minutes of neuron activity" << endl;
+    cout << "Recording " << framesToSeconds(postFrames) / 60.0 << " minutes of neuron activity" << endl;
     ProgressBar postBar = ProgressBar(postFrames, "Recording...");
     maxlab::verifyStatus(maxlab::sendSequence(("post_recording_start_" + to_string(well)).c_str()));
     for (int i = 0; i < postFrames; i++) {
@@ -346,6 +347,7 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
         }
         postBar.increment();
     }
+    cout << endl;
 
     cout << "program over  " << endl;
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
