@@ -163,23 +163,12 @@ if __name__ == '__main__':
         
         ############################################################################
 
-        print(f"{get_time()}: Recording well {well} for {pre_exp_time} minutes...")
-        time.sleep(pre_exp_time * 60)
-
-        print(f"Running experiment on well {well}")
-        mx.send(mx.Event(well, 1, 1, f"start_experiment {well}"))
-
         try:
             subprocess.run(program_args)
         except KeyboardInterrupt:
             print("start-maxlab.py: ^C signalled")
         except Exception as err:
             print(err)
-
-        mx.send(mx.Event(well, 1, 2, f"end_experiment {well}"))
-        print(f"{get_time()}: Recording well {well} for {post_exp_time} minutes...")
-
-        time.sleep(post_exp_time * 60)
 
         ############################################################################
 

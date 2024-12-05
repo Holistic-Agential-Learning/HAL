@@ -23,8 +23,8 @@ import bin.lib.py_src.hal as hal
 all_configs = [
     "",
     "",
-    "",
-    "",
+    "/home/mxwbio/configs/241205/M07460_well2.cfg",
+    "/home/mxwbio/configs/241205/M07460_well3.cfg",
     "",
     ""
 ]
@@ -38,7 +38,7 @@ left = 1
 live_chip = True
 
 #TODO
-wells = [2, 3]
+wells = [2, 3]  # put 2 back
 
 # TODO
 #
@@ -70,12 +70,12 @@ threshold = 0.1
 #TODO stims per second
 stim_rate = 5
 
-#TODO stimulation electrodes
+#TODO stimulation electrodes    ... top left, bottom left, top right, bottom right
 stim_electrodes = [
     [],
     [],
-    [],
-    [],
+    [3355, 20049, 4355, 21935],
+    [4199, 21369, 3915, 21499],
     [],
     []
 ]
@@ -87,7 +87,7 @@ desc = f"Random stimulation for rightwards bursts and regular stimulation for le
 #TODO
 #
 # emails to notify after the experiment ends
-emails = ["sydney.palmer@tufts.edu"]
+emails = ["sydney.palmer@tufts.edu", "wesley.clawson@tufts.edu"]
 
 def get_time():
     return datetime.now().time().strftime("%H:%M")
@@ -163,11 +163,6 @@ if __name__ == '__main__':
         
         ############################################################################
 
-        print(f"{get_time()}: Recording well {well} for {pre_exp_time} minutes...")
-        time.sleep(pre_exp_time * 60)
-
-        print(f"Running experiment on well {well}")
-        mx.send(mx.Event(well, 1, 1, f"start_experiment {well}"))
 
         try:
             subprocess.run(program_args)
@@ -175,11 +170,6 @@ if __name__ == '__main__':
             print("start-maxlab.py: ^C signalled")
         except Exception as err:
             print(err)
-
-        mx.send(mx.Event(well, 1, 2, f"end_experiment {well}"))
-        print(f"{get_time()}: Recording well {well} for {post_exp_time} minutes...")
-
-        time.sleep(post_exp_time * 60)
 
         ############################################################################
 
