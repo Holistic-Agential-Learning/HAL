@@ -21,12 +21,12 @@ import bin.lib.py_src.hal as hal
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    "",
-    "",
-    "",
-    "",
-    "",
-    ""
+    "/home/mxwbio/configs/241205/M07458_well0.cfg",
+    "/home/mxwbio/configs/241205/M07458_well1.cfg",
+    "/home/mxwbio/configs/241205/M07458_well2.cfg",
+    "/home/mxwbio/configs/241205/M07458_well3.cfg",
+    "/home/mxwbio/configs/241205/M07458_well4.cfg",
+    "/home/mxwbio/configs/241205/M07458_well5.cfg"
 ]
 
 # stimulation type for right vs left bursts: 0 for none, 1 for regular, 2 for 
@@ -51,7 +51,7 @@ parent_dir = "/home/mxwbio/Desktop/HAL/data/wave-training"
 experiment_name = "dec-2024"
 
 #TODO
-chip_id = "M07480" 
+chip_id = "M07458" 
 
 #TODO
 maxtwo = True
@@ -72,12 +72,12 @@ stim_rate = 5
 
 #TODO stimulation electrodes
 stim_electrodes = [
-    [],
-    [],
-    [],
-    [],
-    [],
-    []
+    [3765, 20933, 3937, 21533],
+    [5533, 20495, 19763, 5249],
+    [5535, 20929, 21527, 5249],
+    [4649, 20933, 20647, 5253],
+    [4203, 21803, 20211, 5693],
+    [5087, 20925, 22405, 14927]
 ]
 
 
@@ -87,7 +87,7 @@ desc = f"Regular stimulation for rightwards bursts and random stimulation for le
 #TODO
 #
 # emails to notify after the experiment ends
-emails = ["sydney.palmer@tufts.edu"]
+emails = ["sydney.palmer@tufts.edu", "wesley.clawson@tufts.edu"] 
 
 def get_time():
     return datetime.now().time().strftime("%H:%M")

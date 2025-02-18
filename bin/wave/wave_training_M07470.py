@@ -23,10 +23,10 @@ import bin.lib.py_src.hal as hal
 all_configs = [
     "",
     "",
+    "/home/mxwbio/configs/241206/M07470_well2.cfg",
     "",
-    "",
-    "",
-    ""
+    "/home/mxwbio/configs/241206/M07470_well4.cfg",
+    "/home/mxwbio/configs/241206/M07470_well5.cfg"
 ]
 
 # stimulation type for right vs left bursts: 0 for none, 1 for regular, 2 for 
@@ -74,10 +74,10 @@ stim_rate = 5
 stim_electrodes = [
     [],
     [],
+    [5089, 20929, 20653, 4809],
     [],
-    [],
-    [],
-    []
+    [5087, 20487, 20651, 4811],
+    [5531, 20051, 20649, 5689]
 ]
 
 
@@ -87,7 +87,7 @@ desc = f"No stimulation for rightwards bursts and regular stimulation for leftwa
 #TODO
 #
 # emails to notify after the experiment ends
-emails = ["sydney.palmer@tufts.edu"]
+emails = ["sydney.palmer@tufts.edu", "wesley.clawson@tufts.edu"]
 
 def get_time():
     return datetime.now().time().strftime("%H:%M")

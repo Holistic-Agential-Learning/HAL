@@ -21,12 +21,12 @@ import bin.lib.py_src.hal as hal
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    "",
-    "",
-    "",
-    "",
-    "",
-    ""
+    "/home/mxwbio/configs/241206/M07480_well0.cfg",
+    "/home/mxwbio/configs/241206/M07480_well1.cfg",
+    "/home/mxwbio/configs/241206/M07480_well2.cfg",
+    "/home/mxwbio/configs/241206/M07480_well3.cfg",
+    "/home/mxwbio/configs/241206/M07480_well4.cfg",
+    "/home/mxwbio/configs/241206/M07470_well5.cfg"
 ]
 
 # stimulation type for right vs left bursts: 0 for none, 1 for regular, 2 for 
@@ -72,12 +72,12 @@ stim_rate = 5
 
 #TODO stimulation electrodes
 stim_electrodes = [
-    [],
-    [],
-    [],
-    [],
-    [],
-    []
+    [5531, 20049, 20209, 5691],
+    [5527, 20047, 20203, 5253],
+    [5531, 19611, 20209, 5251],
+    [5969, 19611, 20645, 5251],
+    [5085, 20485, 20205, 5695],
+    [5529, 19613, 21085, 5689]
 ]
 
 
@@ -87,7 +87,7 @@ desc = f"No stimulation for rightwards bursts and regular stimulation for leftwa
 #TODO
 #
 # emails to notify after the experiment ends
-emails = ["sydney.palmer@tufts.edu"]
+emails = ["sydney.palmer@tufts.edu", "wesley.clawson@tufts.edu"]
 
 def get_time():
     return datetime.now().time().strftime("%H:%M")
