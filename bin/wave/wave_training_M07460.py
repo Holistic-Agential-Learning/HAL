@@ -17,16 +17,16 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
 #TODO
-wells = [0]
+wells = [3]
 
 #TODO configs
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    "/home/mxwbio/configs/241203/25269_DIV17.cfg",
     "",
     "",
     "",
+    "/home/mxwbio/Desktop/HAL/bin/wave/Spring 2025/M07460 DIV21.cfg",
     "",
     ""
 ]
@@ -37,15 +37,13 @@ all_configs = [
 # This has been changed by Wes - we need conditions per well, so now it goes to a 
 # an array that's 6 long. -> [left, right] i.e., [1, 0] would deliever regular on left burst and nothing on right
 exp_conditions = [
-    [1, 0],
-    [1, 0],
-    [1, 0],
-    [1, 0],
-    [1, 0],
-    [1, 0],
+    [],
+    [],
+    [],
+    [2, 1],
+    [],
+    []
 ] 
-right = 0
-left = 0
 
 #TODO indicates whether to simply read data, or to stimulate the buttons manually
 live_chip = True
@@ -57,19 +55,19 @@ live_chip = True
 parent_dir = "/home/mxwbio/Desktop/HAL/data/wave-training"
 
 #TODO 
-experiment_name = "dec-2024-test"
+experiment_name = "feb-2025"
 
 #TODO
-chip_id = "01234" 
+chip_id = "M07460" 
 
 #TODO
-maxtwo = False
+maxtwo = True
 
 #TODO 
 # in minutes, float
 pre_exp_time = 1
-experiment_time = 3
-post_exp_time = 1
+experiment_time = 20
+post_exp_time = 20
 
 #TODO
 # Threshold of what is consiered a burst -> 0.1 = >10% of active electrodes consititute a burst
@@ -83,19 +81,19 @@ stim_electrodes = [
     [],
     [],
     [],
-    [],
+    [5099, 5673, 23141, 22389],
     [],
     []
 ]
 
 
 #TODO desription
-desc = f"No stimulation. Threshold: {threshold}. Time: {experiment_time} mins."
+desc = f"Leftwards gets random, rightwards gets regular. Threshold: {threshold}. Time: {experiment_time} mins."
 
 #TODO
 #
 # emails to notify after the experiment ends
-emails = ["sydney.palmer@tufts.edu"]
+emails = ["wesley.clawson@tufts.edu"]
 
 def get_time():
     return datetime.now().time().strftime("%H:%M")
@@ -133,6 +131,9 @@ if __name__ == '__main__':
         # Select which stim condition you want by well
         right = exp_conditions[well][1]
         left = exp_conditions[well][0]
+
+        print("Right: " + str(right))
+        print("Left: " + str(left))
 
         #TODO: put them on top to change from run to run
         program_args.append("--threshold")
