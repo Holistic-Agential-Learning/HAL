@@ -46,7 +46,8 @@ exp_conditions = [
 ] 
 
 #TODO indicates whether to simply read data, or to stimulate the buttons manually
-live_chip = True
+live_chip = False
+# wes note ^ I think this doesn't do anything, but made it false b/c an old file works and has this false
 
 # TODO
 #
@@ -61,11 +62,11 @@ experiment_name = "feb-2025"
 chip_id = "M07460" 
 
 #TODO
-maxtwo = True
+maxtwo = True   # This is another difference
 
 #TODO 
 # in minutes, float
-pre_exp_time = 1
+pre_exp_time = 0
 experiment_time = 20
 post_exp_time = 20
 
