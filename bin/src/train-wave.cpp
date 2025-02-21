@@ -191,6 +191,10 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
     cout << "Finished buffer, looking for spikes..." << endl;
     StimVector rightStim = StimVector(rightStimType == 2, rightStimType ? 5 : 0, maxtwo);
     StimVector leftStim = StimVector(leftStimType == 2, leftStimType ? 5 : 0, maxtwo);
+
+    // Debug statement from Wes to check StimVector logic
+    cout << "rightStimType: " << rightStimType << ", leftStimType: " << leftStimType << ", maxtwo: " << maxtwo << endl;
+
     // amount of blanking time
     int blanking = 0;
 
@@ -271,7 +275,6 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
         if (blanking > 0) {
             blanking--;
         }
-
         
         if (!blanking) {
             if (i % (int)(FRAMES_PER_SEC * 0.01) == 0) {
@@ -284,8 +287,6 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
                 burstSpikeCounts[locCounter] = spikeCount;
                 locCounter++;
             }
-
-
             if (waveVal == Wave::burstStart) {
                 locs[0] = window->getAvgX(); // starting location
                 burstSpikeCounts[0] = spikeCount;
