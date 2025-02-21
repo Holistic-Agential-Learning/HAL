@@ -329,7 +329,7 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
 
         //STIMULATE IF APPROPRIATE
         if (stimulate && !bursting){
-            maxlab::verifyStatus(maxlab::sendSequence("pulse"));
+            maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             // cout << i << ": PULSE SENT" << endl;
             blanking += FRAMES_PER_SEC / 10 +  pollingWindowSize;
         }
