@@ -194,6 +194,10 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
 
     // Debug statement from Wes to check StimVector logic
     cout << "rightStimType: " << rightStimType << ", leftStimType: " << leftStimType << ", maxtwo: " << maxtwo << endl;
+    cout << endl;
+    cout << "maxtwo: " << to_string(maxtwo);
+    cout << endl;
+    cout << "FramesPerSec: " << to_string(FRAMES_PER_SEC);
 
     // amount of blanking time
     int blanking = 0;
@@ -247,7 +251,7 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
     maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
     // start processing frames
     for (int i = 0; i < frames; i++) {
-
+        
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
 
@@ -263,6 +267,9 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
         // const SpikeEvent *spike = frameData.spikeEvents;
         int waveVal = sensor.processFrame(frameData, i);
         int spikeCount = window->totalSpikeCount();
+
+        //cout << "blanking: " << to_string(blanking) << '\n';
+        // cout << "spike count: " << to_string(spikeCount) << '\n';
 
         if (previousBurst == 1) {
             stimulate = rightStim.stimulate(i);
@@ -287,6 +294,7 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
                 burstSpikeCounts[locCounter] = spikeCount;
                 locCounter++;
             }
+
             if (waveVal == Wave::burstStart) {
                 locs[0] = window->getAvgX(); // starting location
                 burstSpikeCounts[0] = spikeCount;
@@ -294,9 +302,11 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
                 bursting = true;
                 lastBurstStartFrame = i;
             } else if (waveVal == Wave::leftToRight || waveVal == Wave::rightToLeft) {
-
+                
                 bool leftToRight = waveVal == Wave::leftToRight;
                 string locString = leftToRight ? "left to right" : "right to left";
+                
+                bursting = false;
                 
                 expBar.clear();
                 cout << locString << endl;
@@ -324,14 +334,23 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
                 file << metadata.maxSpikes << endl;       
                 
                 previousBurst = leftToRight ? 1 : -1;
+
+                //cout << "bursting: " << to_string(metadata.bursting) << '\n';
+                //bursting = metadata.bursting;
+                //bursting = false;
             }
+
+            // if (waveVal == Wave::noBurst) {
+            //     bursting = false;
+            // }
         }
 
         //STIMULATE IF APPROPRIATE
         if (stimulate && !bursting){
+            //maxlab::verifyStatus(maxlab::sendSequence("pulse"));
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
-            // cout << i << ": PULSE SENT" << endl;
-            blanking += FRAMES_PER_SEC / 10 +  pollingWindowSize;
+            //cout << i << ": PULSE SENT" << endl;
+            blanking = 440; // += FRAMES_PER_SEC / 10 +  pollingWindowSize;
         }
     } 
     cout << endl;
