@@ -279,7 +279,17 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
             stimulate = false;
         }
 
-        if (blanking > 0) {
+        // the idea is that if we see a burst we stop blanking - but will stims look like a burst?
+        // if (waveVal == Wave::burstStart){
+        //     blanking = 0;
+        //     stimulate = 0;
+        // }
+
+        // count blanking down
+        if (blanking > 1) {
+            blanking--;
+        }else if (blanking == 1){
+            cout << "BLANK NO MORE, "<< "i: " << to_string(i) << ", blanking: " << to_string(blanking) << endl;
             blanking--;
         }
         
@@ -350,7 +360,8 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
             //maxlab::verifyStatus(maxlab::sendSequence("pulse"));
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             //cout << i << ": PULSE SENT" << endl;
-            blanking = 440; // += FRAMES_PER_SEC / 10 +  pollingWindowSize;
+            blanking = 100; // += FRAMES_PER_SEC / 10 +  pollingWindowSize;
+            cout << "BLANK MASTER GENERAL, "<< "i: " << to_string(i) << ", blanking: " << to_string(blanking) << endl;
         }
     } 
     cout << endl;
