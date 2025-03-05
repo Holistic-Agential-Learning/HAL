@@ -121,7 +121,7 @@ int main(int argc, char * argv[]) {
     float pre = getIntArgSecure("--pre-recording", 5, argc, argv);
     float post = getIntArgSecure("--post-recording", 5, argc, argv);
 
-    cout << "Running experiment on Max" << (maxtwo ? "Two" : "One") << " for " << minutes << " minutes..." << endl;
+    cout << "Running experiment on Max" << (maxtwo ? "TWO" : "ONE") << " for " << minutes << " minutes..." << endl;
     cout << "Config: " << configPath << endl;
     cout << "Threshold: " << threshold << endl;
     cout << "Well: " << well << endl;
@@ -134,8 +134,11 @@ int main(int argc, char * argv[]) {
     int preFrames = pre * 60 * FRAMES_PER_SEC;
     int frames = minutes * 60 * FRAMES_PER_SEC;
     int postFrames = post * 60 * FRAMES_PER_SEC;
-    // pulse duration in frames
-    int pulseDuration = pulseDurationSecs * FRAMES_PER_SEC;
+    
+    
+    //  EVERYTHING BETWEEN THIS AND THE BIG COMMENT BELOW SEEM OLD AND NOT USED.
+    // pulse duration in frames  --> it's a square wave, so 2*phase
+    int pulseDuration = pulseDurationSecs * FRAMES_PER_SEC;  // SHOULD BE 2 X
     int pollingRate = 1000; //1000 per sec
 
     // window size (in pollingRate units)
@@ -143,6 +146,7 @@ int main(int argc, char * argv[]) {
     int numPollingWindows = pollingRate * RANDOM_WINDOW_GEN_TIME;
     int numStims = stimRate * RANDOM_WINDOW_GEN_TIME;
     //5000 discrete time bins in which stimuli can occur. These occur over 5 secods
+    // EVERYTHING ABOVE THIS SEEMS TO BE OLD AND NOT USED!
 
     if (pulseDuration * 2 > pollingWindowSize) {
         cout << "pulse duration * 2 > polling window size" << endl;
@@ -193,13 +197,14 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
     StimVector leftStim = StimVector(leftStimType == 2, leftStimType ? 5 : 0, maxtwo);
 
     // Debug statement from Wes to check StimVector logic
+    cout << "### Initialized stim vectors! ###" << endl;
     cout << "rightStimType: " << rightStimType << ", leftStimType: " << leftStimType << ", maxtwo: " << maxtwo << endl;
     cout << endl;
-    cout << "maxtwo: " << to_string(maxtwo);
-    cout << endl;
+    //cout << "stim rate: " << to_string(stimRate) << " Hz";
+    //cout << endl;
     cout << "FramesPerSec: " << to_string(FRAMES_PER_SEC);
 
-    // amount of blanking time
+    // instantiate blanking. This goes up to a #, and then counts down per frame 
     int blanking = 0;
 
     // number of locs that can be stored
@@ -211,8 +216,8 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
     // spike count for each calculated location, mirroring locs
     vector <int> burstSpikeCounts(capacity);
     
-    bool stimulate = false;
-    bool bursting = false;
+    bool stimulate = false; // a local bool for internal logic that tells the system it needs to send a pulse
+    bool bursting = false;  // a local bool for internal logic that holds the burst state of the neurons
 
     bool firstBurstDone = false;
     int maxSpikesFrame = 0;
@@ -360,8 +365,8 @@ void runExperiment(string path, string configPath, int well, int preFrames, int 
             //maxlab::verifyStatus(maxlab::sendSequence("pulse"));
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             //cout << i << ": PULSE SENT" << endl;
-            blanking = 100; // += FRAMES_PER_SEC / 10 +  pollingWindowSize;
-            cout << "BLANK MASTER GENERAL, "<< "i: " << to_string(i) << ", blanking: " << to_string(blanking) << endl;
+            blanking = FRAMES_PER_SEC / 10 +  pollingWindowSize;
+            // cout << "BLANK MASTER GENERAL, "<< "i: " << to_string(i) << ", blanking: " << to_string(blanking) << endl;
         }
     } 
     cout << endl;
