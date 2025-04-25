@@ -76,7 +76,7 @@ second, default 5\n\
 0 and 1, default (window length) / 1000\n\
 \t--minutes <value>               Number of minutes to run the experiment, \
 default 15\n\
-\t--well <value>                  Well number, default 0\n"
+\t--well <value>                  Well number, default 0\n
 
 #define THRESHOLD_DEFAULT WINDOW/1000
 #define FRAMES_DEFAULT 15 * 60 * 20000
