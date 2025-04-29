@@ -17,15 +17,17 @@ using namespace std;
 class StimVector {
 
     public:
-
         /**
          * @brief Construct a new Stim Vector object
          * 
          * @param isRandom <code>bool</code> If true, generates randomized stimulations.
          * @param stimRate <code>int</code> Stimulations per second; must be >= 0.
+         *                 Use <code>0</code> to disable stimulation entirely.
          * @param maxtwo <code>bool</code> True if running on MaxTwo (10kHz), false for MaxOne (20kHz).
          * @param interval <code>float</code> Duration of a randomization bin, in seconds (default 0.001s).
          * @param shuffleFrequency <code>float</code> How often (in seconds) to refresh the random stimulation pattern (default 5s).
+         * 
+         * @note If <code>stimRate</code> is 0, the stimulator will remain inactive regardless of mode.
          */
         StimVector(bool isRandom = true, int stimRate = 5, bool maxtwo = false, float interval = 0.001, float shuffleFrequency = 5);
 

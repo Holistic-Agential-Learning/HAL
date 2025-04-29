@@ -292,8 +292,23 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // =====================================================
     //                     Experimental Setup
     // =====================================================
-    StimVector rightStim = StimVector(rightStimType == 2, rightStimType ? 5 : 0, maxtwo);
-    StimVector leftStim = StimVector(leftStimType == 2, leftStimType ? 5 : 0, maxtwo);
+
+    // Instantiate stimulation vectors.
+    // User selects type: 0 = off, 1 = regular, 2 = random.
+    // If stimRate is set to 0, StimVector will disable all stimulation.
+    StimVector rightStim = StimVector(
+        rightStimType == 2,
+        rightStimType == 0 ? 0 : 5, // This checks rightStim is 0, if so pass '0 Hz' to stimVector
+        maxtwo,
+        0.001
+    );
+
+    StimVector leftStim = StimVector(
+        leftStimType == 2,
+        leftStimType == 0 ? 0 : 5,  // This checks leftStim is 0, if so pass '0 Hz' to stimVector
+        maxtwo,
+        0.001
+    );
 
     // gets wave detector object and initializes window
     WaveDetector sensor = WaveDetector(WINDOW, configPath.c_str(), framesPerSec, burst_size_threshold, burst_dur_threshold, 0.5);
@@ -405,6 +420,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         }
 
         // === 5. Handle Stimulation if Necessary ===
+        // the python file passes 0 for none, 1 for regular, 2 for random.
         bool stimulate = false;
         if (previousBurst == 1) {
             stimulate = rightStim.stimulate(i);
