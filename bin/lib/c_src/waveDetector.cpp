@@ -1,40 +1,48 @@
 /**
  * @file waveDetector.cpp
- * @author Trevor Sullivan (trevor.sullivan@tufts.edu) and Nathan Wu (nathan.wu@yale.edu)
+ * @author Wesley Clawson (wesley.clawson@tufts.edu). Previous by: Trevor Sullivan (trevor.sullivan@tufts.edu) and Nathan Wu (nathan.wu@yale.edu)
  * @brief Implementation of the WaveDetector Class
- * @version 0.1
- * @date 2024-09-18
+ * @version 1.0
+ * @date 2025-04-29
  * 
- * @copyright Copyright (c) 2024
+ * @copyright Copyright (c) 2025
  * 
  */
 
-#include "waveDetector.h"
-
+// Basic includes
 #include <iostream>
+
+// From MaxWell Bio
 #include "maxlab.h"
+
+// HAL-based inclusions
+#include "waveDetector.h"
 #include "channelWindow.h"
 #include "electrodeMap.h"
+
+using namespace std;
 
 WaveDetector::WaveDetector() {
 
 }
 
-WaveDetector::WaveDetector(int windowLength, const char *configPath, float threshold, int minFrames, int frameHz, float firstBurstThreshold, float burstDoneThreshold) {
-    window = new ChannelWindow(windowLength, configPath);
+WaveDetector::WaveDetector(int windowLength, const char *configPath, int fps, float burst_size_threshold, int burst_dur_threshold, int BurstFinishedThreshold) {
+    
+    window = new ChannelWindow(windowLength, configPath);   // Create a window with the correct parameters. 
+    window->init(); // You need to initialze the window using the parameters passed by a user. 
 
-    window->init();
+    ElectrodeMap emap = window->electrodeMap(); // This will grab the electrodeMap (includes x positions & number of channels)
 
-    ElectrodeMap emap = window->electrodeMap();
-
-    this->threshold = threshold;
-    framesPerSec = frameHz;
-    this->minFrames = minFrames;
-    this->firstBurstThreshold = firstBurstThreshold;
-    this->burstDoneThreshold = burstDoneThreshold;
+    // This section takes the parameters passed into WaveDetector and makes them accessible to across the WaveDetector class.
+    // For example, these are 'available' in the checkBurst method. 
+    this->framesPerSec = fps;
+    this->burst_size_threshold = burst_size_threshold;
+    this->burst_dur_threshold = burst_dur_threshold;
+    this->BurstFinishedThreshold = BurstFinishedThreshold;
     totalElectrodes = emap.size();
 
-    metadata = (WaveMetadata *)calloc(1, sizeof(WaveMetadata));
+    // Preallocated space for the metadata (current burst information)
+    metadata = new WaveMetadata{};
 
     if (metadata == NULL) {
         cerr << __FILE__ << " line " << __LINE__ << ": metadata memory allocation failed." << endl;
@@ -43,8 +51,7 @@ WaveDetector::WaveDetector(int windowLength, const char *configPath, float thres
 }
 
 WaveDetector::~WaveDetector() {
-    delete window;
-    free(metadata);
+    delete metadata;
 }
 
 ChannelWindow *WaveDetector::getWindow() {
@@ -59,87 +66,89 @@ void WaveDetector::shiftWindow(maxlab::FilteredFrameData frame) {
     window->shift(frame);
 }
 
-
-
-int WaveDetector::checkBurst(int frameNo) {
-
-    int ret = Wave::noBurst;
-    int spikeCount = window->totalSpikeCount();
-
-
-    // spike in activity
-    if  (spikeCount > threshold * totalElectrodes) { 
-        ret = Wave::bursting;
-
-        // NOTE: needs more logic here
-        if (!metadata->bursting) {
-    
-            // burst started
-            metadata->bursting = true;
-
-            metadata->burstStartLocation = window->getAvgX(); 
-            metadata->burstStartSpikeCount = spikeCount;
-            metadata->burstStartFrame = frameNo;
-
-            ret = Wave::burstStart;
-        }
-
-
-
-        // TODO: add variable for 0.005
-        if (!metadata->firstBurstDone && spikeCount > metadata->maxSpikes && frameNo % (int)(framesPerSec * 0.005) == 0){
-            metadata->maxSpikes = spikeCount;
-            metadata->maxSpikesFrame = frameNo;
-            metadata->maxSpikesLoc = window->getAvgX();
-        }
-        
-        metadata->spikeFrameCount++; // spike at this frame
-        metadata->noSpikeFrameCount = 0;
-
-    // no spike in activity
-    } else { 
-
-        // TODO: add variable for 0.2
-        if (!metadata->firstBurstDone && metadata->noSpikeFrameCount > firstBurstThreshold * framesPerSec) {
-            metadata->firstBurstDone = true; 
-        }
-
-        // TODO: add another variable for 0.2
-        // burst is over
-        if (metadata->noSpikeFrameCount > burstDoneThreshold * framesPerSec) {
-            
-            metadata->bursting = false;
-            
-            // burst is long enough to be significant
-            if (metadata->spikeFrameCount >= minFrames) {
-                
-                bool startLeft = metadata->burstStartLocation < metadata->maxSpikesLoc;
-                if (startLeft) {
-                    ret = Wave::leftToRight;
-                } else {
-                    ret = Wave::rightToLeft;
-                }
-
-            } else {
-                ret = Wave::endShortBurst;
-            }
-
-            metadata->firstBurstDone = false;
-            metadata->maxSpikes = 0;  
-            metadata->spikeFrameCount = 0;
-        }
-        metadata->noSpikeFrameCount++;
-    }
-
-    return ret;
-}
-
+// Method for processing a frame. It checks if the frame is NULL and if not, 
+// move into checkBurst. 
 int WaveDetector::processFrame(maxlab::FilteredFrameData frame, int frameNo) {
     if (window == NULL) {
         cerr << __FILE__ << " line " << __LINE__ << ": window is NULL" << endl;
         exit(1);
     }
-    window->shift(frame);
-
+    shiftWindow(frame);
     return checkBurst(frameNo);
 }
+
+// This is a key method of WaveDetector - it checks to see if a burst is happening and
+// does it's best to characterize it's onset and offset, where the peak was, and where
+// the burst originiated. 
+int WaveDetector::checkBurst(int frameNo) {
+    int result = Wave::noBurst;
+    int spikeCount = window->totalSpikeCount();
+    int burstQuietThresholdFrames = BurstFinishedThreshold * framesPerSec;
+    int burst_dur_thresholdFrames = burst_dur_threshold * framesPerSec;
+
+    // =====================================================
+    //                Over Threshold Logic
+    // =====================================================
+    if (spikeCount > burst_size_threshold * totalElectrodes) { // This threshold is the lower end of a burst start. (some % of active electrodes)
+        result = Wave::bursting;    // will return bursting if queried
+
+        // New burst just started
+        if (!metadata->bursting) {
+            metadata->bursting = true;
+            metadata->burstStartFrame = frameNo;
+            metadata->burstStartLocation = window->getAvgX();
+            metadata->burstStartSpikeCount = spikeCount;
+            result = Wave::burstStart;
+        }
+
+        // This continues to follow the onset of the burst, updating the maxSpikeCountDuringBurst as it goes 
+        // as well as the peakFrame and peakLocation (in X).
+        if (!metadata->burstOnsetComplete &&                   // if the onset is still happening AND
+            spikeCount > metadata->maxSpikes) {                // if the spike count is bigger than the last frame ...
+            metadata->maxSpikes = spikeCount;
+            metadata->maxSpikesFrame = frameNo;
+            metadata->maxSpikesLoc = window->getAvgX();
+        } else if (!metadata->burstOnsetComplete &&           // if the onset is still happening AND
+            spikeCount < metadata->maxSpikes) {               // the spikes start to dip after the peak (and are still above threshold)...
+            metadata->burstOnsetComplete = true;
+        }
+
+        metadata->framesAboveThreshold++;      // If you're still above burst threshold, keep tallying how many frames you were
+        metadata->noSpikeFrameCount = 0;   // Make sure you're not counting QuietFrames
+
+
+    // =====================================================
+    //               Under Threshold Logic
+    // =====================================================
+    } else {
+        metadata->noSpikeFrameCount++; // If you're under threshold, keep tallying how many frames you were under
+
+        // If that counter above gets higher than the BurstFinishedThreshold (user set), the burst is considered over.
+        // The post burst logic will trigger here. 
+        if (metadata->noSpikeFrameCount >= burstQuietThresholdFrames) {
+            metadata->bursting = false;
+
+            // If the burst duration recorded was big enough, we consider it 'significant'.
+            // Sometimes bursts will dip under threshold really fast, but come back up and we want to ignore that if possible.
+            // Mostly because the second peak will be higher, but it doesn't really change the start location. 
+            if (metadata->framesAboveThreshold >= burst_dur_thresholdFrames) {
+                bool startedOnLeft = metadata->burstStartLocation < metadata->maxSpikesLoc;        // KEY: If start location is smaller than peak, it must have started on left. Else, right.
+                result = startedOnLeft ? Wave::burstOnLeft : Wave::burstOnRight;
+            } else {
+                result = Wave::endShortBurst;   // If it wasn't big enough, this enum is returned to let the user know a short burst happened.
+            }
+
+            // Reset state and be ready for next burst
+            metadata->burstOnsetComplete = false;
+            metadata->maxSpikes = 0;
+            metadata->framesAboveThreshold = 0;
+        }
+
+        // There's no real logic needed for what happens if the burst ends but isn't long enough.
+        // If the burst happens again, i.e. a quick double-burst, the stats of the first piece
+        // should be kept. 
+    }
+
+    return result;
+}
+

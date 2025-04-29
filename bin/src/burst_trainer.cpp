@@ -57,38 +57,48 @@ Options:
 ////////////////////////////////////////////////////
 
 // Some global parameters that are pretty standard
-#define RANDOM_SEED 10  /* fixed random seed */
-#define SYS_START_BUFFER 5 * FRAMES_PER_SEC /* The system takes ~ 5 secs to startup */
+#define RANDOM_SEED 10                      /* fixed random seed */
+#define SYS_START_BUFFER 5 * framesPerSec   /* The system takes ~ 5 secs to startup */
 #define TOTAL_ELECTRODES emap.size()        /* So you know how many electrodes there are for thresholds */
-#define CHIP_WIDTH 220  /* This is how many electrodes in X (L/R will use CHIP_WIDTH / 2) */
-#define CHIP_HEIGHT 120 /* This is how many electrodes in Y */
+#define CHIP_WIDTH 220      /* This is how many electrodes in X (L/R will use CHIP_WIDTH / 2) */
+#define CHIP_HEIGHT 120     /* This is how many electrodes in Y */
 
+//////////////////////////////////////////////////////////////////////////
 // THESE ARE REALLY IMPORTANT /////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 // This will set how long ChannelWindow is in frames
 // (ChannelWindow collects spikesrates over the window)
-#define WINDOW 0.01 * FRAMES_PER_SEC    /* 100 frames ~ 10 ms for M2 */
+#define WINDOW 0.01 * framesPerSec    /* 100 frames ~ 10 ms for M2 */
 
 // A burst will ONLY count if it lasts more than this
-// Keep in mind that FRAMES_PER_SEC changes on M1 and M2
-#define MIN_FRAMES 0.1 * FRAMES_PER_SEC /* 1000 frames ~ 100 ms for M2 */
+// Keep in mind that framesPerSec changes on M1 and M2
+#define BURST_DURATION_THRESHOLD_DEFAULT 0.1 * framesPerSec   /* 1000 frames ~ 100 ms for M2 */
+#define BURST_SIZE_THRESHOLD_DEFAULT 0.15                       /* activity burst threshold */
 
 // As it's written above, with a WINDOW of 10 ms and a MIN_FRAMES at 1000,
 // a window will signal a high firing rate, and if it stays high for long
 // enough, the 'burststart' trigger should flip. 
-
+//////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
 // DEFAULTS - WILL MOST LIKELY BE REPLACED BY INPUT FROM USER 
 // VIA THE PYTHON FILE. This is the way. 
 
-#define THRESHOLD_DEFAULT 0.15      /* activity burst threshold */
+// Experimental setup defaults
+#define DEFAULT_WELL 0       /* Default well*/
+#define DEFAULT_RIGHTBURST 2 /* default behavior state for a right burst */
+#define DEFAULT_LEFTBURST 0  /* default behavior state for a left burst */
+
+// Timing defaults
 #define PRE_MINUTES_DEFAULT 20      /* 20 min */
 #define TRAIN_MINUTES_DEFAULT 20    /* 20 min */
 #define POST_MINUTES_DEFAULT 20     /* 20 min */
 
-#define STIM_RATE_DEFAULT 5 /* 5 Hz (stims per second) */
-#define RANDOM_WINDOW_GEN_TIME 5 /* generate randomness over 5 second intervals */
+// Stimulation defaults
+#define STIM_PULSE_DUR_DEFAULT 0.0002   /* How long the square pulse is in s (total dur is 2X this) */
+#define STIM_RATE_DEFAULT 5             /* 5 Hz (stims per second) */
+#define RANDOM_WINDOW_GEN_TIME 5        /* generate randomness over 5 second intervals */
 
 ////////////////////////////////////////////////////
 ////////// PROTOTYPES AND ^C ///////////////////////
@@ -101,9 +111,11 @@ Options:
 // Converts frames to seconds b/c it's easier sometimes
 float framesToSeconds(int frames);
 // This function actually holds the experimental logic (aka the meat)
-void runExperiment(string path, string configPath, int framesPerSec, int preFrames, int frames, int postFrames,
-    int well, float threshold, int pollingWindowSize,
-    int rightStimType, int leftStimType);
+void runExperiment(string path, string configPath, int well, int framesPerSec, 
+    int pre_frames, int train_frames, int post_frames,
+    float burst_size_threshold, int burst_dur_threshold,
+    float stimRate, float pulseDurationSecs,
+    int leftburst, int rightburst);
 
 /**
  * @brief Handles Ctrl+C interrupt signal (SIGINT).
@@ -119,6 +131,57 @@ void signal_interrupt_handler(int sig) {
     exit(sig);
 }
 
+// A logger for bursts - every burst should now log in a small file. yay.
+void saveBurstData(const WaveMetadata& metadata,
+    ofstream& file,
+    float* locs,
+    int* burstSpikeCounts,
+    int capacity,
+    int framesPerSec,
+    int SYS_START_BUFFER,
+    int WINDOW,
+    const string& directionString) 
+{
+// --- Header ---
+file << "# FrameTimes,";
+
+for (int m = 0; m < capacity; m++) {
+file << "T+" << m * 10 << "ms,";
+}
+file << "PeakFrame" << endl;
+
+file << "# Locations,";
+for (int m = 0; m < capacity; m++) {
+file << "Loc" << m << ",";
+}
+file << "PeakLoc,Direction" << endl;
+
+file << "# SpikeCounts,";
+for (int m = 0; m < capacity; m++) {
+file << "Spikes" << m << ",";
+}
+file << "PeakSpikes" << endl;
+
+// --- Burst Frame Times ---
+for (int m = 0; m < capacity; m++) {
+file << (metadata.burstStartFrame + SYS_START_BUFFER + WINDOW + m * static_cast<int>(framesPerSec * 0.01)) << ", ";
+}
+file << (metadata.maxSpikesFrame + SYS_START_BUFFER + WINDOW) << endl;
+
+// --- Locations ---
+for (int m = 0; m < capacity; m++) {
+file << locs[m] << ", ";
+}
+file << metadata.maxSpikesLoc << ", " << directionString << endl;
+
+// --- Spike Counts ---
+for (int m = 0; m < capacity; m++) {
+file << burstSpikeCounts[m] << ", ";
+}
+file << metadata.maxSpikes << endl;
+}
+
+
 ////////////////////////////////////////////////////
 ////////// ONTO THE GOOD STUFF /////////////////////
 ////////////////////////////////////////////////////
@@ -132,37 +195,50 @@ int main(int argc, char * argv[]) {
     // --- Parse arguments from the python file ---
     // --------------------------------------------
 
+    // Get the data path needed for saving and locate the needed configs for the recordings
     string folderPath = getStringArg("--folder", argc, argv, USAGE);     // This sets where saving happens 
     string configPath = getStringArg("--config", argc, argv, USAGE);     // Where is your config
     
-    float threshold = getFloatArgSecure("--threshold", THRESHOLD_DEFAULT, argc, argv);  // What's considered a burst (% of channels)
+    // Do you have a M1 or M2, and which well are you doing this on?
     bool maxtwo = checkOption("--maxtwo", argc, argv);  // Are you using a MaxTwo or not
-    int well = getIntArgSecure("--well", 0, argc, argv);    // Which well are you going to work on
+    int well = getIntArgSecure("--well", DEFAULT_WELL, argc, argv);    // Which well are you going to work on
     
     // --- Set sampling rate based on device type ---
     int framesPerSec = maxtwo ? 10000 : 20000;
 
     // --- This will set flags for the stimulation behavior --- 
     // --- default: right == random, left == nothing
-    int leftburst = getIntArgSecure("--right-type", 2, argc, argv);   // stimulation for leftburst
-    int rightburst = getIntArgSecure("--left-type", 0, argc, argv);    // stimulation for rightburst
+    int rightburst = getIntArgSecure("--right-type", DEFAULT_RIGHTBURST, argc, argv);   // stimulation for rightburst, default Random
+    int leftburst = getIntArgSecure("--left-type", DEFAULT_LEFTBURST, argc, argv);    // stimulation for leftburst, default Nothing
 
+    // --- This will set flags for the burst detection behavior --- 
+    float burst_size_threshold = getFloatArgSecure("--threshold", BURST_SIZE_THRESHOLD_DEFAULT, argc, argv);  // How big (% of channels) a burst needs to be to count it
+    float burst_dur_threshold = getFloatArgSecure("--threshold", BURST_DURATION_THRESHOLD_DEFAULT, argc, argv);  // How many frames needed before we count it as a burst
+    
     // Stimulation parameters
     float stimRate = getFloatArgSecure("--stim-rate", STIM_RATE_DEFAULT, argc, argv);   // Stim rate in Hz
-    float pulseDurationSecs = getFloatArgSecure("--pulse-duration", 0.0002, argc, argv);    // How long a pulse is (duration is 2 times this)
+    float pulseDurationSecs = getFloatArgSecure("--pulse-duration", STIM_PULSE_DUR_DEFAULT, argc, argv);    // How long a pulse is (duration is 2 times this)
     
     // Timing parameters
-    float train_mins = getFloatArgSecure("--minutes", MINUTES_DEFAULT, argc, argv); // How long you want training to last
-    float pre_mins = getIntArgSecure("--pre-recording", 5, argc, argv); // How long you want pre training to last
-    float post_mins = getIntArgSecure("--post-recording", 5, argc, argv);   // How long you want post training to last
+    float pre_mins = getIntArgSecure("--pre-recording", PRE_MINUTES_DEFAULT, argc, argv);   // How long you want pre training to last
+    float train_mins = getFloatArgSecure("--minutes", TRAIN_MINUTES_DEFAULT, argc, argv);   // How long you want training to last
+    float post_mins = getIntArgSecure("--post-recording", POST_MINUTES_DEFAULT, argc, argv);// How long you want post training to last
     float total_time = pre_mins + train_mins + post_mins;
 
-    // Print pretty things
+    // Same timing parameters, but in frames
+    int pre_frames = secondsToFrames(pre_mins*60, framesPerSec);      // # frames to record before training; mins * 60 sec / min * frames per sec
+    int train_frames = secondsToFrames(train_mins*60, framesPerSec);  // # frames to record during training; mins * 60 sec / min * frames per sec
+    int post_frames = secondsToFrames(post_mins*60, framesPerSec);    // # frames to record after training; mins * 60 sec / min * frames per sec
+
+    // Print pretty things to let the user know all the details of the run
     cout << BOLD << CYAN << "\n===== Experiment Setup =====" << RESET << endl;
     cout << left << setw(15) << (YELLOW + "Device:")     << RESET << "Max" << (maxtwo ? "TWO" : "ONE") << endl;
     cout << left << setw(15) << (YELLOW + "Config:")     << RESET << configPath << endl;
-    cout << left << setw(15) << (YELLOW + "Threshold:")  << RESET << threshold << endl;
     cout << left << setw(15) << (YELLOW + "Well:")       << RESET << well << endl;
+    cout << BOLD << CYAN << "\n===== Burst Detection =====" << RESET << endl;
+    cout << left << setw(15) << (YELLOW + "Size Threshold:")  << RESET << burst_size_threshold << endl;
+    cout << left << setw(15) << (YELLOW + "Duration Threshold:")  << RESET << burst_dur_threshold << endl;
+    cout << BOLD << CYAN << "\n===== Experimental Time =====" << RESET << endl;
     cout << left << setw(15) << (YELLOW + "Pretrain:")   << RESET << pre_mins << " mins" << endl;
     cout << left << setw(15) << (YELLOW + "Training:")   << RESET << train_mins << " mins" << endl;
     cout << left << setw(15) << (YELLOW + "Posttrain:")  << RESET << post_mins << " mins" << endl;
@@ -171,5 +247,219 @@ int main(int argc, char * argv[]) {
 
     ElectrodeMap emap = ElectrodeMap(configPath.c_str());
 
+    try {
+        runExperiment(folderPath, configPath, well, framesPerSec, pre_frames, train_frames, post_frames, burst_size_threshold, burst_dur_threshold, stimRate, pulseDurationSecs, rightburst);
+    } catch (int err) {
+        cout << "Program failed with error code " << err << endl;
+        maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+        return err;
+    }
 
+    return 0;
+}
+
+/** 
+ * This is the 'experimental part' of the code - it runs the real-time analysis/detection of bursts
+ * It's main purpose is to detect bursts, figure out where they came from LvR, and deliever the appropriate stimulation. 
+*/
+void runExperiment(string path, string configPath, int well, int framesPerSec, int pre_frames, int train_frames, int post_frames, float burst_size_threshold, int burst_dur_threshold, float stimRate, float pulseDurationSecs, int leftburst, int rightburst){  
+    // =====================================================
+    //                     Setup Phase
+    // =====================================================
+    maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
+
+    // This will start the saving the CSV that's used for debugging/analysis after the experiment
+    std::fstream file;
+    std::fstream alldata_file;
+    std::fstream rawdata_file;
+    file.open(path + "/burst_direction_" + to_string(well) + ".csv", std::fstream::out);
+    alldata_file.open(path + "/alldata_" + to_string(well) + ".csv", std::fstream::out);
+
+    // Activate interrupt handler
+    signal(SIGINT, signal_interrupt_handler);
+
+    // Start up causes a lot of spikes and we don't want to accidentally detect this. 
+    // We don't record the system startup stuff
+    for (int i = 0; i < SYS_START_BUFFER; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+    }
+
+    // =====================================================
+    //                     Experimental Setup
+    // =====================================================
+    StimVector rightStim = StimVector(rightStimType == 2, rightStimType ? 5 : 0, maxtwo);
+    StimVector leftStim = StimVector(leftStimType == 2, leftStimType ? 5 : 0, maxtwo);
+
+    // gets wave detector object and initializes window
+    WaveDetector sensor = WaveDetector(WINDOW, configPath.c_str(), framesPerSec, burst_size_threshold, burst_dur_threshold, 0.5);
+    ChannelWindow *window = sensor.getWindow();
+
+    // Define blanking time: hardcoded to 100ms worth of frames
+    const int BLANKING_FRAMES = pulseDurationSecs * 2 * 2;  // Blank for two times the entire square pulse 2 X (duration X 2)
+    
+    // =====================================================
+    //                     Pre-Training Phase
+    // =====================================================
+    cout << BOLD << CYAN << "\n===== Pretraining =====" << RESET << endl;
+    cout << left << setw(15) << (YELLOW + "Recording:") << RESET << framesToSeconds(pre_frames, framesPerSec) / 60.0 << (YELLOW + " minutes of neuron activity") << endl;
+    ProgressBar preBar = ProgressBar(pre_frames, "Recording...");
+
+    // this line send an event to the system for tracking in the raw data
+    maxlab::verifyStatus(maxlab::sendSequence(("pre_recording_start_" + to_string(well)).c_str())); 
+
+    // The actual loop that goes through pre_frames
+    for (int i = 0; i < pre_frames; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+        preBar.increment();
+    }
+    cout << endl;
+
+    // =====================================================
+    //                     Training Phase
+    // =====================================================
+    cout << BOLD << CYAN << "\n===== Training! =====" << RESET << endl;
+    cout << left << setw(15) << (YELLOW + "Processing:") << RESET << framesToSeconds(train_frames, framesPerSec) / 60.0 << (YELLOW + " minutes of neuron activity") << endl;
+    ProgressBar expBar = ProgressBar(train_frames, "Training...");
+
+    // This send an event to the system so that you have an event with the frame number where the training started
+    maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
+
+    // This is the main loop that goes through training frame by frame (i is frame)
+    for (int i = 0; i < train_frames; i++) {
+        
+        // === 1. Receive Frame ===
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--; // Retry if no frame was received
+            continue;
+        }
+
+        expBar.increment(); // Update progress bar
+
+        // === 2. Process Frame ===
+        int waveVal = sensor.processFrame(frameData, i);
+        int spikeCount = sensor.getWindow()->totalSpikeCount();
+
+        // === 3. Handle Blanking Countdown ===
+        if (blanking > 0) {
+            blanking--;
+        }
+
+        // === 4. If not blanking, monitor & detect bursts ===
+        if (blanking == 0) {
+
+            // --- 4A. Periodic Logging ---
+            if (i % static_cast<int>(framesPerSec * 0.1) == 0) {
+                float monitoringLoc = sensor.getWindow()->getAvgX();
+                alldata_file << (i + SYS_START_BUFFER + WINDOW) << ", "
+                            << spikeCount << ", "
+                            << monitoringLoc << endl;
+            }
+
+            // --- 4B. Tracking Burst Evolution ---
+            if (bursting && (i == lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * locCounter)) && (locCounter < capacity)) {
+                locs[locCounter] = sensor.getWindow()->getAvgX();
+                burstSpikeCounts[locCounter] = spikeCount;
+                locCounter++;
+            }
+
+            // --- 4C. Detect New Burst Start ---
+            if (waveVal == Wave::burstStart) {
+                locs[0] = sensor.getWindow()->getAvgX();
+                burstSpikeCounts[0] = spikeCount;
+                locCounter = 1;
+                bursting = true;
+                lastBurstStartFrame = i;
+            }
+
+            // --- 4D. Handle Burst End ---
+            else if (waveVal == Wave::burstOnLeft || waveVal == Wave::burstOnRight) {
+
+                bool leftToRight = (waveVal == Wave::burstOnLeft);
+                string directionString = leftToRight ? "left to right" : "right to left";
+
+                bursting = false;
+
+                WaveMetadata metadata = sensor.getMetadata();
+
+                expBar.clear();
+                cout << directionString << endl;
+                expBar.print();
+
+                saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
+
+                previousBurst = leftToRight ? 1 : -1;
+            }
+        }
+
+        // === 5. Handle Stimulation if Necessary ===
+        bool stimulate = false;
+        if (previousBurst == 1) {
+            stimulate = rightStim.stimulate(i);
+        } else if (previousBurst == -1) {
+            stimulate = leftStim.stimulate(i);
+        }
+
+        if (stimulate && !bursting && blanking == 0) {
+            maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
+            blanking = BLANKING_FRAMES; // Restart blanking after stimulation
+        }
+    }
+
+
+    // =====================================================
+    //                     Post-Training Phase
+    // =====================================================
+    cout << BOLD << CYAN << "\n===== End of Training =====" << RESET << endl;
+    cout << left << setw(15) << (YELLOW + "Recording:") << RESET << framesToSeconds(post_frames, framesPerSec) / 60.0 << (YELLOW + " minutes of neuron activity") << endl;
+    ProgressBar postBar = ProgressBar(post_frames, "Recording...");
+
+    // This line send an event to mark the end of training in the raw data
+    maxlab::verifyStatus(maxlab::sendSequence(("post_recording_start_" + to_string(well)).c_str()));    
+
+    // The actual loop that goes through 'post_frames'
+    for (int i = 0; i < post_frames; i++) {
+        maxlab::FilteredFrameData frameData;
+        maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        if (status == maxlab::Status::MAXLAB_NO_FRAME) {
+            i--;
+            continue;
+        }
+        postBar.increment();
+    }
+    cout << endl;
+
+    // =====================================================
+    //                     Post-Training Phase
+    // =====================================================
+    cout << BOLD << CYAN << "\n===== END OF EXPERIMENT =====" << RESET << endl;
+    cout << left << setw(15) << (YELLOW + "Now closing files safely...") << endl;
+    maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
+    file.close();
+    alldata_file.close();
+}
+
+/** HELPER FUNCTIONS BELOW
+ *  
+ *  1. framesToSeconds - Convert frames to seconds
+ *  2. secondsToFrames - Convert seconds to frames
+ */
+float framesToSeconds(int frames, int framesPerSec) {
+    return static_cast<float>(frames) / framesPerSec;
+}
+
+int secondsToFrames(float seconds, int framesPerSec) {
+    return static_cast<int>(seconds * framesPerSec);
 }
