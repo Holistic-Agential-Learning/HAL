@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <signal.h>
 #include <vector>
-#include <unistd.h>
 #include <fstream>
 #include <assert.h>
 #include <limits.h>
@@ -176,7 +175,7 @@ file << metadata.maxSpikesLoc << ", " << directionString << endl;
 
 // --- Spike Counts ---
 for (int m = 0; m < capacity; m++) {
-file << burstSpikeCounts[m] << ", ";
+file << state.burstSpikeCounts[m] << ", ";
 }
 file << metadata.maxSpikes << endl;
 }
@@ -249,7 +248,7 @@ int main(int argc, char * argv[]) {
 
     try {
         runExperiment(folderPath, configPath, well, framesPerSec, pre_frames, train_frames, post_frames, burst_size_threshold, burst_dur_threshold, stimRate, pulseDurationSecs, rightburst);
-    } catch (int err) {
+    } catch (int& err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
         return err;
@@ -266,6 +265,22 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // =====================================================
     //                     Setup Phase
     // =====================================================
+    
+    /**
+     * @brief Struct for holding the internal state of the experiment during training.
+     */
+    struct ExperimentState {
+        bool bursting = false;
+        int blanking = 0;
+        int previousBurst = 0;
+        int lastBurstStartFrame = 0;
+
+        static const int capacity = 10; // 1 second -> 
+        int locCounter = 0;
+        float locs[capacity] = {0.0};
+        int burstSpikeCounts[capacity] = {0};
+    };
+    
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     // This will start the saving the CSV that's used for debugging/analysis after the experiment
@@ -292,6 +307,8 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // =====================================================
     //                     Experimental Setup
     // =====================================================
+
+    ExperimentState state; // Create the ExperimentalState struct that holds what we need
 
     // Instantiate stimulation vectors.
     // User selects type: 0 = off, 1 = regular, 2 = random.
@@ -368,12 +385,12 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         int spikeCount = sensor.getWindow()->totalSpikeCount();
 
         // === 3. Handle Blanking Countdown ===
-        if (blanking > 0) {
-            blanking--;
+        if (state.blanking > 0) {
+            state.blanking--;
         }
 
         // === 4. If not blanking, monitor & detect bursts ===
-        if (blanking == 0) {
+        if (state.blanking == 0) {
 
             // --- 4A. Periodic Logging ---
             if (i % static_cast<int>(framesPerSec * 0.1) == 0) {
@@ -384,19 +401,19 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             }
 
             // --- 4B. Tracking Burst Evolution ---
-            if (bursting && (i == lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * locCounter)) && (locCounter < capacity)) {
-                locs[locCounter] = sensor.getWindow()->getAvgX();
-                burstSpikeCounts[locCounter] = spikeCount;
-                locCounter++;
+            if (state.bursting && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * state.locCounter)) && (state.locCounter < capacity)) {
+                state.locs[state.locCounter] = sensor.getWindow()->getAvgX();
+                state.burstSpikeCounts[state.locCounter] = spikeCount;
+                state.locCounter++;
             }
 
             // --- 4C. Detect New Burst Start ---
             if (waveVal == Wave::burstStart) {
-                locs[0] = sensor.getWindow()->getAvgX();
-                burstSpikeCounts[0] = spikeCount;
-                locCounter = 1;
-                bursting = true;
-                lastBurstStartFrame = i;
+                state.locs[0] = sensor.getWindow()->getAvgX();
+                state.burstSpikeCounts[0] = spikeCount;
+                state.locCounter = 1;
+                state.bursting = true;
+                state.lastBurstStartFrame = i;
             }
 
             // --- 4D. Handle Burst End ---
@@ -405,7 +422,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 bool leftToRight = (waveVal == Wave::burstOnLeft);
                 string directionString = leftToRight ? "left to right" : "right to left";
 
-                bursting = false;
+                state.bursting = false;
 
                 WaveMetadata metadata = sensor.getMetadata();
 
@@ -413,24 +430,24 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 cout << directionString << endl;
                 expBar.print();
 
-                saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
+                saveBurstData(metadata, file, state.locs, state.burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
 
-                previousBurst = leftToRight ? 1 : -1;
+                state.previousBurst = leftToRight ? 1 : -1;
             }
         }
 
         // === 5. Handle Stimulation if Necessary ===
         // the python file passes 0 for none, 1 for regular, 2 for random.
         bool stimulate = false;
-        if (previousBurst == 1) {
+        if (state.previousBurst == 1) {
             stimulate = rightStim.stimulate(i);
-        } else if (previousBurst == -1) {
+        } else if (state.previousBurst == -1) {
             stimulate = leftStim.stimulate(i);
         }
 
-        if (stimulate && !bursting && blanking == 0) {
+        if (stimulate && !state.bursting && state.blanking == 0) {
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
-            blanking = BLANKING_FRAMES; // Restart blanking after stimulation
+            state.blanking = BLANKING_FRAMES; // Restart blanking after stimulation
         }
     }
 
@@ -458,7 +475,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     cout << endl;
 
     // =====================================================
-    //                     Post-Training Phase
+    //                     Closing Phase
     // =====================================================
     cout << BOLD << CYAN << "\n===== END OF EXPERIMENT =====" << RESET << endl;
     cout << left << setw(15) << (YELLOW + "Now closing files safely...") << endl;
