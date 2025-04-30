@@ -120,46 +120,51 @@ void saveBurstData(const WaveMetadata& metadata,
     int framesPerSec,
     int SYS_START_BUFFER,
     int WINDOW,
-    const string& directionString) 
+    const std::string& directionString)
 {
-// --- Header ---
-file << "# FrameTimes,";
+    static bool wroteHeader = false;
 
-for (int m = 0; m < capacity; m++) {
-file << "T+" << m * 10 << "ms,";
-}
-file << "PeakFrame" << endl;
+    if (!wroteHeader) {
+    // --- Header: Frame times ---
+    for (int m = 0; m < capacity; m++) {
+    file << "T+" << m * 10 << "ms,";
+    }
+    file << "PeakFrame,";
 
-file << "# Locations,";
-for (int m = 0; m < capacity; m++) {
-file << "Loc" << m << ",";
-}
-file << "PeakLoc,Direction" << endl;
+    // --- Header: Locations ---
+    for (int m = 0; m < capacity; m++) {
+    file << "Loc" << m << ",";
+    }
+    file << "PeakLoc,Direction,";
 
-file << "# SpikeCounts,";
-for (int m = 0; m < capacity; m++) {
-file << "Spikes" << m << ",";
-}
-file << "PeakSpikes" << endl;
+    // --- Header: Spike Counts ---
+    for (int m = 0; m < capacity; m++) {
+    file << "Spikes" << m << ",";
+    }
 
-// --- Burst Frame Times ---
-for (int m = 0; m < capacity; m++) {
-file << (metadata.burstStartFrame + SYS_START_BUFFER + WINDOW + m * static_cast<int>(framesPerSec * 0.01)) << ", ";
-}
-file << (metadata.maxSpikesFrame + SYS_START_BUFFER + WINDOW) << endl;
+    wroteHeader = true;
+    }
 
-// --- Locations ---
-for (int m = 0; m < capacity; m++) {
-file << locs[m] << ", ";
-}
-file << metadata.maxSpikesLoc << ", " << directionString << endl;
+    // --- Row: Frame times ---
+    for (int m = 0; m < capacity; m++) {
+    int frameTime = metadata.burstStartFrame + SYS_START_BUFFER + WINDOW + m * static_cast<int>(framesPerSec * 0.01);
+    file << frameTime << ",";
+    }
+    file << (metadata.maxSpikesFrame + SYS_START_BUFFER + WINDOW) << ",";
 
-// --- Spike Counts ---
-for (int m = 0; m < capacity; m++) {
-file << burstSpikeCounts[m] << ", ";
+    // --- Row: Locations ---
+    for (int m = 0; m < capacity; m++) {
+    file << locs[m] << ",";
+    }
+    file << metadata.maxSpikesLoc << "," << directionString << ",";
+
+    // --- Row: Spike Counts ---
+    for (int m = 0; m < capacity; m++) {
+    file << burstSpikeCounts[m] << ",";
+    }
+    file << metadata.maxSpikes << "\n";
 }
-file << metadata.maxSpikes << endl;
-}
+
 
 /** HELPER FUNCTIONS BELOW
  *  
@@ -257,7 +262,7 @@ int main(int argc, char * argv[]) {
  * This is the 'experimental part' of the code - it runs the real-time analysis/detection of bursts
  * It's main purpose is to detect bursts, figure out where they came from LvR, and deliever the appropriate stimulation. 
 */
-void runExperiment(string path, string configPath, int well, int framesPerSec, int pre_frames, int train_frames, int post_frames, float burst_size_threshold, int burst_dur_threshold, float stimRate, float pulseDurationSecs, int leftburst, int rightburst){  
+void runExperifilement(string path, string configPath, int well, int framesPerSec, int pre_frames, int train_frames, int post_frames, float burst_size_threshold, int burst_dur_threshold, float stimRate, float pulseDurationSecs, int leftburst, int rightburst){  
     // =====================================================
     //                     Setup Phase
     // =====================================================
@@ -287,10 +292,8 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
     // This will start the saving the CSV that's used for debugging/analysis after the experiment
-    std::fstream file;
     std::fstream alldata_file;
-    std::fstream rawdata_file;
-    file.open(path + "/burst_direction_" + to_string(well) + ".csv", std::fstream::out);
+    std::ofstream file(path + "/burst_direction_" + std::to_string(well) + ".csv", std::ios::out);
     alldata_file.open(path + "/alldata_" + to_string(well) + ".csv", std::fstream::out);
 
     // Activate interrupt handler

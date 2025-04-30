@@ -68,7 +68,7 @@ post_exp_time = 0
 
 #TODO
 # Threshold of what is consiered a burst -> 0.1 = >10% of active electrodes consititute a burst
-burst_size_threshold = 0.5  # % active channels
+burst_size_threshold = 0.3  # % active channels
 burst_dur_threshold = 0.1   # Duration in s
 
 #TODO stims per second
