@@ -369,6 +369,9 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // This send an event to the system so that you have an event with the frame number where the training started
     maxlab::verifyStatus(maxlab::sendSequence(("closed_loop_start_" + to_string(well)).c_str()));
 
+    // make a variable that checks if a burst has been dealt with, then waits for another
+    bool directionHandled = false;
+
     // This is the main loop that goes through training frame by frame (i is frame)
     for (int i = 0; i < train_frames; i++) {
         
@@ -416,16 +419,18 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
                 state.bursting = true;
+                directionHandled = false;
                 state.lastBurstStartFrame = i;
             }
 
             // --- 4D. Handle Burst End ---
-            else if (waveVal == Wave::burstOnLeft || waveVal == Wave::burstOnRight) {
+            else if (waveVal == Wave::burstOnLeft || waveVal == Wave::burstOnRight && !directionHandled) {
 
                 bool leftToRight = (waveVal == Wave::burstOnLeft);
                 string directionString = leftToRight ? "left to right" : "right to left";
 
                 state.bursting = false;
+                directionHandled = true;
 
                 WaveMetadata metadata = sensor.getMetadata();
 
