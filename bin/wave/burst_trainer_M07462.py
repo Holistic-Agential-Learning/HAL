@@ -17,18 +17,18 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
 #TODO
-wells = [0]
+wells = [5]
 
 #TODO configs
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    "/home/mxwbio/Desktop/HAL/bin/wave/Spring_2025/configs/20525_DIV30.cfg",
     "",
     "",
     "",
     "",
-    ""
+    "",
+    "/home/mxwbio/configs/250430/M07462DIV22_Well6.cfg"
 ]
 
 # TODO
@@ -37,12 +37,12 @@ all_configs = [
 # This has been changed by Wes - we need conditions per well, so now it goes to a 
 # an array that's 6 long. -> [left, right] i.e., [1, 0] would deliever regular on left burst and nothing on right
 exp_conditions = [
-    [0, 0],
     [],
     [],
     [],
     [],
-    []
+    [],
+    [0, 0]
 ] 
 
 # TODO
@@ -76,12 +76,12 @@ stim_rate = 5
 
 #TODO stimulation electrodes     # <-- CHANGE the first one
 stim_electrodes = [
-    [4229, 24037, 3035, 20191],                
+    [],                
     [],
     [],
     [],
     [],
-    []
+    [4209, 21365, 6131, 21075]
 ]
 
 
