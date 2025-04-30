@@ -121,7 +121,7 @@ if __name__ == '__main__':
 
         hal.build_training_sequences(well)
         
-        program_args = [f"./bin/build/train-wave", "--config", config_name, "--folder", dir, "--pulse-duration", str(duration)]
+        program_args = [f"./bin/build/burst_trainer", "--config", config_name, "--folder", dir, "--pulse-duration", str(duration)]
         
         if maxtwo:
             program_args.append("--maxtwo")
