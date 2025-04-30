@@ -2,7 +2,7 @@
 # Summer 2024
 CXX = g++-11
 
-MAXLAB_PATH = /home/mxwbio/MaxLab/share/libmaxlab-1.0.0_45b31664d/maxlab_lib/maxlab
+MAXLAB_PATH = /home/mxwbio/MaxLab/share/libmaxlab/maxlab_lib/maxlab
 
 INCLUDE_PATH = -I$(MAXLAB_PATH)/include/maxlab -I./bin/lib/include 
 LIBS = -L$(MAXLAB_PATH)/lib -lmaxlab -lpthread 
@@ -17,7 +17,7 @@ HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 # all .o files in hal lib
 HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(basename $(cpp)).o)
 
-PROGRAMS = button-detection mouse_1d rp_stim_removal train-wave plot-frequency-game random-stim-test random
+PROGRAMS = button-detection mouse_1d rp_stim_removal burst_trainer plot-frequency-game random-stim-test random
 
 
 all : dir $(PROGRAMS)
