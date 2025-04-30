@@ -165,9 +165,8 @@ void saveBurstData(const WaveMetadata& metadata,
     for (int m = 0; m < capacity; m++) {
     file << burstSpikeCounts[m] << ",";
     }
-    file << metadata.maxSpikes << "\n";
 
-    // --- Row: Spike Counts ---
+    // --- Row: Peak Spikes & How long Burst lasts ---
     file << metadata.maxSpikes << "," << metadata.framesAboveThreshold << "\n";
 }
 
@@ -268,7 +267,7 @@ int main(int argc, char * argv[]) {
  * This is the 'experimental part' of the code - it runs the real-time analysis/detection of bursts
  * It's main purpose is to detect bursts, figure out where they came from LvR, and deliever the appropriate stimulation. 
 */
-void runExperifilement(string path, string configPath, int well, int framesPerSec, int pre_frames, int train_frames, int post_frames, float burst_size_threshold, int burst_dur_threshold, float stimRate, float pulseDurationSecs, int leftburst, int rightburst){  
+void runExperiment(string path, string configPath, int well, int framesPerSec, int pre_frames, int train_frames, int post_frames, float burst_size_threshold, int burst_dur_threshold, float stimRate, float pulseDurationSecs, int leftburst, int rightburst){  
     // =====================================================
     //                     Setup Phase
     // =====================================================
@@ -276,7 +275,7 @@ void runExperifilement(string path, string configPath, int well, int framesPerSe
     // These are important. 
     // This will set how long ChannelWindow is in frames
     // (ChannelWindow collects spikesrates over the window)
-    const int WINDOW = static_cast<int>(0.01 * framesPerSec);    
+    const int WINDOW = static_cast<int>(0.02 * framesPerSec);    
     const int SYS_START_BUFFER = 5 * framesPerSec;  // The system takes ~5 seconds to stabilize
 
     // At this time, capacity and locs are only for logging purpose. Functionally, they do nothing. 
@@ -380,13 +379,14 @@ void runExperifilement(string path, string configPath, int well, int framesPerSe
 
     // make a variable that checks if a burst has been dealt with, then waits for another
     bool directionHandled = false;
-
+    cout << train_frames << endl;
     // This is the main loop that goes through training frame by frame (i is frame)
-    for (int i = 0; i < train_frames; i++) {
+    for (int i = 0; i < train_frames; ) {
         
         // === 1. Receive Frame ===
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
+        std::cout << "frame status: " << static_cast<int>(status) << std::endl;
 
         if (status == maxlab::Status::MAXLAB_NO_FRAME) {
             i--; // Retry if no frame was received
@@ -453,6 +453,7 @@ void runExperifilement(string path, string configPath, int well, int framesPerSe
                 expBar.print();
 
                 saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
+                sensor.resetBurstMetadata();  // Reset the burst metadata after saving
 
                 state.previousBurst = leftToRight ? 1 : -1;
             }
@@ -471,6 +472,12 @@ void runExperifilement(string path, string configPath, int well, int framesPerSe
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             state.blanking = BLANKING_FRAMES; // Restart blanking after stimulation
         }
+
+        if (i % 100000 == 0) {
+            std::cout << "Frame: " << i << std::endl;
+        }
+
+        i++;    // only increment i if we process a frame (what this loop does)
     }
 
 

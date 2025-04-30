@@ -77,6 +77,12 @@ int WaveDetector::processFrame(maxlab::FilteredFrameData frame, int frameNo) {
     return checkBurst(frameNo);
 }
 
+void WaveDetector::resetBurstMetadata() {
+    metadata->burstOnsetComplete = false;
+    metadata->maxSpikes = 0;
+    metadata->framesAboveThreshold = 0;
+}
+
 // This is a key method of WaveDetector - it checks to see if a burst is happening and
 // does it's best to characterize it's onset and offset, where the peak was, and where
 // the burst originiated. 
@@ -137,11 +143,6 @@ int WaveDetector::checkBurst(int frameNo) {
             } else {
                 result = Wave::endShortBurst;   // If it wasn't big enough, this enum is returned to let the user know a short burst happened.
             }
-
-            // Reset state and be ready for next burst
-            metadata->burstOnsetComplete = false;
-            metadata->maxSpikes = 0;
-            metadata->framesAboveThreshold = 0;
         }
 
         // There's no real logic needed for what happens if the burst ends but isn't long enough.

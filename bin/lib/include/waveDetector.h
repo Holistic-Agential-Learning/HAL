@@ -71,7 +71,7 @@ class WaveDetector {
          * @param BurstFinishedThreshold <code>int</code> minimum time (in seconds) of low activity to confirm burst ended
          */
         WaveDetector(int windowLength, const char *configPath, int framesPerSec, float burst_size_threshold, int burst_dur_threshold, int BurstFinishedThreshold);
-        
+
         /**
          * @brief Destroys the Wave Detector object
          */
@@ -120,6 +120,11 @@ class WaveDetector {
          * @return <code>int</code>, corresponds to <code>enum Wave</code> 
          */
         int checkBurst(int frameNo);
+
+        /**
+        * @brief Resets burst-related metadata after a burst is processed.
+        */
+        void resetBurstMetadata();
 
     private:
         ChannelWindow *window;
