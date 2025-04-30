@@ -268,6 +268,12 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     const int WINDOW = static_cast<int>(0.01 * framesPerSec);    
     const int SYS_START_BUFFER = 5 * framesPerSec;  // The system takes ~5 seconds to stabilize
 
+    // At this time, capacity and locs are only for logging purpose. Functionally, they do nothing. 
+    const int capacity = 10; // 1 second -> 
+    int locCounter = 0;
+    float locs[capacity] = {0.0};
+    int burstSpikeCounts[capacity] = {0};
+
     /**
      * @brief Struct for holding the internal state of the experiment during training.
      */
@@ -276,11 +282,6 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         int blanking = 0;
         int previousBurst = 0;
         int lastBurstStartFrame = 0;
-
-        const int capacity = 10; // 1 second -> 
-        int locCounter = 0;
-        float locs[capacity] = {0.0};
-        int burstSpikeCounts[capacity] = {0};
     };
     
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
@@ -403,17 +404,17 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             }
 
             // --- 4B. Tracking Burst Evolution ---
-            if (state.bursting && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * state.locCounter)) && (state.locCounter < state.capacity)) {
-                state.locs[state.locCounter] = sensor.getWindow()->getAvgX();
-                state.burstSpikeCounts[state.locCounter] = spikeCount;
-                state.locCounter++;
+            if (state.bursting && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * locCounter)) && (locCounter < capacity)) {
+                locs[locCounter] = sensor.getWindow()->getAvgX();
+                burstSpikeCounts[locCounter] = spikeCount;
+                locCounter++;
             }
 
             // --- 4C. Detect New Burst Start ---
             if (waveVal == Wave::burstStart) {
-                state.locs[0] = sensor.getWindow()->getAvgX();
-                state.burstSpikeCounts[0] = spikeCount;
-                state.locCounter = 1;
+                locs[0] = sensor.getWindow()->getAvgX();
+                burstSpikeCounts[0] = spikeCount;
+                locCounter = 1;
                 state.bursting = true;
                 state.lastBurstStartFrame = i;
             }
@@ -432,7 +433,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 cout << directionString << endl;
                 expBar.print();
 
-                saveBurstData(metadata, file, state.locs, state.burstSpikeCounts, state.capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
+                saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
 
                 state.previousBurst = leftToRight ? 1 : -1;
             }
