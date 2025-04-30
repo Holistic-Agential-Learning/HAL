@@ -142,6 +142,9 @@ void saveBurstData(const WaveMetadata& metadata,
     file << "Spikes" << m << ",";
     }
 
+    // --- Header: Burst Duration ---
+    file << "PeakSpikes,FramesAboveThreshold\n";
+
     wroteHeader = true;
     }
 
@@ -163,6 +166,9 @@ void saveBurstData(const WaveMetadata& metadata,
     file << burstSpikeCounts[m] << ",";
     }
     file << metadata.maxSpikes << "\n";
+
+    // --- Row: Spike Counts ---
+    file << metadata.maxSpikes << "," << metadata.framesAboveThreshold << "\n";
 }
 
 
@@ -442,7 +448,7 @@ void runExperifilement(string path, string configPath, int well, int framesPerSe
 
                 //debug
                 cout << "waveVal: " << waveVal << endl;
-                
+
                 expBar.clear();
                 expBar.print();
 
