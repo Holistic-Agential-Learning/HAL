@@ -211,8 +211,8 @@ int main(int argc, char * argv[]) {
     int leftburst = getIntArgSecure("--left-type", DEFAULT_LEFTBURST, argc, argv);    // stimulation for leftburst, default Nothing
 
     // --- This will set flags for the burst detection behavior --- 
-    float burst_size_threshold = getFloatArgSecure("--threshold", BURST_SIZE_THRESHOLD_DEFAULT, argc, argv);  // How big (% of channels) a burst needs to be to count it
-    float burst_dur_threshold = getFloatArgSecure("--threshold", BURST_DURATION_THRESHOLD_DEFAULT, argc, argv);  // How many frames needed before we count it as a burst
+    float burst_size_threshold = getFloatArgSecure("--burst_size_threshold", BURST_SIZE_THRESHOLD_DEFAULT, argc, argv);  // How big (% of channels) a burst needs to be to count it
+    float burst_dur_threshold = getFloatArgSecure("--burst_dur_threshold", BURST_DURATION_THRESHOLD_DEFAULT, argc, argv);  // How many frames needed before we count it as a burst
     
     // Stimulation parameters
     float stimRate = getFloatArgSecure("--stim-rate", STIM_RATE_DEFAULT, argc, argv);   // Stim rate in Hz
