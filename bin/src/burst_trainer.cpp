@@ -57,31 +57,13 @@ Options:
 
 // Some global parameters that are pretty standard
 #define RANDOM_SEED 10                      /* fixed random seed */
-#define TOTAL_ELECTRODES emap.size()        /* So you know how many electrodes there are for thresholds */
 #define CHIP_WIDTH 220      /* This is how many electrodes in X (L/R will use CHIP_WIDTH / 2) */
 #define CHIP_HEIGHT 120     /* This is how many electrodes in Y */
 
 //////////////////////////////////////////////////////////////////////////
-// THESE ARE REALLY IMPORTANT /////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-
-// This will set how long ChannelWindow is in frames
-// (ChannelWindow collects spikesrates over the window)
-#define WINDOW 0.01 * framesPerSec    /* 100 frames ~ 10 ms for M2 */
-
-// A burst will ONLY count if it lasts more than this
-// Keep in mind that framesPerSec changes on M1 and M2
-#define BURST_DURATION_THRESHOLD_DEFAULT 0.1 * framesPerSec   /* 1000 frames ~ 100 ms for M2 */
-#define BURST_SIZE_THRESHOLD_DEFAULT 0.15                       /* activity burst threshold */
-
-// As it's written above, with a WINDOW of 10 ms and a MIN_FRAMES at 1000,
-// a window will signal a high firing rate, and if it stays high for long
-// enough, the 'burststart' trigger should flip. 
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-
 // DEFAULTS - WILL MOST LIKELY BE REPLACED BY INPUT FROM USER 
 // VIA THE PYTHON FILE. This is the way. 
+//////////////////////////////////////////////////////////////////////////
 
 // Experimental setup defaults
 #define DEFAULT_WELL 0       /* Default well*/
@@ -222,6 +204,9 @@ int main(int argc, char * argv[]) {
     int leftburst = getIntArgSecure("--left-type", DEFAULT_LEFTBURST, argc, argv);    // stimulation for leftburst, default Nothing
 
     // --- This will set flags for the burst detection behavior --- 
+    const int BURST_DURATION_THRESHOLD_DEFAULT = static_cast<int>(0.1 * framesPerSec);  // default behavior
+    const float BURST_SIZE_THRESHOLD_DEFAULT = 0.15f;                                    /* activity burst threshold */
+
     float burst_size_threshold = getFloatArgSecure("--burst_size_threshold", BURST_SIZE_THRESHOLD_DEFAULT, argc, argv);  // How big (% of channels) a burst needs to be to count it
     float burst_dur_threshold = getFloatArgSecure("--burst_dur_threshold", BURST_DURATION_THRESHOLD_DEFAULT, argc, argv);  // How many frames needed before we count it as a burst
     
@@ -277,6 +262,10 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     //                     Setup Phase
     // =====================================================
     
+    // These are important. 
+    // This will set how long ChannelWindow is in frames
+    // (ChannelWindow collects spikesrates over the window)
+    const int WINDOW = static_cast<int>(0.01 * framesPerSec);    
     const int SYS_START_BUFFER = 5 * framesPerSec;  // The system takes ~5 seconds to stabilize
 
     /**
