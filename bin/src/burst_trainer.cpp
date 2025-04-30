@@ -113,7 +113,7 @@ void signal_interrupt_handler(int sig) {
 
 // A logger for bursts - every burst should now log in a small file. yay.
 void saveBurstData(const WaveMetadata& metadata,
-    ofstream& file,
+    std::ostream& file,
     float* locs,
     int* burstSpikeCounts,
     int capacity,
@@ -156,7 +156,7 @@ file << metadata.maxSpikesLoc << ", " << directionString << endl;
 
 // --- Spike Counts ---
 for (int m = 0; m < capacity; m++) {
-file << state.burstSpikeCounts[m] << ", ";
+file << burstSpikeCounts[m] << ", ";
 }
 file << metadata.maxSpikes << endl;
 }
@@ -277,7 +277,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         int previousBurst = 0;
         int lastBurstStartFrame = 0;
 
-        static const int capacity = 10; // 1 second -> 
+        const int capacity = 10; // 1 second -> 
         int locCounter = 0;
         float locs[capacity] = {0.0};
         int burstSpikeCounts[capacity] = {0};
