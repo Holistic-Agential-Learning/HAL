@@ -421,11 +421,13 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 state.bursting = true;
                 directionHandled = false;
                 state.lastBurstStartFrame = i;
-                cout << "BS" << endl;
+
+                //debug
+                cout << "waveVal: " << waveVal << endl;
             }
 
             // --- 4D. Handle Burst End ---
-            else if (waveVal == Wave::burstOnLeft || waveVal == Wave::burstOnRight && !directionHandled) {
+            else if ((waveVal == Wave::burstOnLeft || waveVal == Wave::burstOnRight) && !directionHandled) {
 
                 bool leftToRight = (waveVal == Wave::burstOnLeft);
                 string directionString = leftToRight ? "left to right" : "right to left";
@@ -435,8 +437,10 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
 
                 WaveMetadata metadata = sensor.getMetadata();
 
+                //debug
+                cout << "waveVal: " << waveVal << endl;
+                
                 expBar.clear();
-                cout << "BE" << endl;
                 expBar.print();
 
                 saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
