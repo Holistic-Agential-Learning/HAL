@@ -57,7 +57,6 @@ Options:
 
 // Some global parameters that are pretty standard
 #define RANDOM_SEED 10                      /* fixed random seed */
-#define SYS_START_BUFFER 5 * framesPerSec   /* The system takes ~ 5 secs to startup */
 #define TOTAL_ELECTRODES emap.size()        /* So you know how many electrodes there are for thresholds */
 #define CHIP_WIDTH 220      /* This is how many electrodes in X (L/R will use CHIP_WIDTH / 2) */
 #define CHIP_HEIGHT 120     /* This is how many electrodes in Y */
@@ -180,6 +179,18 @@ file << state.burstSpikeCounts[m] << ", ";
 file << metadata.maxSpikes << endl;
 }
 
+/** HELPER FUNCTIONS BELOW
+ *  
+ *  1. framesToSeconds - Convert frames to seconds
+ *  2. secondsToFrames - Convert seconds to frames
+ */
+float framesToSeconds(int frames, int framesPerSec) {
+    return static_cast<float>(frames) / framesPerSec;
+}
+
+int secondsToFrames(float seconds, int framesPerSec) {
+    return static_cast<int>(seconds * framesPerSec);
+}
 
 ////////////////////////////////////////////////////
 ////////// ONTO THE GOOD STUFF /////////////////////
@@ -265,7 +276,8 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // =====================================================
     //                     Setup Phase
     // =====================================================
-    
+    const int SYS_START_BUFFER = 5 * framesPerSec;  // The system takes ~5 seconds to stabilize
+
     /**
      * @brief Struct for holding the internal state of the experiment during training.
      */
@@ -430,7 +442,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 cout << directionString << endl;
                 expBar.print();
 
-                saveBurstData(metadata, file, state.locs, state.burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
+                saveBurstData(metadata, file, state.locs, state.burstSpikeCounts, state.capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
 
                 state.previousBurst = leftToRight ? 1 : -1;
             }
@@ -484,15 +496,3 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     alldata_file.close();
 }
 
-/** HELPER FUNCTIONS BELOW
- *  
- *  1. framesToSeconds - Convert frames to seconds
- *  2. secondsToFrames - Convert seconds to frames
- */
-float framesToSeconds(int frames, int framesPerSec) {
-    return static_cast<float>(frames) / framesPerSec;
-}
-
-int secondsToFrames(float seconds, int framesPerSec) {
-    return static_cast<int>(seconds * framesPerSec);
-}
