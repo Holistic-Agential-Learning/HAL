@@ -258,7 +258,7 @@ int main(int argc, char * argv[]) {
     ElectrodeMap emap = ElectrodeMap(configPath.c_str());
 
     try {
-        runExperiment(folderPath, configPath, well, framesPerSec, pre_frames, train_frames, post_frames, burst_size_threshold, burst_dur_threshold, stimRate, pulseDurationSecs, rightburst);
+        runExperiment(folderPath, configPath, well, framesPerSec, pre_frames, train_frames, post_frames, burst_size_threshold, burst_dur_threshold, stimRate, pulseDurationSecs, leftburst, rightburst);
     } catch (int& err) {
         cout << "Program failed with error code " << err << endl;
         maxlab::verifyStatus(maxlab::DataStreamerFiltered_close());
@@ -276,6 +276,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // =====================================================
     //                     Setup Phase
     // =====================================================
+    
     const int SYS_START_BUFFER = 5 * framesPerSec;  // The system takes ~5 seconds to stabilize
 
     /**
@@ -326,16 +327,16 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // User selects type: 0 = off, 1 = regular, 2 = random.
     // If stimRate is set to 0, StimVector will disable all stimulation.
     StimVector rightStim = StimVector(
-        rightStimType == 2,
-        rightStimType == 0 ? 0 : 5, // This checks rightStim is 0, if so pass '0 Hz' to stimVector
-        maxtwo,
+        rightburst == 2,
+        rightburst == 0 ? 0 : 5, // This checks rightStim is 0, if so pass '0 Hz' to stimVector
+        framesPerSec,
         0.001
     );
 
     StimVector leftStim = StimVector(
-        leftStimType == 2,
-        leftStimType == 0 ? 0 : 5,  // This checks leftStim is 0, if so pass '0 Hz' to stimVector
-        maxtwo,
+        leftburst == 2,
+        leftburst == 0 ? 0 : 5,  // This checks leftStim is 0, if so pass '0 Hz' to stimVector
+        framesPerSec,
         0.001
     );
 
@@ -413,7 +414,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             }
 
             // --- 4B. Tracking Burst Evolution ---
-            if (state.bursting && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * state.locCounter)) && (state.locCounter < capacity)) {
+            if (state.bursting && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * state.locCounter)) && (state.locCounter < state.capacity)) {
                 state.locs[state.locCounter] = sensor.getWindow()->getAvgX();
                 state.burstSpikeCounts[state.locCounter] = spikeCount;
                 state.locCounter++;

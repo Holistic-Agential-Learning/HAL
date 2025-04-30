@@ -8,17 +8,15 @@ using namespace std;
 /**
  * @brief Construct a new Stim Vector object
  * 
- * @param isRandom <code>bool</code> indicates whether the object should
- * simulate a random or regular stimulation pattern 
+ * @param isRandom <code>bool</code> indicates whether the object should simulate a random or regular stimulation pattern 
  * @param stimRate <code>int</code> stimulation rate in stimulations per second
- * @param maxtwo <code>bool</code> indicates if running on MaxTwo (true) or MaxOne (false)
+ * @param fps fps <code>int</code> frames per sec (10k for M2 and 20k)
  * @param interval <code>float</code> size of each random bin in seconds (default 0.001)
  * @param shuffleFrequency <code>float</code> how often (in seconds) to regenerate the random pattern (default 5)
  */
-StimVector::StimVector(bool isRandom, int stimRate, bool maxtwo, float interval, float shuffleFrequency)
+StimVector::StimVector(bool isRandom, int stimRate, int fps, float interval, float shuffleFrequency)
     : random(isRandom), stimsPerSec(stimRate)
 {
-    fps = maxtwo ? 10000 : 20000;
     framesPerStim = stimRate ? static_cast<int>((1.0 / stimRate) * fps) : 0;
     intvl = interval * fps;
     length = static_cast<int>((shuffleFrequency * fps) / intvl);
