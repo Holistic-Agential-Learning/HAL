@@ -421,6 +421,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 state.bursting = true;
                 directionHandled = false;
                 state.lastBurstStartFrame = i;
+                cout << "BS" << endl;
             }
 
             // --- 4D. Handle Burst End ---
@@ -435,7 +436,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 WaveMetadata metadata = sensor.getMetadata();
 
                 expBar.clear();
-                cout << directionString << endl;
+                cout << "BE" << endl;
                 expBar.print();
 
                 saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
