@@ -42,7 +42,7 @@ exp_conditions = [
     [],
     [],
     [],
-    [0, 0]
+    [1, 2]
 ] 
 
 # TODO
@@ -174,7 +174,7 @@ if __name__ == '__main__':
         s.start_recording([well])
         
         ############################################################################
-       
+        
         try:
             subprocess.run(program_args)
         except KeyboardInterrupt:
@@ -191,4 +191,4 @@ if __name__ == '__main__':
     print("Experiment complete!")
 
     for email in emails:
-        subprocess.run("./mail.sh", email)
+        subprocess.run(["./mail.sh", email])
