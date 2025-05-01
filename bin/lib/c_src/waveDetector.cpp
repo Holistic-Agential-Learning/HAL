@@ -26,7 +26,7 @@ WaveDetector::WaveDetector() {
 
 }
 
-WaveDetector::WaveDetector(int windowLength, const char *configPath, int fps, float burst_size_threshold, int burst_dur_threshold, int BurstFinishedThreshold) {
+WaveDetector::WaveDetector(int windowLength, const char *configPath, int fps, float burst_size_threshold, float burst_dur_threshold, float BurstFinishedThreshold) {
     
     window = new ChannelWindow(windowLength, configPath);   // Create a window with the correct parameters. 
     window->init(); // You need to initialze the window using the parameters passed by a user. 
@@ -89,8 +89,8 @@ void WaveDetector::resetBurstMetadata() {
 int WaveDetector::checkBurst(int frameNo) {
     int result = Wave::noBurst;
     int spikeCount = window->totalSpikeCount();
-    int burstQuietThresholdFrames = BurstFinishedThreshold * framesPerSec;
-    int burst_dur_thresholdFrames = burst_dur_threshold * framesPerSec;
+    float burstQuietThresholdFrames = BurstFinishedThreshold * framesPerSec;
+    float burst_dur_thresholdFrames = burst_dur_threshold * framesPerSec;
 
     // =====================================================
     //                Over Threshold Logic
@@ -137,12 +137,30 @@ int WaveDetector::checkBurst(int frameNo) {
             // If the burst duration recorded was big enough, we consider it 'significant'.
             // Sometimes bursts will dip under threshold really fast, but come back up and we want to ignore that if possible.
             // Mostly because the second peak will be higher, but it doesn't really change the start location. 
+
+            // if (metadata->framesAboveThreshold >= burst_dur_thresholdFrames) {
+            //     bool startedOnLeft = metadata->burstStartLocation < metadata->maxSpikesLoc;        // KEY: If start location is smaller than peak, it must have started on left. Else, right.
+            //     result = startedOnLeft ? Wave::burstOnLeft : Wave::burstOnRight;
+            // } else {
+            //     result = Wave::endShortBurst;   // If it wasn't big enough, this enum is returned to let the user know a short burst happened.
+            // }
+
             if (metadata->framesAboveThreshold >= burst_dur_thresholdFrames) {
-                bool startedOnLeft = metadata->burstStartLocation < metadata->maxSpikesLoc;        // KEY: If start location is smaller than peak, it must have started on left. Else, right.
+                bool startedOnLeft = metadata->burstStartLocation < metadata->maxSpikesLoc;
                 result = startedOnLeft ? Wave::burstOnLeft : Wave::burstOnRight;
+            
+                std::cout << "[Burst PASSED duration threshold] "
+                          << "framesAboveThreshold = " << metadata->framesAboveThreshold 
+                          << " / required = " << burst_dur_thresholdFrames << std::endl;
             } else {
-                result = Wave::endShortBurst;   // If it wasn't big enough, this enum is returned to let the user know a short burst happened.
+                // std::cout << "[Burst FAILED duration threshold] "
+                //           << "framesAboveThreshold = " << metadata->framesAboveThreshold 
+                //           << " / required = " << burst_dur_thresholdFrames << std::endl;
+            
+                result = Wave::endShortBurst;
             }
+            
+
         }
 
         // There's no real logic needed for what happens if the burst ends but isn't long enough.

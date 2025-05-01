@@ -67,10 +67,10 @@ class WaveDetector {
          *                   electrode config
          * @param framesPerSec <code>int</code> sampling rate in frames per second
          * @param burst_size_threshold <code>float</code> fraction of active electrodes needed to start a burst
-         * @param burst_dur_threshold <code>int</code> minimum burst duration (in seconds)
-         * @param BurstFinishedThreshold <code>int</code> minimum time (in seconds) of low activity to confirm burst ended
+         * @param burst_dur_threshold <code>float</code> minimum burst duration (in seconds)
+         * @param BurstFinishedThreshold <code>float</code> minimum time (in seconds) of low activity to confirm burst ended
          */
-        WaveDetector(int windowLength, const char *configPath, int framesPerSec, float burst_size_threshold, int burst_dur_threshold, int BurstFinishedThreshold);
+        WaveDetector(int windowLength, const char *configPath, int framesPerSec, float burst_size_threshold, float burst_dur_threshold, float BurstFinishedThreshold);
 
         /**
          * @brief Destroys the Wave Detector object
@@ -133,8 +133,8 @@ class WaveDetector {
         int framesPerSec;
         int totalElectrodes;
         float burst_size_threshold;
-        int burst_dur_threshold;
-        int BurstFinishedThreshold;
+        float burst_dur_threshold;
+        float BurstFinishedThreshold;
 };
 
 #endif

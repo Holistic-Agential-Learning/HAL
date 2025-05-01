@@ -93,7 +93,7 @@ float framesToSeconds(int frames);
 // This function actually holds the experimental logic (aka the meat)
 void runExperiment(string path, string configPath, int well, int framesPerSec, 
     int pre_frames, int train_frames, int post_frames,
-    float burst_size_threshold, int burst_dur_threshold,
+    float burst_size_threshold, float burst_dur_threshold,
     float stimRate, float pulseDurationSecs,
     int leftburst, int rightburst);
 
@@ -214,11 +214,11 @@ int main(int argc, char * argv[]) {
     int leftburst = getIntArgSecure("--left-type", DEFAULT_LEFTBURST, argc, argv);    // stimulation for leftburst, default Nothing
 
     // --- This will set flags for the burst detection behavior --- 
-    const int BURST_DURATION_THRESHOLD_DEFAULT = static_cast<int>(0.1 * framesPerSec);  // default behavior
+    const float BURST_DURATION_THRESHOLD_DEFAULT = static_cast<int>(0.1 * framesPerSec);  // default behavior
     const float BURST_SIZE_THRESHOLD_DEFAULT = 0.15f;                                    /* activity burst threshold */
 
     float burst_size_threshold = getFloatArgSecure("--burst_size_threshold", BURST_SIZE_THRESHOLD_DEFAULT, argc, argv);  // How big (% of channels) a burst needs to be to count it
-    float burst_dur_threshold = getFloatArgSecure("--burst_dur_threshold", BURST_DURATION_THRESHOLD_DEFAULT, argc, argv);  // How many frames needed before we count it as a burst
+    float burst_dur_threshold = getFloatArgSecure("--burst_dur_threshold", BURST_DURATION_THRESHOLD_DEFAULT, argc, argv);  // How many seconds of a burst needed before we count it as a burst
     
     // Stimulation parameters
     float stimRate = getFloatArgSecure("--stim-rate", STIM_RATE_DEFAULT, argc, argv);   // Stim rate in Hz
@@ -267,7 +267,7 @@ int main(int argc, char * argv[]) {
  * This is the 'experimental part' of the code - it runs the real-time analysis/detection of bursts
  * It's main purpose is to detect bursts, figure out where they came from LvR, and deliever the appropriate stimulation. 
 */
-void runExperiment(string path, string configPath, int well, int framesPerSec, int pre_frames, int train_frames, int post_frames, float burst_size_threshold, int burst_dur_threshold, float stimRate, float pulseDurationSecs, int leftburst, int rightburst){  
+void runExperiment(string path, string configPath, int well, int framesPerSec, int pre_frames, int train_frames, int post_frames, float burst_size_threshold, float burst_dur_threshold, float stimRate, float pulseDurationSecs, int leftburst, int rightburst){  
     // =====================================================
     //                     Setup Phase
     // =====================================================
@@ -365,9 +365,11 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         }
 
         // Important in alpha - don't process all frames
-        if (frameData.frameInfo.well_id != well)
-            i--;                // Retry if not correct well
+        if (frameData.frameInfo.well_id != well) {
+            i--;  // don't advance if wrong well
+            // cout << "well: " << static_cast<int>(frameData.frameInfo.well_id) << endl;
             continue;
+        }
 
         preBar.increment();
     }
@@ -392,7 +394,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         // === 1. Receive Frame ===
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
-        std::cout << "frame status: " << static_cast<int>(status) << std::endl;
+        // std::cout << "frame status: " << static_cast<int>(status) << std::endl;
 
         if (status == maxlab::Status::MAXLAB_NO_FRAME) {
             i--; // Retry if no frame was received
@@ -400,9 +402,10 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         }
 
         // Important in alpha - don't process all frames
-        if (frameData.frameInfo.well_id != well)
-            i--;        // Retry if not correct well
+        if (frameData.frameInfo.well_id != well) {
+            i--;  // don't advance if wrong well
             continue;
+        }
 
         expBar.increment(); // Update progress bar
 
@@ -443,7 +446,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 state.lastBurstStartFrame = i;
 
                 //debug
-                cout << "waveVal: " << waveVal << endl;
+                // cout << "waveVal: " << waveVal << endl;
             }
 
             // --- 4D. Handle Burst End ---
@@ -460,13 +463,13 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 //debug
                 cout << "waveVal: " << waveVal << endl;
 
-                expBar.clear();
-                expBar.print();
-
                 saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
                 sensor.resetBurstMetadata();  // Reset the burst metadata after saving
 
                 state.previousBurst = leftToRight ? 1 : -1;
+
+                expBar.clear();
+                expBar.print();
             }
         }
 
@@ -482,10 +485,6 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         if (stimulate && !state.bursting && state.blanking == 0) {
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             state.blanking = BLANKING_FRAMES; // Restart blanking after stimulation
-        }
-
-        if (i % 100000 == 0) {
-            std::cout << "Frame: " << i << std::endl;
         }
     }
 
@@ -509,9 +508,10 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         }
 
         // Important in alpha - don't process all frames
-        if (frameData.frameInfo.well_id != well)
-            i--;        // Retry if not correct well
+        if (frameData.frameInfo.well_id != well) {
+            i--;  // don't advance if wrong well
             continue;
+        }
 
         postBar.increment();
     }
