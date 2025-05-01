@@ -360,9 +360,15 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
+            i--;                // Retry if no frame
             continue;
         }
+
+        // Important in alpha - don't process all frames
+        if (frameData.frameInfo.well_id != well)
+            i--;                // Retry if not correct well
+            continue;
+
         preBar.increment();
     }
     cout << endl;
@@ -381,7 +387,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     bool directionHandled = false;
     cout << train_frames << endl;
     // This is the main loop that goes through training frame by frame (i is frame)
-    for (int i = 0; i < train_frames; ) {
+    for (int i = 0; i < train_frames; i++) {
         
         // === 1. Receive Frame ===
         maxlab::FilteredFrameData frameData;
@@ -392,6 +398,11 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             i--; // Retry if no frame was received
             continue;
         }
+
+        // Important in alpha - don't process all frames
+        if (frameData.frameInfo.well_id != well)
+            i--;        // Retry if not correct well
+            continue;
 
         expBar.increment(); // Update progress bar
 
@@ -476,10 +487,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         if (i % 100000 == 0) {
             std::cout << "Frame: " << i << std::endl;
         }
-
-        i++;    // only increment i if we process a frame (what this loop does)
     }
-
 
     // =====================================================
     //                     Post-Training Phase
@@ -496,9 +504,15 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         maxlab::FilteredFrameData frameData;
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         if (status == maxlab::Status::MAXLAB_NO_FRAME) {
-            i--;
+            i--;        // Retry if no good frame
             continue;
         }
+
+        // Important in alpha - don't process all frames
+        if (frameData.frameInfo.well_id != well)
+            i--;        // Retry if not correct well
+            continue;
+
         postBar.increment();
     }
     cout << endl;
