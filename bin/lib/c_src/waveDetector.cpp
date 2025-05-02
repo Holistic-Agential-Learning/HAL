@@ -130,10 +130,13 @@ int WaveDetector::checkBurst(int currentFrame) {
             
             // --- Burst started and is continuing ---
             metadata->framesAboveThreshold++;
-            metadata->maxSpikes = spikeCount;
-            metadata->maxSpikesFrame = currentFrame;
-            metadata->maxSpikesLoc = avgX;
             metadata->framesUnderThreshold = 0;
+            if (spikeCount > metadata->maxSpikes) {
+                metadata->maxSpikes = spikeCount;
+                metadata->maxSpikesFrame = currentFrame;
+                metadata->maxSpikesLoc = avgX;
+            }
+
             result = Wave::burstStart;
 
             if (metadata->framesAboveThreshold >= durThreshFrames){
