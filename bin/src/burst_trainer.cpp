@@ -457,11 +457,11 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
 
             // --- 4D. Handle Burst End ---
             else if ((waveVal == Wave::burstOnLeft || waveVal == Wave::burstOnRight) && !directionHandled) {
-                cout << "Burst END" << endl;
                 
                 bool leftToRight = (waveVal == Wave::burstOnLeft);
                 string directionString = leftToRight ? "left to right" : "right to left";
-                
+                cout << "Burst END: " << directionString << endl;
+
                 state.previousBurst = leftToRight ? 1 : -1;
                 state.bursting = false;
                 directionHandled = true;
