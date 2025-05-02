@@ -378,7 +378,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     }
 
     // Define blanking time
-    const int BLANKING_FRAMES = static_cast<int>(40 * pulseDurationSecs * framesPerSec);  // Blank for four times the entire square pulse (duration X 4)
+    const int BLANKING_FRAMES = static_cast<int>(4 * pulseDurationSecs * framesPerSec);  // Blank for four times the entire square pulse (duration X 4)
 
     // =====================================================
     //                     Training Phase
@@ -433,15 +433,8 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                             << spikeCount << ", "
                             << monitoringLoc << endl;
             }
-
-            // --- 4B. Tracking Burst Evolution ---
-            if (state.burstStart && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * locCounter)) && (locCounter < capacity)) {
-                locs[locCounter] = sensor.getWindow()->getAvgX();
-                burstSpikeCounts[locCounter] = spikeCount;
-                locCounter++;
-            }
             
-            // --- 4Ca. Detect New Burst Start ---
+            // --- 4Ba. Detect New Burst Start ---
             // --- This is for tracking locs for evolution ---
             if (waveVal == Wave::burstStart) {
                 locs[0] = sensor.getWindow()->getAvgX();
@@ -449,6 +442,13 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 locCounter = 1;
                 state.lastBurstStartFrame = i;
                 state.burstStart = true;
+            }
+
+            // --- 4Ca. Tracking Burst Evolution ---
+            if (state.burstStart && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * locCounter)) && (locCounter < capacity)) {
+                locs[locCounter] = sensor.getWindow()->getAvgX();
+                burstSpikeCounts[locCounter] = spikeCount;
+                locCounter++;
             }
 
             // --- 4Cb. Detect Sig Burst is happening ---

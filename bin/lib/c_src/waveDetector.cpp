@@ -140,7 +140,15 @@ int WaveDetector::checkBurst(int currentFrame) {
                 metadata->bursting = true;
                 result = Wave::bursting;
             }
+        }
+        else {
+            metadata->framesUnderThreshold++;          // If you dip under Threshold, start counting
             
+            if (metadata->framesUnderThreshold >= burstDoneThreshFrames) { // if you stay under too long, you reset
+                metadata->framesAboveThreshold = 0;     
+                result = Wave::endShortBurst;
+                burstStarted = false;
+            }
         } 
     } else if (metadata->bursting){                     // If the culture is bursting, do this
         if (aboveThreshold) {
