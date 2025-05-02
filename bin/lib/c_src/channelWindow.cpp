@@ -210,28 +210,36 @@ float ChannelWindow::getAvgX() {
 }
 
 float ChannelWindow::getMedX() {
-    vector<int> xValues;
-    bool seenChannels[1024] = {false}; // Prevent channel double-counting
+    // used to make sure that each channel is only counted once
+    int channels[1024] = {0};
+    vector<float> x_coords;
 
-    for (int i = 0; i < numChannels(); i++) {
-        int chan = getChan(i);
-        if (!seenChannels[chan]) {
-            seenChannels[chan] = true;
-            xValues.push_back(electrodeX(chan));
+    for (int i = 0; i < size; i++) {
+        FilteredFrameData fd = get(i);
+        const SpikeEvent *event = fd.spikeEvents;
+        int spikeCount = fd.spikeCount;
+        for (int j = 0; j < spikeCount; j++) {
+            int channel = event[j].channel;
+            if (channels[channel] == 0) {
+                float x_coord = emap.getX(channel);
+                x_coords.push_back(x_coord);
+                channels[channel] = 1;
+            }
         }
     }
 
-    if (xValues.empty()) return -1.0f;
+    if (x_coords.empty()) return 0;
 
-    sort(xValues.begin(), xValues.end());
-    size_t mid = xValues.size() / 2;
+    sort(x_coords.begin(), x_coords.end());
+    size_t n = x_coords.size();
 
-    if (xValues.size() % 2 == 0) {
-        return (xValues[mid - 1] + xValues[mid]) / 2.0f;
+    if (n % 2 == 0) {
+        return (x_coords[n/2 - 1] + x_coords[n/2]) / 2.0;
     } else {
-        return xValues[mid];
+        return x_coords[n/2];
     }
 }
+
 
 float ChannelWindow::firingRate() {
 

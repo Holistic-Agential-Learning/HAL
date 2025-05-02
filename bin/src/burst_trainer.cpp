@@ -412,7 +412,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             continue;
         }
 
-        //expBar.increment(); // Update progress bar
+        // expBar.increment(); // Update progress bar
 
         // === 2. Process Frame ===
         int waveVal = sensor.processFrame(frameData, i);
@@ -428,7 +428,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
 
             // --- 4A. Periodic Logging ---
             if (i % static_cast<int>(framesPerSec * 0.1) == 0) {
-                float monitoringLoc = sensor.getWindow()->getAvgX();
+                float monitoringLoc = sensor.getWindow()->getMedX();
                 alldata_file << (i + SYS_START_BUFFER + WINDOW) << ", "
                             << spikeCount << ", "
                             << monitoringLoc << endl;
@@ -437,7 +437,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             // --- 4Ba. Detect New Burst Start ---
             // --- This is for tracking locs for evolution ---
             if (waveVal == Wave::burstStart) {
-                locs[0] = sensor.getWindow()->getAvgX();
+                locs[0] = sensor.getWindow()->getMedX();
                 burstSpikeCounts[0] = spikeCount;
                 locCounter = 1;
                 state.lastBurstStartFrame = i;
@@ -446,7 +446,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
 
             // --- 4Ca. Tracking Burst Evolution ---
             if (state.burstStart && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.005 * locCounter)) && (locCounter < capacity)) {
-                locs[locCounter] = sensor.getWindow()->getAvgX();
+                locs[locCounter] = sensor.getWindow()->getMedX();
                 burstSpikeCounts[locCounter] = spikeCount;
                 locCounter++;
             }
@@ -463,18 +463,25 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 
                 bool burstStartLeft = (waveVal == Wave::burstOnLeft);
                 string directionString = burstStartLeft ? "burst on Left" : "burst on Right";
-                cout << "Burst END: " << directionString << endl;
 
                 state.previousBurst = burstStartLeft ? 1 : -1;  // 1 is Left, -1 is Right
                 state.bursting = false;
+                state.burstStart = false;
                 directionHandled = true;
 
                 WaveMetadata metadata = sensor.getMetadata();
+
+                // A nice debug statement that prints the L/R logic 
+                cout << "Burst END: " << directionString 
+                << "  | PeakLoc: " << metadata.maxSpikesLoc
+                << " | StartDec: " << metadata.burstStartLocation
+                << endl;
+
                 saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
                 sensor.resetBurstMetadata();  // Reset the burst metadata after saving
 
-                //expBar.clear();
-                //expBar.print();
+                // expBar.clear();
+                // expBar.print();
             }
         }
 
@@ -503,7 +510,6 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         // }
 
         if (stimulate && !state.bursting && state.blanking == 0) {
-            cout << "PULSE" << endl;
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             state.blanking = BLANKING_FRAMES; // Restart blanking after stimulation
         }

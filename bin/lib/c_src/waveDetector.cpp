@@ -94,7 +94,7 @@ int WaveDetector::checkBurst(int currentFrame) {
 
     // Vars used in the logic of the loop.
     int spikeCount = window->totalSpikeCount();
-    float avgX = window->getAvgX();
+    float avgX = window->getMedX();
     bool aboveThreshold = (static_cast<float>(spikeCount) / totalElectrodes) > burst_size_threshold;
     int durThreshFrames = static_cast<int>(burst_dur_threshold * framesPerSec);
     int burstDoneThreshFrames = static_cast<int>(BurstFinishedThreshold * framesPerSec);
