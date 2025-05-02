@@ -378,7 +378,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     }
 
     // Define blanking time
-    const int BLANKING_FRAMES = static_cast<int>(10 * pulseDurationSecs * framesPerSec);  // Blank for four times the entire square pulse (duration X 4)
+    const int BLANKING_FRAMES = static_cast<int>(40 * pulseDurationSecs * framesPerSec);  // Blank for four times the entire square pulse (duration X 4)
 
     // =====================================================
     //                     Training Phase
@@ -412,7 +412,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             continue;
         }
 
-        expBar.increment(); // Update progress bar
+        //expBar.increment(); // Update progress bar
 
         // === 2. Process Frame ===
         int waveVal = sensor.processFrame(frameData, i);
@@ -473,7 +473,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
                 sensor.resetBurstMetadata();  // Reset the burst metadata after saving
 
-                expBar.clear();
+                //expBar.clear();
                 //expBar.print();
             }
         }
@@ -503,7 +503,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         // }
 
         if (stimulate && !state.bursting && state.blanking == 0) {
-            // cout << ("pulse" + to_string(well)).c_str() << " is actually sent!" << endl;
+            cout << "PULSE" << endl;
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             state.blanking = BLANKING_FRAMES; // Restart blanking after stimulation
         }
