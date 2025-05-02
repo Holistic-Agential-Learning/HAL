@@ -224,7 +224,7 @@ int main(int argc, char * argv[]) {
     
     // Stimulation parameters
     float stimRate = getFloatArgSecure("--stim-rate", STIM_RATE_DEFAULT, argc, argv);   // Stim rate in Hz
-    float pulseDurationSecs = getFloatArgSecure("--pulse-duration", STIM_PULSE_DUR_DEFAULT, argc, argv);    // How long a pulse is (duration is 2 times this)
+    float pulseDurationSecs = getFloatArgSecure("--pulse-duration", STIM_PULSE_DUR_DEFAULT, argc, argv);    // How long a pulse is in sec (normally 400 us)
     
     // Timing parameters
     float pre_mins = getIntArgSecure("--pre-recording", PRE_MINUTES_DEFAULT, argc, argv);   // How long you want pre training to last
@@ -378,7 +378,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     }
 
     // Define blanking time
-    const int BLANKING_FRAMES = static_cast<int>(pulseDurationSecs * 2 * 3 * framesPerSec);  // Blank for four times the entire square pulse (duration X 4)
+    const int BLANKING_FRAMES = static_cast<int>(10 * pulseDurationSecs * framesPerSec);  // Blank for four times the entire square pulse (duration X 4)
 
     // =====================================================
     //                     Training Phase
