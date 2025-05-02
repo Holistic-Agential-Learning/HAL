@@ -34,7 +34,7 @@ struct WaveMetadata {
     float maxSpikesLoc;              /**< X-location where peak spike count occurred */
 
     int framesAboveThreshold;        /**< Number of frames the spike count stayed above threshold */
-    int noSpikeFrameCount;            /**< Number of frames spike count stayed below threshold */
+    int framesUnderThreshold;        /**< Number of frames spike count stayed below threshold */
 };
 
 /**
