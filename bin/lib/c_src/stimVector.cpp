@@ -95,12 +95,12 @@ void StimVector::generateRandom() {
         }
     }
 
-    // Quick debug
-    std::cout << "[StimVector] Generated stim vector (first 100 bins): ";
-    for (int i = 0; i < std::min(100, length); ++i) {
-        std::cout << stims[i];
-    }
-    std::cout << std::endl;
+    // // Quick debug
+    // std::cout << "[StimVector] Generated stim vector (first 100 bins): ";
+    // for (int i = 0; i < std::min(100, length); ++i) {
+    //     std::cout << stims[i];
+    // }
+    // std::cout << std::endl;
 }
 
 /**

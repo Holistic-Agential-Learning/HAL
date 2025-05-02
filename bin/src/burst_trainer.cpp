@@ -474,7 +474,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 sensor.resetBurstMetadata();  // Reset the burst metadata after saving
 
                 expBar.clear();
-                expBar.print();
+                //expBar.print();
             }
         }
 
@@ -483,15 +483,17 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         bool stimulate = false;
         if (state.previousBurst == -1) {
             stimulate = rightStim.stimulate(i);
-            if (stimulate == 1){
-                cout << "rightStim stimulate is: " << stimulate << endl;
-            }
+            // // Debug
+            // if (stimulate == 1){
+            //     cout << "rightStim stimulate is: " << stimulate << endl;
+            // }
             
         } else if (state.previousBurst == 1) {
             stimulate = leftStim.stimulate(i);
-            if (stimulate == 1){
-                cout << "leftStim stimulate is: " << stimulate << endl;
-            }
+            // // Debug
+            // if (stimulate == 1){
+            //     cout << "leftStim stimulate is: " << stimulate << endl;
+            // }
         }
         
         // // Debug statement
