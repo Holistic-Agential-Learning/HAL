@@ -2,7 +2,7 @@
 #define __STIMVECTOR_H__
 
 #include <vector>
-#include <unordered_map>
+#include <unordered_set>
 #include <random>
 
 using namespace std;
@@ -76,10 +76,13 @@ class StimVector {
         std::vector<bool> stims;
 
         // keeps track of which indices have been chosen for random generation
-        std::unordered_map<int, bool> stimIdxs;
+        std::unordered_set<int> stimIdxs;
 
         // random number generator
         std::mt19937 randomEngine;
+
+        // how often to build a new shuffle sequence
+        float shuffleFrequency;
 };
 
 #endif

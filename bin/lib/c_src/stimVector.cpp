@@ -15,7 +15,7 @@ using namespace std;
  * @param shuffleFrequency <code>float</code> how often (in seconds) to regenerate the random pattern (default 5)
  */
 StimVector::StimVector(bool isRandom, int stimRate, int fps, float interval, float shuffleFrequency)
-    : random(isRandom), stimsPerSec(stimRate)
+    : random(isRandom), stimsPerSec(stimRate), shuffleFrequency(shuffleFrequency)
 {
     framesPerStim = stimRate ? static_cast<int>((1.0 / stimRate) * fps) : 0;
     intvl = interval * fps;
@@ -63,11 +63,12 @@ bool StimVector::stimulate(int frame) {
             return false;
         } else {
             bool shouldStim = (frame % framesPerStim) == 0;
-            if (shouldStim) {
-                std::cout << "[StimVector] 🔥 SHOULD STIMULATE at frame = " << frame
-                          << ", framesPerStim = " << framesPerStim
-                          << ", frame % fps: " << frame % fps << std::endl;
-            }
+            // // Debug
+            // if (shouldStim) {
+            //     std::cout << "[StimVector] 🔥 SHOULD STIMULATE at frame = " << frame
+            //               << ", framesPerStim = " << framesPerStim
+            //               << ", frame % fps: " << frame % fps << std::endl;
+            // }
             return shouldStim;  // <-- THIS WAS MISSING, LOL
         }
     }
@@ -83,17 +84,23 @@ void StimVector::generateRandom() {
     fill(stims.begin(), stims.end(), false); // Reset all bins to false
 
     stimIdxs.clear();
-    int numStims = static_cast<int>(stimsPerSec * (length * intvl / fps));
+    int numStims = static_cast<int>(stimsPerSec * shuffleFrequency);
 
     uniform_int_distribution<int> dist(0, length - 1);
 
     while (stimIdxs.size() < static_cast<size_t>(numStims)) {
         int randIdx = dist(randomEngine);
-        if (!stimIdxs.count(randIdx)) {
-            stimIdxs[randIdx] = true;
+        if (stimIdxs.insert(randIdx).second) {
             stims[randIdx] = true;
         }
     }
+
+    // Quick debug
+    std::cout << "[StimVector] Generated stim vector (first 100 bins): ";
+    for (int i = 0; i < std::min(100, length); ++i) {
+        std::cout << stims[i];
+    }
+    std::cout << std::endl;
 }
 
 /**

@@ -329,20 +329,23 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // If stimRate is set to 0, StimVector will disable all stimulation.
     StimVector rightStim = StimVector(
         rightburst == 2,
-        rightburst == 0 ? 0 : 5, // This checks rightStim is 0, if so pass '0 Hz' to stimVector
+        rightburst == 0 ? 0 : stimRate, // This checks rightStim is 0, if so pass '0 Hz' to stimVector, else pass stimRate
         framesPerSec,
         0.001
     );
 
     StimVector leftStim = StimVector(
         leftburst == 2,
-        leftburst == 0 ? 0 : 5,  // This checks leftStim is 0, if so pass '0 Hz' to stimVector
+        leftburst == 0 ? 0 : stimRate,  // This checks leftStim is 0, if so pass '0 Hz' to stimVector, else pass stimRate
         framesPerSec,
         0.001
     );
 
+    cout << "Left burst in cpp: " << leftburst << endl;
+    cout << "Right burst in cpp: " << rightburst << endl;
+
     // gets wave detector object and initializes window
-    WaveDetector sensor = WaveDetector(WINDOW, configPath.c_str(), framesPerSec, burst_size_threshold, burst_dur_threshold, 0.1);
+    WaveDetector sensor = WaveDetector(WINDOW, configPath.c_str(), framesPerSec, burst_size_threshold, burst_dur_threshold, 0.05);
     ChannelWindow *window = sensor.getWindow();
     
     // =====================================================
@@ -374,8 +377,8 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         preBar.increment();
     }
 
-    // Define blanking time: hardcoded to 100ms worth of frames
-    const int BLANKING_FRAMES = static_cast<int>(pulseDurationSecs * 2 * 2 * framesPerSec);  // Blank for four times the entire square pulse (duration X 4)
+    // Define blanking time
+    const int BLANKING_FRAMES = static_cast<int>(pulseDurationSecs * 2 * 3 * framesPerSec);  // Blank for four times the entire square pulse (duration X 4)
 
     // =====================================================
     //                     Training Phase
@@ -458,11 +461,11 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             // --- 4D. Handle Burst End ---
             else if ((waveVal == Wave::burstOnLeft || waveVal == Wave::burstOnRight) && !directionHandled) {
                 
-                bool leftToRight = (waveVal == Wave::burstOnLeft);
-                string directionString = leftToRight ? "left to right" : "right to left";
+                bool burstStartLeft = (waveVal == Wave::burstOnLeft);
+                string directionString = burstStartLeft ? "burst on Left" : "burst on Right";
                 cout << "Burst END: " << directionString << endl;
 
-                state.previousBurst = leftToRight ? 1 : -1;
+                state.previousBurst = burstStartLeft ? 1 : -1;  // 1 is Left, -1 is Right
                 state.bursting = false;
                 directionHandled = true;
 
@@ -478,26 +481,27 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         // === 5. Handle Stimulation if Necessary ===
         // the python file passes 0 for none, 1 for regular, 2 for random.
         bool stimulate = false;
-        if (state.previousBurst == 1) {
+        if (state.previousBurst == -1) {
             stimulate = rightStim.stimulate(i);
             if (stimulate == 1){
                 cout << "rightStim stimulate is: " << stimulate << endl;
             }
             
-        } else if (state.previousBurst == -1) {
+        } else if (state.previousBurst == 1) {
             stimulate = leftStim.stimulate(i);
             if (stimulate == 1){
-                cout << "rightStim stimulate is: " << stimulate << endl;
+                cout << "leftStim stimulate is: " << stimulate << endl;
             }
         }
-
-        if (stimulate == 1){
-            cout << "stimulate: " << stimulate 
-            << " | bursting: " << state.bursting << endl;
-        }
+        
+        // // Debug statement
+        // if (stimulate == 1){
+        //     cout << "stimulate: " << stimulate 
+        //     << " | bursting: " << state.bursting << endl;
+        // }
 
         if (stimulate && !state.bursting && state.blanking == 0) {
-            cout << ("pulse" + to_string(well)).c_str() << " is actually sent!" << endl;
+            // cout << ("pulse" + to_string(well)).c_str() << " is actually sent!" << endl;
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             state.blanking = BLANKING_FRAMES; // Restart blanking after stimulation
         }
