@@ -153,6 +153,17 @@ class ChannelWindow {
         float getAvgX();
         
         /**
+         * @brief Computes the median X position of all active channels.
+         * 
+         * This function extracts the X-coordinates of all currently active electrodes
+         * tracked by the ChannelWindow and computes their median. It is useful for
+         * estimating the spatial center of burst activity, especially in asymmetric wave propagation.
+         * 
+         * @return float Median X position of active electrodes, or 0.0 if no channels are available.
+         */
+        float getMedX();
+
+        /**
          * @brief Computes the standard deviation of the firing rates of all 
          *          past windows
          * 

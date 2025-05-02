@@ -9,7 +9,6 @@
  * 
  */
 
-#include "channelWindow.h"
 
 #include <fstream>
 #include <cmath>
@@ -17,10 +16,15 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <algorithm>
+
+#include "channelWindow.h"
 #include "maxlab.h"
 #include "electrodeMap.h"
 
+
 using namespace maxlab;
+using namespace std;
 
 ChannelWindow::ChannelWindow() {
     size = 0;
@@ -203,6 +207,30 @@ float ChannelWindow::getAvgX() {
     float average = avgSum / count;
     
     return average;
+}
+
+float ChannelWindow::getMedX() {
+    vector<int> xValues;
+    bool seenChannels[1024] = {false}; // Prevent channel double-counting
+
+    for (int i = 0; i < numChannels(); i++) {
+        int chan = getChan(i);
+        if (!seenChannels[chan]) {
+            seenChannels[chan] = true;
+            xValues.push_back(electrodeX(chan));
+        }
+    }
+
+    if (xValues.empty()) return -1.0f;
+
+    sort(xValues.begin(), xValues.end());
+    size_t mid = xValues.size() / 2;
+
+    if (xValues.size() % 2 == 0) {
+        return (xValues[mid - 1] + xValues[mid]) / 2.0f;
+    } else {
+        return xValues[mid];
+    }
 }
 
 float ChannelWindow::firingRate() {
