@@ -135,6 +135,7 @@ class WaveDetector {
         float burst_size_threshold;
         float burst_dur_threshold;
         float BurstFinishedThreshold;
+        bool burstStarted = false;
 };
 
 #endif

@@ -40,6 +40,10 @@ StimVector::StimVector(bool isRandom, int stimRate, int fps, float interval, flo
  * @return <code>bool</code> true if a pulse should be sent, false otherwise
  */
 bool StimVector::stimulate(int frame) {
+
+    // cout << "[StimVector] frame = " << frame << ", framesPerStim = " << framesPerStim
+    //  << ", frame % fps: " << (frame % framesPerStim) << endl;
+
     if (random) {
         // Regenerate the random stimulation pattern periodically
         if (frame % framesUntilNextShuffle == 0 && frame != 0) {
@@ -58,7 +62,13 @@ bool StimVector::stimulate(int frame) {
         if (stimsPerSec == 0) {
             return false;
         } else {
-            return (frame % framesPerStim) == 0;
+            bool shouldStim = (frame % framesPerStim) == 0;
+            if (shouldStim) {
+                std::cout << "[StimVector] 🔥 SHOULD STIMULATE at frame = " << frame
+                          << ", framesPerStim = " << framesPerStim
+                          << ", frame % fps: " << frame % fps << std::endl;
+            }
+            return shouldStim;  // <-- THIS WAS MISSING, LOL
         }
     }
 }

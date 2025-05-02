@@ -292,6 +292,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         int blanking = 0;
         int previousBurst = 0;
         int lastBurstStartFrame = 0;
+        bool anyBurstOccurred = false;
     };
     
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
@@ -341,9 +342,6 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // gets wave detector object and initializes window
     WaveDetector sensor = WaveDetector(WINDOW, configPath.c_str(), framesPerSec, burst_size_threshold, burst_dur_threshold, 0.5);
     ChannelWindow *window = sensor.getWindow();
-
-    // Define blanking time: hardcoded to 100ms worth of frames
-    const int BLANKING_FRAMES = pulseDurationSecs * 2 * 2;  // Blank for two times the entire square pulse 2 X (duration X 2)
     
     // =====================================================
     //                     Pre-Training Phase
@@ -373,7 +371,9 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
 
         preBar.increment();
     }
-    cout << endl;
+
+    // Define blanking time: hardcoded to 100ms worth of frames
+    const int BLANKING_FRAMES = static_cast<int>(pulseDurationSecs * 2 * framesPerSec);  // Blank for two times the entire square pulse (duration X 2)
 
     // =====================================================
     //                     Training Phase
@@ -435,7 +435,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 burstSpikeCounts[locCounter] = spikeCount;
                 locCounter++;
             }
-
+            
             // --- 4C. Detect New Burst Start ---
             if (waveVal == Wave::burstStart) {
                 locs[0] = sensor.getWindow()->getAvgX();
@@ -445,28 +445,23 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
                 directionHandled = false;
                 state.lastBurstStartFrame = i;
 
-                //debug
-                // cout << "waveVal: " << waveVal << endl;
             }
 
             // --- 4D. Handle Burst End ---
             else if ((waveVal == Wave::burstOnLeft || waveVal == Wave::burstOnRight) && !directionHandled) {
-
+                cout << "Burst END" << endl;
+                
                 bool leftToRight = (waveVal == Wave::burstOnLeft);
                 string directionString = leftToRight ? "left to right" : "right to left";
 
+                state.anyBurstOccurred = true;
                 state.bursting = false;
+                state.previousBurst = leftToRight ? 1 : -1;
                 directionHandled = true;
 
                 WaveMetadata metadata = sensor.getMetadata();
-
-                //debug
-                cout << "waveVal: " << waveVal << endl;
-
                 saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
                 sensor.resetBurstMetadata();  // Reset the burst metadata after saving
-
-                state.previousBurst = leftToRight ? 1 : -1;
 
                 expBar.clear();
                 expBar.print();
@@ -478,11 +473,25 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         bool stimulate = false;
         if (state.previousBurst == 1) {
             stimulate = rightStim.stimulate(i);
+            if (stimulate == 1){
+                cout << "rightStim stimulate is: " << stimulate << endl;
+            }
+            
         } else if (state.previousBurst == -1) {
             stimulate = leftStim.stimulate(i);
+            if (stimulate == 1){
+                cout << "rightStim stimulate is: " << stimulate << endl;
+            }
         }
 
-        if (stimulate && !state.bursting && state.blanking == 0) {
+        if (stimulate == 1){
+            cout << "stimulate: " << stimulate 
+            << " | bursting: " << state.bursting 
+            << " | blanking: " << state.blanking << endl;
+        }
+
+        if (stimulate && state.anyBurstOccurred && !state.bursting && state.blanking == 0) {
+            cout << ("pulse" + to_string(well)).c_str() << " is actually sent!" << endl;
             maxlab::verifyStatus(maxlab::sendSequence(("pulse" + to_string(well)).c_str()));
             state.blanking = BLANKING_FRAMES; // Restart blanking after stimulation
         }

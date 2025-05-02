@@ -42,7 +42,7 @@ exp_conditions = [
     [],
     [],
     [],
-    [1, 2]
+    [1, 1]
 ] 
 
 # TODO
@@ -68,7 +68,7 @@ post_exp_time = 0
 
 #TODO
 # Threshold of what is consiered a burst -> 0.1 = >10% of active electrodes consititute a burst
-burst_size_threshold = 0.15  # % active channels
+burst_size_threshold = 0.2  # % active channels
 burst_dur_threshold = 0.05   # Duration in s
 
 #TODO stims per second
@@ -190,5 +190,5 @@ if __name__ == '__main__':
 
     print("Experiment complete!")
 
-    for email in emails:
-        subprocess.run(["./mail.sh", email])
+    # for email in emails:
+    #     subprocess.run(["./mail.sh", email])

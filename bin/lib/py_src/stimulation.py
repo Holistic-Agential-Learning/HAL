@@ -8,11 +8,8 @@ import maxlab as mx
 from maxlab.api_object import ApiObject
 import math
 
-
 event_number = 100
-FPS = 20000
-
-
+FPS = 10000
 
 class ArbitraryStimulation:
     """
@@ -299,7 +296,7 @@ class Stimulation(ArbitraryStimulation):
 
         # assert stim1.dac_source != 0, "stim1 must have a dac source of 0."
         # assert stim2.dac_source == 1, "stim2 must have a dac source of 1."
-        fps = 20000
+        # fps = 20000
 
         seq = list()
         
