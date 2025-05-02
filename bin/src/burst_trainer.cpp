@@ -412,7 +412,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             continue;
         }
 
-        // expBar.increment(); // Update progress bar
+        expBar.increment(); // Update progress bar
 
         // === 2. Process Frame ===
         int waveVal = sensor.processFrame(frameData, i);
@@ -471,17 +471,17 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
 
                 WaveMetadata metadata = sensor.getMetadata();
 
-                // A nice debug statement that prints the L/R logic 
-                cout << "Burst END: " << directionString 
-                << "  | PeakLoc: " << metadata.maxSpikesLoc
-                << " | StartDec: " << metadata.burstStartLocation
-                << endl;
+                // // A nice debug statement that prints the L/R logic 
+                // cout << "Burst END: " << directionString 
+                // << "  | PeakLoc: " << metadata.maxSpikesLoc
+                // << " | StartDec: " << metadata.burstStartLocation
+                // << endl;
 
                 saveBurstData(metadata, file, locs, burstSpikeCounts, capacity, framesPerSec, SYS_START_BUFFER, WINDOW, directionString);
                 sensor.resetBurstMetadata();  // Reset the burst metadata after saving
 
-                // expBar.clear();
-                // expBar.print();
+                expBar.clear();
+                expBar.print();
             }
         }
 
