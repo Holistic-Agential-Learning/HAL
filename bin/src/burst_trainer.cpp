@@ -137,7 +137,7 @@ void saveBurstData(const WaveMetadata& metadata,
     for (int m = 0; m < capacity; m++) {
     file << "Loc" << m << ",";
     }
-    file << "PeakLoc,Direction,";
+    file << "PeakLoc,BurstStartDet,Direction,";
 
     // --- Header: Spike Counts ---
     for (int m = 0; m < capacity; m++) {
@@ -161,7 +161,7 @@ void saveBurstData(const WaveMetadata& metadata,
     for (int m = 0; m < capacity; m++) {
     file << locs[m] << ",";
     }
-    file << metadata.maxSpikesLoc << "," << directionString << ",";
+    file << metadata.maxSpikesLoc << "," << metadata.burstStartLocation << "," << directionString << ",";
 
     // --- Row: Spike Counts ---
     for (int m = 0; m < capacity; m++) {
@@ -445,7 +445,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             }
 
             // --- 4Ca. Tracking Burst Evolution ---
-            if (state.burstStart && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.01 * locCounter)) && (locCounter < capacity)) {
+            if (state.burstStart && (i == state.lastBurstStartFrame + static_cast<int>(framesPerSec * 0.005 * locCounter)) && (locCounter < capacity)) {
                 locs[locCounter] = sensor.getWindow()->getAvgX();
                 burstSpikeCounts[locCounter] = spikeCount;
                 locCounter++;
