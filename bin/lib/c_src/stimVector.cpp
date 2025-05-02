@@ -2,6 +2,9 @@
 #include <iostream>
 #include <random>
 #include <chrono>
+#include <set>        // for set
+#include <numeric>    // for iota
+#include <algorithm>  // for shuffle
 
 using namespace std;
 
@@ -65,9 +68,9 @@ bool StimVector::stimulate(int frame) {
             bool shouldStim = (frame % framesPerStim) == 0;
             // // Debug
             // if (shouldStim) {
-            //     std::cout << "[StimVector] 🔥 SHOULD STIMULATE at frame = " << frame
+            //     cout << "[StimVector] 🔥 SHOULD STIMULATE at frame = " << frame
             //               << ", framesPerStim = " << framesPerStim
-            //               << ", frame % fps: " << frame % fps << std::endl;
+            //               << ", frame % fps: " << frame % fps << endl;
             // }
             return shouldStim;  // <-- THIS WAS MISSING, LOL
         }
@@ -81,27 +84,50 @@ bool StimVector::stimulate(int frame) {
  * based on the requested stimulation rate and shuffle frequency.
  */
 void StimVector::generateRandom() {
-    fill(stims.begin(), stims.end(), false); // Reset all bins to false
-
+    fill(stims.begin(), stims.end(), false);
     stimIdxs.clear();
+
     int numStims = static_cast<int>(stimsPerSec * shuffleFrequency);
 
-    uniform_int_distribution<int> dist(0, length - 1);
+    // Step 1: Generate a shuffled list of all possible indices
+    vector<int> candidates(length);
+    iota(candidates.begin(), candidates.end(), 0); // Fill with 0...length-1
+    shuffle(candidates.begin(), candidates.end(), randomEngine);
 
-    while (stimIdxs.size() < static_cast<size_t>(numStims)) {
-        int randIdx = dist(randomEngine);
-        if (stimIdxs.insert(randIdx).second) {
-            stims[randIdx] = true;
+    // Step 2: Pick candidates with spacing >= 3
+    set<int> selected;
+    for (int idx : candidates) {
+        bool tooClose = false;
+        for (int offset = -2; offset <= 2; ++offset) {
+            if (offset == 0) continue;
+            if (selected.count(idx + offset)) {
+                tooClose = true;
+                break;
+            }
+        }
+        if (!tooClose) {
+            selected.insert(idx);
+            stims[idx] = true;
+            if (static_cast<int>(selected.size()) == numStims)
+                break;
         }
     }
 
-    // // Quick debug
-    // std::cout << "[StimVector] Generated stim vector (first 100 bins): ";
-    // for (int i = 0; i < std::min(100, length); ++i) {
-    //     std::cout << stims[i];
+    // Final check
+    if (static_cast<int>(selected.size()) < numStims) {
+        cerr << "[StimVector] Warning: Only " << selected.size()
+                  << " stimulations placed out of requested " << numStims
+                  << " due to spacing constraints.\n";
+    }
+    
+    // Optional: Debug output
+    // cout << "[StimVector] Generated stim vector (first 100 bins): ";
+    // for (int i = 0; i < min(100, length); ++i) {
+    //     cout << stims[i];
     // }
-    // std::cout << std::endl;
+    // cout << endl;
 }
+
 
 /**
  * @brief Destroy the Stim Vector object
