@@ -17,18 +17,18 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
 #TODO
-wells = [5]
+wells = [2,5] #[0,2,3,5]
 
 #TODO configs
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
+    "/home/mxwbio/Desktop/HAL/data/wave-training/May2025_Wave/configs/M07462/M07462_0.cfg",
     "",
+    "/home/mxwbio/Desktop/HAL/data/wave-training/May2025_Wave/configs/M07462/M07462_2.cfg",
+    "/home/mxwbio/Desktop/HAL/data/wave-training/May2025_Wave/configs/M07462/M07462_3.cfg",
     "",
-    "",
-    "",
-    "",
-    "/home/mxwbio/configs/250430/M07462DIV22_Well6.cfg"
+    "/home/mxwbio/Desktop/HAL/data/wave-training/May2025_Wave/configs/M07462/M07462_5.cfg"
 ]
 
 # TODO
@@ -37,12 +37,12 @@ all_configs = [
 # This has been changed by Wes - we need conditions per well, so now it goes to a 
 # an array that's 6 long. -> [left, right] i.e., [1, 0] would deliever regular on left burst and nothing on right
 exp_conditions = [
+    [0, 2],
     [],
+    [0, 2],
+    [2, 1],
     [],
-    [],
-    [],
-    [],
-    [1, 2]
+    [2, 1]
 ] 
 
 # TODO
@@ -52,7 +52,7 @@ exp_conditions = [
 parent_dir = "/home/mxwbio/Desktop/HAL/data/wave-training"
 
 #TODO 
-experiment_name = "april-30-2025"   # <-- CHANGE THIS
+experiment_name = "May2025_Wave"   # <-- CHANGE THIS
 
 #TODO
 chip_id = "M07462"  # <-- CHANGE THIS
@@ -62,9 +62,9 @@ maxtwo = True   # This is another difference
 
 #TODO 
 # in minutes, float
-pre_exp_time = 0
-experiment_time = 2
-post_exp_time = 0
+pre_exp_time = 20
+experiment_time = 20
+post_exp_time = 20
 
 #TODO
 # Threshold of what is consiered a burst -> 0.1 = >10% of active electrodes consititute a burst
@@ -76,17 +76,17 @@ stim_rate = 5
 
 #TODO stimulation electrodes     # <-- CHANGE the first one
 stim_electrodes = [
-    [],                
-    [],
-    [],
-    [],
-    [],
-    [4209, 21365, 6131, 21075]
+    [3761, 22251, 4803, 21083],                
+    [0,0,0,0],
+    [4647, 21813, 5239, 21965],
+    [5521, 22255, 4363, 18875],
+    [0,0,0,0],
+    [3321, 22693, 5251, 21535]
 ]
 
 
 #TODO desription
-desc = f"Leftwards gets random, rightwards gets regular. Threshold: {burst_size_threshold}. Time: {experiment_time} mins."
+desc = f"0 and 2 get 0,2: there's no 1 or 4: and 3 and 5 get 2,1. Threshold: {burst_size_threshold}. Time: {experiment_time} mins."
 
 #TODO
 #
@@ -190,5 +190,5 @@ if __name__ == '__main__':
 
     print("Experiment complete!")
 
-    # for email in emails:
-    #     subprocess.run(["./mail.sh", email])
+    for email in emails:
+        subprocess.run(["./mail.sh", email])
