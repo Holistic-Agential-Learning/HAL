@@ -17,7 +17,7 @@ HAL_LIB = $(shell ls $(HAL_LIB_PATH))
 # all .o files in hal lib
 HAL_O = $(foreach cpp,$(HAL_LIB),$(HAL_LIB_PATH)/$(basename $(cpp)).o)
 
-PROGRAMS = button-detection mouse_1d rp_stim_removal burst_trainer plot-frequency-game random-stim-test random
+PROGRAMS = button-detection mouse_1d rp_stim_removal burst_trainer burst_trainer_multiwell plot-frequency-game random-stim-test random process_spike_events
 
 
 all : dir $(PROGRAMS)
