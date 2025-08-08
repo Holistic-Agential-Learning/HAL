@@ -273,7 +273,7 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
     // =====================================================
     //                     Setup Phase
     // =====================================================
-    
+
     // These are important. 
     // This will set how long ChannelWindow is in frames
     // (ChannelWindow collects spikesrates over the window)
