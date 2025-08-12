@@ -17,7 +17,7 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
 #TODO
-wells = [5]
+wells = [4]
 
 #TODO configs
 # the index of each element in the list corresponds to a well number
@@ -27,7 +27,7 @@ all_configs = [
     "",
     "",
     "",
-    "",
+    "/home/mxwbio/Desktop/HAL/bin/wave/Summer 2025/configs/M09068_w4_DIV19.cfg",
     "",
 ]
 
@@ -41,7 +41,7 @@ exp_conditions = [
     [],
     [],
     [],
-    [],
+    [1, 2],
     []
 ] 
 

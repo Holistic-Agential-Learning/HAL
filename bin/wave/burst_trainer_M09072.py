@@ -17,17 +17,17 @@ from bin.lib.py_src.stimulation import Stimulation
 import bin.lib.py_src.hal as hal
 
 #TODO
-wells = [2,4,5]
+wells = [1, 4]
 
 #TODO configs
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
     "",
+    "/home/mxwbio/Desktop/HAL/bin/wave/Summer 2025/configs/M09072_w1_DIV19.cfg",
     "",
     "",
-    "",
-    "",
+    "/home/mxwbio/Desktop/HAL/bin/wave/Summer 2025/configs/M09072_w4_DIV19.cfg",
     "",
 ]
 
@@ -38,10 +38,10 @@ all_configs = [
 # an array that's 6 long. -> [left, right] i.e., [1, 0] would deliever regular on left burst and nothing on right
 exp_conditions = [
     [],
+    [2, 0],
     [],
     [],
-    [],
-    [],
+    [2, 1],
     []
 ] 
 
