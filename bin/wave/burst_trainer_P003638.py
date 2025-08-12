@@ -23,7 +23,7 @@ wells = [0] # This is a maxone
 # the index of each element in the list corresponds to a well number
 #
 all_configs = [
-    "/home/mxwbio/Desktop/HAL/data/wave-training/May2025_Wave/configs/M07459/M07459_0.cfg",
+    "/home/mxwbio/Desktop/HAL/bin/wave/Summer 2025/configs/P003638_DIV19.cfg",
     "",
     "",
     "",
@@ -37,7 +37,7 @@ all_configs = [
 # This has been changed by Wes - we need conditions per well, so now it goes to a 
 # an array that's 6 long. -> [left, right] i.e., [1, 0] would deliever regular on left burst and nothing on right
 exp_conditions = [
-    [],
+    [2, 1],
     [],
     [],
     [],
@@ -68,7 +68,7 @@ post_exp_time = 20
 
 #TODO
 # Threshold of what is consiered a burst -> 0.1 = >10% of active electrodes consititute a burst
-burst_size_threshold = 0.15  # % active channels
+burst_size_threshold = 0.05  # % active channels
 burst_dur_threshold = 0.1   # Duration in s
 
 #TODO stims per second
