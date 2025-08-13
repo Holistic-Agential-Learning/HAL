@@ -19,6 +19,7 @@
 #include <map>
 #include <time.h>
 #include <iomanip>  // for std::setw
+#include <cmath>
 
 // this needs to be included to use of HALs custom classes, such as 
 // channelWindow, WaveDetector, and StimVector
@@ -90,7 +91,14 @@ Options:
 
 // Converts frames to seconds b/c it's easier sometimes
 float framesToSeconds(int frames, int framesPerSec);
-int secondsToFrames(float seconds, int framesPerSec);
+// int secondsToFrames(float seconds, int framesPerSec);
+
+// Converts seconds to frames (rounded, ceiling, or floor)
+inline int secondsToFrames_round(float seconds, int framesPerSec);
+
+inline int secondsToFrames_ceil(float seconds, int framesPerSec);
+
+inline int secondsToFrames_floor(float seconds, int framesPerSec);
 
 // This function actually holds the experimental logic (aka the meat)
 void runExperiment(string path, string configPath, int well, int framesPerSec, 
@@ -182,8 +190,20 @@ float framesToSeconds(int frames, int framesPerSec) {
     return static_cast<float>(frames) / framesPerSec;
 }
 
-int secondsToFrames(float seconds, int framesPerSec) {
-    return static_cast<int>(seconds * framesPerSec);
+// int secondsToFrames(float seconds, int framesPerSec) {
+//     return static_cast<int>(seconds * framesPerSec);
+// }
+
+inline int secondsToFrames_round(float seconds, int framesPerSec) {
+    return static_cast<int>(llround(static_cast<double>(seconds) * framesPerSec));
+}
+
+inline int secondsToFrames_ceil(float seconds, int framesPerSec) {
+    return static_cast<int>(ceil(static_cast<double>(seconds) * framesPerSec));
+}
+
+inline int secondsToFrames_floor(float seconds, int framesPerSec) {
+    return static_cast<int>(floor(static_cast<double>(seconds) * framesPerSec));
 }
 
 ////////////////////////////////////////////////////
@@ -233,9 +253,12 @@ int main(int argc, char * argv[]) {
     float total_time = pre_mins + train_mins + post_mins;
 
     // Same timing parameters, but in frames
-    int pre_frames = secondsToFrames(pre_mins*60, framesPerSec);      // # frames to record before training; mins * 60 sec / min * frames per sec
-    int train_frames = secondsToFrames(train_mins*60, framesPerSec);  // # frames to record during training; mins * 60 sec / min * frames per sec
-    int post_frames = secondsToFrames(post_mins*60, framesPerSec);    // # frames to record after training; mins * 60 sec / min * frames per sec
+    // int pre_frames = secondsToFrames(pre_mins*60, framesPerSec);      // # frames to record before training; mins * 60 sec / min * frames per sec
+    // int train_frames = secondsToFrames(train_mins*60, framesPerSec);  // # frames to record during training; mins * 60 sec / min * frames per sec
+    // int post_frames = secondsToFrames(post_mins*60, framesPerSec);    // # frames to record after training; mins * 60 sec / min * frames per sec
+    int pre_frames   = secondsToFrames_round(pre_mins   * 60.0f, framesPerSec);
+    int train_frames = secondsToFrames_round(train_mins * 60.0f, framesPerSec);
+    int post_frames  = secondsToFrames_round(post_mins  * 60.0f, framesPerSec);
 
     // Print pretty things to let the user know all the details of the run
     cout << BOLD << CYAN << "\n===== Experiment Setup =====" << RESET << endl;

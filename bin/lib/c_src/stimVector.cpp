@@ -2,7 +2,6 @@
 #include <iostream>
 #include <random>
 #include <chrono>
-#include <cmath>      // for rounding
 #include <set>        // for set
 #include <numeric>    // for iota
 #include <algorithm>  // for shuffle
@@ -21,26 +20,20 @@ using namespace std;
 StimVector::StimVector(bool isRandom, int stimRate, int fps, float interval, float shuffleFrequency)
     : random(isRandom), stimsPerSec(stimRate), shuffleFrequency(shuffleFrequency)
 {
-    // Frames per stimulus (≥ 1 if stimRate > 0)
-    if (stimRate > 0) {
-        framesPerStim = std::max(1, static_cast<int>(std::lround((1.0 / stimRate) * fps)));
-    } else {
-        framesPerStim = 0;
+    framesPerStim = stimRate ? static_cast<int>((1.0 / stimRate) * fps) : 0;
+    intvl = interval * fps;
+    length = static_cast<int>((shuffleFrequency * fps) / intvl);
+
+    framesUntilNextShuffle = static_cast<int>(shuffleFrequency * fps);
+
+    stims.resize(length, false);
+
+    // Setup random generator
+    randomEngine.seed(chrono::system_clock::now().time_since_epoch().count());
+
+    if (random) {
+        generateRandom();
     }
-
-    // Convert times → frames with rounding, not truncation
-    const int framesPerShuffle = std::max(1, static_cast<int>(std::lround(shuffleFrequency * fps)));
-    intvl = std::max(1, static_cast<int>(std::lround(interval * fps)));
-
-    // length = ceil(framesPerShuffle / intvl) using integers
-    length = std::max(1, (framesPerShuffle + intvl - 1) / intvl);
-
-    framesUntilNextShuffle = framesPerShuffle;
-
-    stims.assign(length, false);
-
-    randomEngine.seed(std::chrono::system_clock::now().time_since_epoch().count());
-    if (random) generateRandom();
 }
 
 /**
