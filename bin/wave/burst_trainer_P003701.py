@@ -76,7 +76,7 @@ stim_rate = 5
 
 #TODO stimulation electrodes     # <-- CHANGE the first one
 stim_electrodes = [
-    [],                
+    [21153, 4903, 5407, 19057],                
     [],
     [],
     [],
@@ -91,7 +91,7 @@ desc = f"0-2 get 0,2: and 3-4 get 1,2: no 5. Threshold: {burst_size_threshold}. 
 #TODO
 #
 # emails to notify after the experiment ends
-emails = ["sydney.palmer@tufts.edu", "wesley.clawson@tufts.edu"]
+emails = ["sydney.palmer@tufts.edu", "wesley.clawson@tufts.edu", "serena.meng@tufts.edu"]
 
 def get_time():
     return datetime.now().time().strftime("%H:%M")

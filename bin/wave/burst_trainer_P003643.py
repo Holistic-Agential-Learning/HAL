@@ -76,7 +76,7 @@ stim_rate = 5
 
 #TODO stimulation electrodes     # <-- CHANGE the first one
 stim_electrodes = [
-    [],                
+    [22288, 10858, 13333, 21269],                
     [],
     [],
     [],
