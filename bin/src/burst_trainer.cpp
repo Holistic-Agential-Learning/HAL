@@ -90,7 +90,7 @@ Options:
 //  what types of arguments they take, and what type they return.
 
 // Converts frames to seconds b/c it's easier sometimes
-float framesToSeconds(int frames, int framesPerSec);
+inline double framesToSeconds(int frames, int framesPerSec);
 // int secondsToFrames(float seconds, int framesPerSec);
 
 // Converts seconds to frames (rounded, ceiling, or floor)
@@ -186,8 +186,8 @@ void saveBurstData(const WaveMetadata& metadata,
  *  1. framesToSeconds - Convert frames to seconds
  *  2. secondsToFrames - Convert seconds to frames
  */
-float framesToSeconds(int frames, int framesPerSec) {
-    return static_cast<float>(frames) / framesPerSec;
+inline double framesToSeconds(int frames, int framesPerSec) {
+    return static_cast<double>(frames) / static_cast<double>(framesPerSec);
 }
 
 // int secondsToFrames(float seconds, int framesPerSec) {
@@ -391,9 +391,9 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         }
 
         // Important in alpha - don't process all frames
+        // Comment out if on non-alpha hardware/firmware
         if (frameData.frameInfo.well_id != well) {
             i--;  // don't advance if wrong well
-            // cout << "well: " << static_cast<int>(frameData.frameInfo.well_id) << endl;
             continue;
         }
 
