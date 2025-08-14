@@ -354,14 +354,16 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         rightburst == 2,
         rightburst == 0 ? 0 : stimRate, // This checks rightStim is 0, if so pass '0 Hz' to stimVector, else pass stimRate
         framesPerSec,
-        0.001
+        0.001f,
+        5.0f
     );
 
     StimVector leftStim = StimVector(
         leftburst == 2,
         leftburst == 0 ? 0 : stimRate,  // This checks leftStim is 0, if so pass '0 Hz' to stimVector, else pass stimRate
         framesPerSec,
-        0.001
+        0.001f,
+        5.0f    
     );
 
     cout << "Left burst in cpp: " << leftburst << endl;
@@ -513,6 +515,8 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
         bool stimulate = false;
         if (state.previousBurst == -1) {
             stimulate = rightStim.stimulate(i);
+            //optional test
+            //stimulate = rightStim.stimulate(static_cast<int>(frameData.frameInfo.frame_no));
             // // Debug
             // if (stimulate == 1){
             //     cout << "rightStim stimulate is: " << stimulate << endl;
@@ -520,6 +524,8 @@ void runExperiment(string path, string configPath, int well, int framesPerSec, i
             
         } else if (state.previousBurst == 1) {
             stimulate = leftStim.stimulate(i);
+            //optional test
+            //stimulate = leftStim.stimulate(static_cast<int>(frameData.frameInfo.frame_no));
             // // Debug
             // if (stimulate == 1){
             //     cout << "leftStim stimulate is: " << stimulate << endl;

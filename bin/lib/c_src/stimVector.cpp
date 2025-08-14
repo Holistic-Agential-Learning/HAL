@@ -41,6 +41,13 @@ StimVector::StimVector(bool isRandom, int stimRate, int fps, float interval, flo
 
     randomEngine.seed(std::chrono::system_clock::now().time_since_epoch().count());
     if (random) generateRandom();
+
+    cerr << "[StimVector] fps=" << fps
+     << " stimsPerSec=" << stimsPerSec
+     << " framesPerStim=" << framesPerStim
+     << " intvl=" << intvl
+     << " framesUntilNextShuffle=" << framesUntilNextShuffle
+     << " length=" << length << endl;
 }
 
 /**
@@ -51,6 +58,7 @@ StimVector::StimVector(bool isRandom, int stimRate, int fps, float interval, flo
  */
 bool StimVector::stimulate(int frame) {
 
+    static int last = -1, cnt = 0;
     // cout << "[StimVector] frame = " << frame << ", framesPerStim = " << framesPerStim
     //  << ", frame % fps: " << (frame % framesPerStim) << endl;
 
@@ -79,8 +87,15 @@ bool StimVector::stimulate(int frame) {
             //               << ", framesPerStim = " << framesPerStim
             //               << ", frame % fps: " << frame % fps << endl;
             // }
+
+            if (shouldStim) {
+                if (cnt < 20 && last >= 0) cerr << "[Stim] Δ=" << (frame - last) << "\n";
+                last = frame; ++cnt;
+            }
             return shouldStim;  // <-- THIS WAS MISSING, LOL
         }
+
+
     }
 }
 
