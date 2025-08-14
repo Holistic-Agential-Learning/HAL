@@ -40,7 +40,8 @@ class ArbitraryStimulation:
     @staticmethod
     def _append_delay(seq: mx.Sequence | List[ApiObject], frames: int):
         while frames > 0:
-            num_frames_added = min(frames, 2^16 - 1)
+            MAX_DELAY = (1 << 16) - 1   # 65535
+            num_frames_added = min(frames, MAX_DELAY)
             seq.append(mx.DelaySamples(num_frames_added))
             frames -= num_frames_added
 
