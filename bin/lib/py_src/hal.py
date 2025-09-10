@@ -4,6 +4,7 @@ import shutil
 from typing import List
 import maxlab as mx
 import sys
+import time
 
 top_level_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 sys.path.append(top_level_dir)
@@ -143,7 +144,7 @@ def build_training_sequences(well_no: int):
     end_seq = mx.Sequence(f"end_experiment_{well_no}", persistent = True)
     end_seq.append(mx.Event(well_no, 1, 5, f"end_experiment {well_no}"))
 
-def init_well(well_no: int, rec_elecs: List[int] | str, stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
+def init_wells(wells: List[int], rec_elecs: List[int] | str, stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
     """ Initilizes the well recording electrodes and stimulation electrodes. 
     By default, it will connect the stimulation units and power them, but this 
     can be overridden by setting the last two arguments to False or by passing
@@ -179,16 +180,19 @@ def init_well(well_no: int, rec_elecs: List[int] | str, stim_elecs: List[int], c
     :return: a maxlab array with the configured electrodes
     :rtype: ``mx.Array``
     """
+    mx.initialize()
+    time.sleep(mx.Timing.waitInit) #NOTE
+
     if stim_elecs == []:
         connect = False
         power_up = False
-    mx.activate([well_no])
-    mx.set_primary_well(well_no)
 
-    mx.initialize()
+    mx.activate(wells)
+    # mx.set_primary_well(well_no) # NOTE: depricated?
+
     mx.send(mx.Core().enable_stimulation_power(True))
     
-    array = mx.Array(f"stimulation{well_no}")
+    array = mx.Array(f"test") # TODO: call this something meaningful...
     array.reset()
     array.clear_selected_electrodes()
     if type(rec_elecs) is str:
@@ -205,9 +209,11 @@ def init_well(well_no: int, rec_elecs: List[int] | str, stim_elecs: List[int], c
     if connect:
         stimulation_units = connect_stim_units_to_stim_electrodes(stim_elecs, array)
     
-    array.download([well_no])
+    array.download()
+    time.sleep(mx.Timing.waitAfterDownload) # NOTE
     mx.offset()
-    mx.clear_events() 
+    time.sleep(mx.Timing.waitInMX2Offset) # NOTE: there's a different wait for M1s
+    mx.clear_events() # Empty event-buffer before adding anything to it
 
     if power_up:
         power_up_stim_units(stimulation_units)
