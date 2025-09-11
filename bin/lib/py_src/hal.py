@@ -144,7 +144,7 @@ def build_training_sequences(well_no: int):
     end_seq = mx.Sequence(f"end_experiment_{well_no}", persistent = True)
     end_seq.append(mx.Event(well_no, 1, 5, f"end_experiment {well_no}"))
 
-def init_wells(wells: List[int], rec_elecs: List[int] | str, stim_elecs: List[int], connect=True, power_up=True) -> mx.Array:
+def init_well(well: int, rec_elecs: List[int] | str, stim_elecs: List[int], connect=True, power_up=True, dac_source=0) -> mx.Array:
     """ Initilizes the well recording electrodes and stimulation electrodes. 
     By default, it will connect the stimulation units and power them, but this 
     can be overridden by setting the last two arguments to False or by passing
@@ -181,18 +181,18 @@ def init_wells(wells: List[int], rec_elecs: List[int] | str, stim_elecs: List[in
     :rtype: ``mx.Array``
     """
     mx.initialize()
-    time.sleep(mx.Timing.waitInit) #NOTE
+    time.sleep(mx.Timing.waitInit) 
 
     if stim_elecs == []:
         connect = False
         power_up = False
 
-    mx.activate(wells)
-    # mx.set_primary_well(well_no) # NOTE: depricated?
+    mx.activate([well])
+    # mx.set_primary_well(well) 
 
     mx.send(mx.Core().enable_stimulation_power(True))
     
-    array = mx.Array(f"test") # TODO: call this something meaningful...
+    array = mx.Array(f"stimulation{well}") 
     array.reset()
     array.clear_selected_electrodes()
     if type(rec_elecs) is str:
@@ -210,13 +210,13 @@ def init_wells(wells: List[int], rec_elecs: List[int] | str, stim_elecs: List[in
         stimulation_units = connect_stim_units_to_stim_electrodes(stim_elecs, array)
     
     array.download()
-    time.sleep(mx.Timing.waitAfterDownload) # NOTE
+    time.sleep(mx.Timing.waitAfterDownload)
     mx.offset()
     time.sleep(mx.Timing.waitInMX2Offset) # NOTE: there's a different wait for M1s
     mx.clear_events() # Empty event-buffer before adding anything to it
 
     if power_up:
-        power_up_stim_units(stimulation_units)
+        power_up_stim_units(stimulation_units, dac=dac_source)
 
     return array
 

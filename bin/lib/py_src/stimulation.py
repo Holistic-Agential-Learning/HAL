@@ -81,6 +81,7 @@ class ArbitraryStimulation:
             if type(command) == mx.DelaySamples:
                 duration_frames += command.samples
         
+        #TODO: check if FPS changes for m1
         return duration_frames/FPS #because DelaySamples always seems to be in units of frames at 20000 fps
         
 
@@ -123,12 +124,12 @@ class Stimulation(ArbitraryStimulation):
         :type well: ``int``, optional
         """
     
-    def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, stim_units: Optional[List[int]] = None, well: int = 0):
+    def __init__(self, token: str, dac_source: int, amplitude: float = 100, phase: float = 500, pulses_per_train: int = 10, num_trains: int = 1, pulse_interval: float = 10, pulse_train_interval: float = 1, well: int = 0):
         
         
         #Everything is converted to frames.
         self.dac_source = dac_source
-        self.stim_units = stim_units
+        # self.stim_units = stim_units
         self.amplitude = amplitude
         self.phase = int(phase * FPS /(10**6))
         self.pulses_per_train = pulses_per_train
@@ -223,11 +224,11 @@ class Stimulation(ArbitraryStimulation):
         global event_number
         seq = list()
 
-        if self.stim_units:
-            #Power on appropriate stim_units.
-            for stim_unit in self.stim_units:
-                stim = mx.StimulationUnit(stim_unit)
-                seq.append(stim.power_up(True).connect(True).set_voltage_mode().dac_source(self.dac_source))
+        # if self.stim_units: #NOTE: this is done in the init_wells function
+        #     #Power on appropriate stim_units.
+        #     for stim_unit in self.stim_units:
+        #         stim = mx.StimulationUnit(stim_unit)
+        #         seq.append(stim.power_up(True).connect(True).set_voltage_mode().dac_source(self.dac_source))
 
 
 
@@ -247,12 +248,12 @@ class Stimulation(ArbitraryStimulation):
         seq.append(mx.Event(self.well, 1, event_number, f"end_stimulation {self.token} dac {self.dac_source} amp_mV {self.amplitude} phase_us {int(self.phase/ FPS *(10**6))} pulses_per_train {self.pulses_per_train} num_trains {self.num_trains} pulse_interval_ms {int(self.pulse_interval/FPS * 1000)} pulse_train_interval_s {int(self.pulse_train_interval/FPS)}"))
         event_number += 1
 
-        if self.stim_units:
-            #Power off appropriate stim_units.
-            for stim_unit in self.stim_units:
-                stim = mx.StimulationUnit(stim_unit)
-                seq.append(stim.power_up(False).connect(False))
-        return seq
+        # if self.stim_units:
+        #     #Power off appropriate stim_units.
+        #     for stim_unit in self.stim_units:
+        #         stim = mx.StimulationUnit(stim_unit)
+        #         seq.append(stim.power_up(False).connect(False))
+        # return seq
 
 
     @classmethod
