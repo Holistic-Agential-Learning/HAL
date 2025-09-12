@@ -221,6 +221,9 @@ def init_well(well: int, rec_elecs: List[int] | str, stim_elecs: List[int], conn
     return array, stimulation_units
 
 def init_wells(wells: List[int], rec_elecs: List[int] | str, stim_elecs: List[int], connect=True, power_up=True, dac_source=0) -> mx.Array:
+    '''
+    Caitlin testing. Copy of init_well but takes a list of wells instead and activates/initializes them all at once.
+    '''
     """ Initilizes the well recording electrodes and stimulation electrodes. 
     By default, it will connect the stimulation units and power them, but this 
     can be overridden by setting the last two arguments to False or by passing
@@ -518,3 +521,24 @@ def write_stim_electrodes(s: mx.Saving, stim_electrodes: List[int]):
     val = val[:len(val) - 2]
     
     s.write_assay_property("stim_elecs", ", ".join(str(x) for x in stim_electrodes))
+
+
+def write_metadata(s: mx.Saving, metadata: dict):
+    """
+    Writes metadata to experiment h5 file under the key metadata. 
+
+    :param s: mx.Saving object associated with a particular experiment 
+    :type s: mx.Saving
+    :param metadata: Experiment metadata 
+    :type metadata: dict
+    """     
+
+    metadata_str = '' # TODO: take the dictionary as input and format it as a string
+
+    # remove spaces and underscores from the experiment id so that it's always camelcase
+
+    # "burst training" or "burst_training" --> "burstTraining"
+    
+    s.write_assay_property("metadata", metadata_str)
+
+    # TODO: read the python dict as a string back in with json.loads(json_string)
