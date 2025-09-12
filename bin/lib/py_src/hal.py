@@ -220,6 +220,82 @@ def init_well(well: int, rec_elecs: List[int] | str, stim_elecs: List[int], conn
 
     return array, stimulation_units
 
+def init_wells(wells: List[int], rec_elecs: List[int] | str, stim_elecs: List[int], connect=True, power_up=True, dac_source=0) -> mx.Array:
+    """ Initilizes the well recording electrodes and stimulation electrodes. 
+    By default, it will connect the stimulation units and power them, but this 
+    can be overridden by setting the last two arguments to False or by passing
+    an empty list for ``stim_elecs``. This can be useful for setting 
+    stimulations to different DAC channels, since this function sets all 
+    stimulation electrodes to DAC 0 automatically. The stimulation electrodes 
+    will also be selected for recording, so they don't need to be in the 
+    recording electrodes list.
+
+    **Important Note:** This function will pick recording electrodes by adding 
+    ``stim_elecs`` and ``rec_elecs``, meaning that ``rec_elecs`` does not have 
+    to contain everything in ``stim_elecs``. However, if the number of electrodes
+    in both lists combined is greater than 1020, then some of the electrodes 
+    *will not be chosen*. If that happens, ``stim_elecs`` will have preference 
+    over ``rec_elecs``. 
+
+
+    :param well_no: Well number
+    :type well_no: ``int``
+    :param rec_elecs: Recording electrodes, as a list of electrode numbers OR as a
+                      full path to a MaxWell configuration file
+    :type rec_elecs: ``List[int]`` | str
+    :param stim_elecs: Stimulation electrodes, as a list of electrode numbers. 
+                       If empty, connecting and powering up will not be 
+                       attempted.
+    :type stim_elecs: ``List[int]``
+    :param connect: Indicates if the stimulation units should be connected, 
+                    defaults to True
+    :type connect: ``bool``, optional
+    :param power_up: Indicates if the stimulation units should be powered up, 
+                    defaults to True
+    :type power_up: ``bool``, optional
+    :return: a maxlab array with the configured electrodes
+    :rtype: ``mx.Array``
+    """
+    mx.initialize()
+    time.sleep(mx.Timing.waitInit) 
+
+    if stim_elecs == []:
+        connect = False
+        power_up = False
+
+    mx.activate(wells)
+    # mx.set_primary_well(well) 
+
+    mx.send(mx.Core().enable_stimulation_power(True))
+    
+    array = mx.Array(f"stimulation") 
+    array.reset()
+    array.clear_selected_electrodes()
+    if type(rec_elecs) is str:
+        elec_nums = cfg.read_config_elecs(rec_elecs)
+    else:
+        elec_nums = rec_elecs
+    
+    array.select_electrodes(stim_elecs + elec_nums)
+    
+    array.select_stimulation_electrodes(stim_elecs)
+    
+    array.route()
+
+    if connect:
+        stimulation_units = connect_stim_units_to_stim_electrodes(stim_elecs, array)
+    
+    array.download()
+    time.sleep(mx.Timing.waitAfterDownload)
+    mx.offset()
+    time.sleep(mx.Timing.waitInMX2Offset) # NOTE: there's a different wait for M1s
+    mx.clear_events() # Empty event-buffer before adding anything to it
+
+    if power_up:
+        power_up_stim_units(stimulation_units, dac=dac_source)
+
+    return array, stimulation_units
+
 #TODO: move this to an Array class.
 def connect_stim_units_to_stim_electrodes(stim_electrodes: List[int], array: mx.Array) -> List[int]:
     """Connects stimulation units to stimulation electrodes. This function 
