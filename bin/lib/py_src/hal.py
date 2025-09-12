@@ -218,7 +218,7 @@ def init_well(well: int, rec_elecs: List[int] | str, stim_elecs: List[int], conn
     if power_up:
         power_up_stim_units(stimulation_units, dac=dac_source)
 
-    return array
+    return array, stimulation_units
 
 #TODO: move this to an Array class.
 def connect_stim_units_to_stim_electrodes(stim_electrodes: List[int], array: mx.Array) -> List[int]:

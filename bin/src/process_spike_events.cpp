@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
             const maxlab::SpikeEvent & spike = frameData.spikeEvents[i];
             if (spike.channel == detection_channel)
             {
-                const maxlab::Status status = maxlab::sendSequence("stimulation_sequence");
+                const maxlab::Status status = maxlab::sendSequence("stimulation_well"+std::to_string(targetWell));
 
                 blanking = 8000;
                 if (status != maxlab::Status::MAXLAB_OK)
