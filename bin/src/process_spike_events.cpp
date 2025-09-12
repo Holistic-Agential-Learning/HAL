@@ -17,9 +17,13 @@ int main(int argc, char * argv[])
     maxlab::checkVersions();
     maxlab::verifyStatus(maxlab::DataStreamerFiltered_open(maxlab::FilterType::IIR));
 
+    std::cout << ("stimulation_well"+std::to_string(targetWell)).c_str() << std::endl;
+
+
     maxlab::FilteredFrameData frameData;
     while (true)
     {
+
         maxlab::Status status = maxlab::DataStreamerFiltered_receiveNextFrame(&frameData);
         if (status == maxlab::Status::MAXLAB_NO_FRAME)
             continue;
@@ -39,7 +43,7 @@ int main(int argc, char * argv[])
             const maxlab::SpikeEvent & spike = frameData.spikeEvents[i];
             if (spike.channel == detection_channel)
             {
-                const maxlab::Status status = maxlab::sendSequence("stimulation_well"+std::to_string(targetWell));
+                const maxlab::Status status = maxlab::sendSequence(("stimulation_well"+std::to_string(targetWell)).c_str());
 
                 blanking = 8000;
                 if (status != maxlab::Status::MAXLAB_OK)
