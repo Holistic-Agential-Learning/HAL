@@ -1,5 +1,6 @@
 import os
 import datetime
+import re # regular expressions
 import shutil
 from typing import List
 import maxlab as mx
@@ -533,12 +534,32 @@ def write_metadata(s: mx.Saving, metadata: dict):
     :type metadata: dict
     """     
 
-    metadata_str = '' # TODO: take the dictionary as input and format it as a string
-
-    # remove spaces and underscores from the experiment id so that it's always camelcase
-
-    # "burst training" or "burst_training" --> "burstTraining"
+    # Format checks
+    if not re.fullmatch(r"\d{6}", str(metadata['Plate date'])):
+        raise ValueError("Plate date must be in the format 'YYMMDD'.")
     
-    s.write_assay_property("metadata", metadata_str)
+    if not re.fullmatch(r"\d+", str(metadata['DIV'])):
+        raise ValueError("DIV must be an integer.")
+    
+    if not isinstance(metadata["Well IDs"], list) and not all(isinstance(i,int) for i in metadata["Well IDs"]):
+        raise ValueError("Well IDs must be a list of integers.")
+    
+    if not isinstance(metadata["Conditions"], list) or (len(metadata["Well IDs"]) != len(metadata["Conditions"]) and len(metadata["Conditions"])!=0):
+        raise ValueError("Conditions must be a list the same length as the number of wells or length 0.")
+    
+    # Convert the experiment ID to camelCase so there's no underscores or spaces
+    # e.g. "wave training" or "wave_training" --> "waveTraining"
+    parts = re.split(r'[_\s]+', metadata["Exp ID"].strip())
+    if parts:
+        if len(parts)>1:
+            metadata["Exp ID"] = parts[0].lower() + ''.join(word.capitalize() for word in parts[1:]) # replace experiment ID in the metadata dict
+        else:
+            metadata["Exp ID"] = parts[0][0].lower()+parts[0][1:] # make sure it starts lowercase
+    else:
+        raise ValueError("Enter an valid string Experiment ID.")
+    
+    s.write_assay_property("metadata", str(metadata))
+
+    return metadata
 
     # TODO: read the python dict as a string back in with json.loads(json_string)
