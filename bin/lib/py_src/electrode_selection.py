@@ -9,6 +9,9 @@ import numpy as np
 import pandas as pd
 import h5py
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 def load_activity_scan(filepath: str):
 
@@ -45,12 +48,16 @@ def load_activity_scan(filepath: str):
                 well_data[recording]['lsb'] = lsb
 
                 # add electrode to the spike data as a unique identifier (channels are repeated over recordings)
-                chan_elec_slice = well_data[recording]['mapping'].iloc[:, :2]
-                chan_elec_mapping = chan_elec_slice.set_index('channel')['electrode']
-                well_data[recording]['spike_data']['electrode'] = well_data[recording]['spike_data']['channel'].map(chan_elec_mapping).astype("Int64")
+                chan_elec_df = well_data[recording]['mapping'].iloc[:, :2].copy()
+                well_data[recording]['spike_data'] = well_data[recording]['spike_data'].merge(chan_elec_df, on="channel").sort_values('frameno')
 
             data[well] = merge_recordings(well_data)
             data[well]['rec_length_sec'] = record_time_sec
+
+            # electrodes are unique, channels are not
+            # print(len(data[well]['mapping']))
+            # print(len(np.unique(data[well]['mapping']['electrode'])))
+            # print(len(np.unique(data[well]['mapping']['channel'])))
 
     return data
 
@@ -77,11 +84,11 @@ def get_active_electrodes(data: dict):
 
         spike_data = data[well]['spike_data']
 
-        # Apply applitude filter to remove spikes with amplitudes > 20 microvolts
-        spike_df = pd.DataFrame(spike_data)
-        # print(len(np.unique(spike_df['electrode'])))
-    
-        amp_filtered = spike_df[spike_df['electrode'] * data[well]['lsb'] * 1e6 > 20]
+        # Apply applitude filter to remove electrodes with amplitude 90th percentile < 20 microvolts
+        # print(len(np.unique(spike_data['electrode'])))
+
+        spike_data = spike_data[spike_data['amplitude']<0].copy() # remove any positive spikes
+        amp_filtered = spike_data.groupby('electrode').filter(lambda g: np.abs(np.percentile(g["amplitude"], 90)* data[well]['lsb'] * 1e6)>20) 
         # print(len(np.unique(amp_filtered['electrode'])))
 
         # # Apply firing rate filter
@@ -92,8 +99,8 @@ def get_active_electrodes(data: dict):
 
     return data
 
-def activity_scan_results(data: dict):
-    # TODO: mean firing rate, spike amplitude, and active channels plots 
+def activity_scan_results(data: dict, savepath: str, savefilename: str = None):
+    # mean firing rate, spike amplitude, and active channels plots 
 
     for well in data:
 
@@ -104,58 +111,147 @@ def activity_scan_results(data: dict):
         samp_rate = data[well]['samp_rate']
         lsb = data[well]['lsb']
 
+        elec_size = 17.5
+        chip_width = 220
+        chip_height = 120
+        # print(np.min(channel_map['x'])/elec_size, np.max(channel_map['x'])/elec_size)
+        # print(np.min(channel_map['y'])/elec_size, np.max(channel_map['y'])/elec_size)
+
         # Firing rate
         fr_df = active_electrodes.groupby("electrode").size().reset_index(name="firing rate")
         fr_df["firing rate"] = fr_df["firing rate"] / recording_length
 
+        # firing rate stats
+        # print(np.mean(fr_df["firing rate"]))
+        # print(np.std(fr_df["firing rate"]))
+        # print(np.median(fr_df["firing rate"]))
+        # print(np.percentile(fr_df["firing rate"], 10))
+        # print(np.percentile(fr_df["firing rate"], 90))
+
         # ISI 
-        # TODO: check this... something's weird
-        ISI = list(active_electrodes.groupby("electrode")['frameno'].apply(lambda x: np.mean(np.diff(x))/samp_rate*1000 if len(x) > 1 else np.nan))
+        ISI = []
+        for group_name, group_df in active_electrodes.groupby("electrode"):
+            
+            ISI_msec = np.diff(group_df['frameno'])/samp_rate*1000
+            ISI_filtered = ISI_msec[ISI_msec<200] # exclude ISIs greater than 200 in the mean ISI calculation 
+            
+            if len(ISI_filtered)>0:
+                ISI.append(np.mean(ISI_filtered))
         
-        # Mean amplitude
-        amp_df = active_electrodes.groupby("electrode")["amplitude"].mean().reset_index(name="mean amplitude")
-        amp_df["mean amplitude"] = np.abs(amp_df["mean amplitude"] * lsb * 1e6) # convert to microvolts
+        # Amplitude
+        amp_df = active_electrodes.groupby("electrode").apply(lambda g: np.abs(np.percentile(g["amplitude"], 90) * lsb * 1e6)).reset_index(name="amplitude_90")
+
+        # Active electrodes
+        total_elecs = len(np.unique(list(spike_data["electrode"])))
+        active_elecs = len(np.unique(active_electrodes["electrode"]))
+        percent_active = active_elecs / (total_elecs) * 100
 
         # Create figure
 
-        fig = plt.figure(figsize=(8, 10))
-        gs = fig.add_gridspec(3, 2)
+        fig = plt.figure(figsize=(14, 15))
+        gs = fig.add_gridspec(3, 2, width_ratios=[2, 1], wspace=0.3)
+        # fig = plt.figure(figsize=(10, 12))
+        # gs = fig.add_gridspec(3, 2, width_ratios=[20, 1], height_ratios=[1,1,1], hspace=0.3, wspace=0.3)
 
-        # TODO: check this... i think it's upside down again
-        # fr_array_ax = fig.add_subplot(gs[0, 0]) 
-        # df = channel_map.merge(fr_df, on="electrode")
-        # chip_width = 220 # in electrodes
-        # chip_height = 120 # in electrodes
-        # elec_size = 17.5 # in µm
+        # Custom colormap
+        # Number of colors for each segment
+        n_blues = 128
+        n_orrd = 128
 
-        # x_edges = np.linspace(0, chip_width*elec_size, chip_width)
-        # y_edges = np.linspace(0, chip_height*elec_size, chip_height)
-        # x_idx = np.digitize(df["x"], x_edges) - 1  # subtract 1 to get 0-based index
-        # y_idx = np.digitize(df["y"], y_edges) - 1
+        # Black segment
+        black = np.array([[0, 0, 0, 1]])
 
-        # grid = np.full((chip_height, chip_width), 0)
-        # for xi, yi, val in zip(x_idx, y_idx, df["firing rate"]):
-        #     grid[yi, xi] = val  # note: row = y, col = x
+        # Reversed Blues
+        blues = plt.cm.Blues_r(np.linspace(0, 1, n_blues))
 
-        # fr_im = fr_array_ax.matshow(grid, origin='lower', extent=[df["x"].min(), df["x"].max(), df["y"].min(), df["y"].max()], cmap='coolwarm', aspect='auto', vmin=0, vmax=5)
-        # plt.colorbar(fr_im, label='Firing Rate [Hz]')
-        # plt.xlabel("x (µm)")
-        # plt.ylabel("y (µm)")
+        # OrRd
+        orrd = plt.cm.OrRd(np.linspace(0, 0.7, n_orrd))
+
+        # Stack them together
+        colors = np.vstack((black, blues, orrd))
+
+        # Create colormap
+        custom_cmap = LinearSegmentedColormap.from_list("black_blues_orrd_lighter", colors)
+
+        # Firing rate
+        fr_array_ax = fig.add_subplot(gs[0, 0]) 
+        df = channel_map.merge(fr_df, on="electrode")
+
+        grid = np.zeros((chip_height, chip_width))
+        df['y_elec'] = (df['y']/elec_size).astype(int)
+        df['x_elec'] = (df['x']/elec_size).astype(int)
+        grid[df['y_elec'], df['x_elec']] = df['firing rate']
+
+        fr_im = fr_array_ax.matshow(grid, cmap=custom_cmap, vmin=0, vmax=5, aspect='equal', interpolation='none')
+        fr_array_ax.set_axis_off()
+        fr_array_ax.margins(0)
+        fr_array_ax.set_title('Firing Rate')
+        plt.colorbar(fr_im, ax=fr_array_ax, label='Firing Rate [Hz]', shrink=0.8)
 
         fr_hist_ax = fig.add_subplot(gs[0, 1]) 
-        fr_hist_ax.hist(fr_df["firing rate"], bins=50, color='dodgerblue')
+        fr_min, fr_max = 0,6
+        fr_hist_ax.hist(fr_df[(fr_df["firing rate"]>fr_min) & (fr_df["firing rate"]<fr_max)]["firing rate"], bins=50, color='dodgerblue')
+        fr_hist_ax.set_xlabel('Firing Rate [Hz]')
+        fr_hist_ax.set_ylabel('Electrode Count')
+        fr_hist_ax.spines['top'].set_visible(False)
+        fr_hist_ax.spines['right'].set_visible(False)
+
+        # Amplitude
+        amp_array_ax = fig.add_subplot(gs[1, 0]) 
+        df = channel_map.merge(amp_df, on="electrode")
+
+        grid = np.zeros((chip_height, chip_width))
+        df['y_elec'] = (df['y']/elec_size).astype(int)
+        df['x_elec'] = (df['x']/elec_size).astype(int)
+        grid[df['y_elec'], df['x_elec']] = df['amplitude_90']
+
+        amp_im = amp_array_ax.matshow(grid, cmap=custom_cmap)
+        amp_array_ax.set_axis_off()
+        amp_array_ax.set_aspect("equal")
+        amp_array_ax.margins(0)
+        amp_array_ax.set_title('Spike Amplitude')
+        plt.colorbar(amp_im, ax=amp_array_ax, label='Amplitude [µV]', shrink=0.8)
 
         amp_hist_ax = fig.add_subplot(gs[1, 1]) 
-        amp_hist_ax.hist(amp_df["mean amplitude"], bins=50, color='dodgerblue')
+        amp_hist_ax.hist(amp_df["amplitude_90"], bins=50, color='dodgerblue')
+        amp_hist_ax.set_xlabel('Spike Amplitude [µV]')
+        amp_hist_ax.set_ylabel('Electrode Count')
+        amp_hist_ax.spines['top'].set_visible(False)
+        amp_hist_ax.spines['right'].set_visible(False)
 
-        # isi_hist_ax = fig.add_subplot(gs[2, 1]) 
-        # isi_hist_ax.hist(ISI, bins=50, color='dodgerblue')
+        # Active electrodes
+        active_elec_array_ax = fig.add_subplot(gs[2, 0])  
+        df = channel_map[channel_map["electrode"].isin(list(active_electrodes["electrode"]))].copy()
 
-        plt.show()
+        grid = np.zeros((chip_height, chip_width))
+        df['y_elec'] = (df['y']/elec_size).astype(int)
+        df['x_elec'] = (df['x']/elec_size).astype(int)
+        grid[df['y_elec'], df['x_elec']] = 1
 
-        exit()
+        # Custom colormap: 0 = black, 1 = blue
+        binary_cmap = ListedColormap(["black", "dodgerblue"])
+        
+        active_im = active_elec_array_ax.matshow(grid, cmap=binary_cmap)
+        active_elec_array_ax.set_axis_off()
+        active_elec_array_ax.set_aspect("equal")
+        active_elec_array_ax.margins(0)
+        active_elec_array_ax.set_title(f'Active Electrodes = {percent_active:.2f}%')
+        plt.colorbar(active_im, ax=active_elec_array_ax, label='Active State', shrink=0.8)
 
-    pass
+        # ISI
+        isi_hist_ax = fig.add_subplot(gs[2, 1]) 
+        isi_hist_ax.hist(ISI, bins=50, color='dodgerblue')
+        isi_hist_ax.set_xlabel('Interspike Interval [ms]')
+        isi_hist_ax.set_ylabel('Electrode Count')
+        isi_hist_ax.spines['top'].set_visible(False)
+        isi_hist_ax.spines['right'].set_visible(False)
+
+        if savefilename:
+            plt.savefig(savepath+f'/{savefilename}_well{well}.png', bbox_inches='tight', dpi=300)
+        else:
+            plt.savefig(savepath+f'/well{well}_AS_results_cgrass.png', bbox_inches='tight', dpi=300)
+        plt.close()
+
 
 def network_selection(data, dist_thresh=100, max_num_electrodes=1020, preference='random'):
     # TODO: add a minimum spike amplitude and minimum firing rate criteria for electrode selection
@@ -179,7 +275,7 @@ def network_selection(data, dist_thresh=100, max_num_electrodes=1020, preference
         # random selection
         curr_elec = np.random.choice(np.unique(channel_map['electrode']))
 
-        # while there are still electrodes left to select or there are no electrodes left to select that meet the conditions
+        # while there are still electrodes left to select or the distance threshold is too small
         stop = False
         while len(selected_electrodes) < max_num_electrodes and not stop:
 
@@ -229,8 +325,54 @@ def network_selection(data, dist_thresh=100, max_num_electrodes=1020, preference
 
     return data
 
-def network_scan_results(data):
-    pass
+def network_scan_results(data, savepath:str, savefilename: str = None):
+
+    for well in data:
+
+        network = data[well]['recording_electrodes']
+        channel_map = data[well]['mapping']
+        chip_height = 120
+        chip_width = 220
+        elec_size = 17.5
+    
+        # Selected electrodes
+
+        fig, ax = plt.subplots(1)
+
+        df = channel_map[channel_map["electrode"].isin(network)].copy()
+
+        grid = np.zeros((chip_height, chip_width))
+        df['y_elec'] = (df['y']/elec_size).astype(int)
+        df['x_elec'] = (df['x']/elec_size).astype(int)
+        grid[df['y_elec'], df['x_elec']] = 1
+
+        # Custom colormap: 0 = black, 1 = blue
+        binary_cmap = ListedColormap(["black", "red"])
+        
+        active_im = ax.matshow(grid, cmap=binary_cmap, aspect='equal')
+        plt.axis('off')
+        plt.title('Network')
+        # --- make colorbar match height ---
+
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)  # size = width of cbar
+        cbar = fig.colorbar(active_im, cax=cax)
+        cbar.set_label("Selected")
+
+        if savefilename:
+            plt.savefig(savepath+f'/{savefilename}_well{well}.png', bbox_inches='tight', dpi=300)
+        else:
+            plt.savefig(savepath+f'/well{well}_network_cgrass.png', bbox_inches='tight', dpi=300)
+        plt.close()
+
+def save_network(data: dict, savepath: str, savefilename: str = None):
+    
+    for well in data:
+        
+        if savefilename:
+            np.savez(savepath+f'/{savefilename}_well{well}.npz', recording_electrodes=data[well]['recording_electrodes'])
+        else:    
+            np.savez(savepath+f'/well{well}_network.npz', recording_electrodes=data[well]['recording_electrodes'])
     
 
 def select_electrodes(AS_filepath: str):
@@ -238,17 +380,17 @@ def select_electrodes(AS_filepath: str):
     # Activity scan
     data = load_activity_scan(AS_filepath)
     data = get_active_electrodes(data)
-    activity_scan_results(data)
-
-    exit()
+    activity_scan_results(data, savepath=AS_filepath.split('/data.raw.h5')[0])
 
     # Network scan
     data = network_selection(data)
-    network_scan_results(data)
+    network_scan_results(data, savepath=AS_filepath.split('/data.raw.h5')[0])
+    save_network(data, savepath=AS_filepath.split('/data.raw.h5')[0])
 
 if __name__ == '__main__':
 
     AS_path = '../../../data/AS Testing/M07474 DIV27/data.raw.h5'
+    # AS_path = '../../../data/AS Testing/M07474 DIV33/data.raw.h5'
     # AS_path = '../../../data/AS Testing/M09072 DIV16/data.raw.h5'
 
     np.random.seed(100)
