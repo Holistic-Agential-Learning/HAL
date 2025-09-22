@@ -9,6 +9,7 @@ top_level_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 sys.path.append(top_level_dir)
 
 import bin.lib.py_src.hal as hal
+import bin.lib.py_src.electrode_selection as es
 
 # User Input
 
@@ -25,7 +26,8 @@ H5_FILENAME = 'NSplus_test'
 
 # network scan parameters
 REC_LENGTH = 20 # recording length in seconds
-REC_ELECS = [[], []]
+PATH_TO_AS = '' # this holds the activity scan data for all wells for the specified chip
+REC_ELECS = None # dictionary {well:[recording_electrodes]}
 
 # logging
 DESCRIPTION = ''
@@ -38,9 +40,13 @@ if __name__=='__main__':
     elif device==1:
         print("MaxTwo")
 
+    if REC_ELECS is None and PATH_TO_AS!='':
+        # Determine recording electrodes from activity scans
+        REC_ELECS = es.select_electrodes(PATH_TO_AS)
+
     # initialize wells 
-    for i,well in enumerate(WELLS):
-        hal.init_well(well, REC_ELECS[i], stim_elecs=[])
+    for well in WELLS:
+        hal.init_well(well, REC_ELECS[well], stim_elecs=[])
     
     # Assay information
     metadata = {'Plate date' : PLATE_DATE,

@@ -375,7 +375,9 @@ def save_network(data: dict, savepath: str, savefilename: str = None):
             np.savez(savepath+f'/well{well}_network.npz', recording_electrodes=data[well]['recording_electrodes'])
     
 
-def select_electrodes(AS_filepath: str):
+def select_electrodes(AS_filepath: str, save_path:str=None):
+
+    # TODO: pass in a 'wells' parameter which lets you select from the h5 file which wells you'd like to process in case you don't want to do all of them.
 
     # Activity scan
     data = load_activity_scan(AS_filepath)
@@ -386,6 +388,12 @@ def select_electrodes(AS_filepath: str):
     data = network_selection(data)
     network_scan_results(data, savepath=AS_filepath.split('/data.raw.h5')[0])
     save_network(data, savepath=AS_filepath.split('/data.raw.h5')[0])
+
+    rec_elecs = {}
+    for well in data:
+        rec_elecs[well] = data[well]['recording_electrodes'] # returns dictionary of recording electrodes with wellno as key 
+    
+    return rec_elecs
 
 if __name__ == '__main__':
 
