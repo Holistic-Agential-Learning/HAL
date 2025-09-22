@@ -118,7 +118,7 @@ def activity_scan_results(data: dict, savepath: str, savefilename: str = None):
         # print(np.min(channel_map['y'])/elec_size, np.max(channel_map['y'])/elec_size)
 
         # Firing rate
-        fr_df = active_electrodes.groupby("electrode").size().reset_index(name="firing rate")
+        fr_df = spike_data.groupby("electrode").size().reset_index(name="firing rate")
         fr_df["firing rate"] = fr_df["firing rate"] / recording_length
 
         # firing rate stats
@@ -130,7 +130,7 @@ def activity_scan_results(data: dict, savepath: str, savefilename: str = None):
 
         # ISI 
         ISI = []
-        for group_name, group_df in active_electrodes.groupby("electrode"):
+        for group_name, group_df in spike_data.groupby("electrode"):
             
             ISI_msec = np.diff(group_df['frameno'])/samp_rate*1000
             ISI_filtered = ISI_msec[ISI_msec<200] # exclude ISIs greater than 200 in the mean ISI calculation 
@@ -139,7 +139,7 @@ def activity_scan_results(data: dict, savepath: str, savefilename: str = None):
                 ISI.append(np.mean(ISI_filtered))
         
         # Amplitude
-        amp_df = active_electrodes.groupby("electrode").apply(lambda g: np.abs(np.percentile(g["amplitude"], 90) * lsb * 1e6)).reset_index(name="amplitude_90")
+        amp_df = spike_data.groupby("electrode").apply(lambda g: np.abs(np.percentile(g["amplitude"], 90) * lsb * 1e6)).reset_index(name="amplitude_90")
 
         # Active electrodes
         total_elecs = len(np.unique(list(spike_data["electrode"])))
@@ -300,11 +300,11 @@ def network_selection(data, dist_thresh=100, max_num_electrodes=1020, preference
 
                 # print('Decreasing distance threhsold.')
                 
-                if dist_thresh < 18: # stop looking, distance threshold is less than one electrode
+                if dist_thresh < 17: # stop looking, distance threshold is less than one electrode
                     stop = True
                     break
                 
-                dist_thresh -= 20
+                dist_thresh -= 17
 
                 potential_elecs = filtered_df[filtered_df['distance']>dist_thresh]
 
@@ -387,8 +387,8 @@ def select_electrodes(AS_filepath: str, save_path:str=None):
 
     # Network scan
     data = network_selection(data)
-    network_scan_results(data, savepath=AS_filepath.split('/ActivityScan')[0]+'/NetworkScan')
-    save_network(data, savepath=AS_filepath.split('/ActivityScan')[0]+'/NetworkScan')
+    network_scan_results(data, savepath=save_path)
+    save_network(data, savepath=save_path)
 
     rec_elecs = {}
     for well in data:

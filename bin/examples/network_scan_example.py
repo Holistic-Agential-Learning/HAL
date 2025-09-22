@@ -14,35 +14,37 @@ import bin.lib.py_src.electrode_selection as es
 # User Input
 
 # metadata 
-PLATE_DATE = 0
-DIV = 0
-CHIP = ''
+PLATE_DATE = 250828
+DIV = 25
+CHIP = 'P004028'
 EXP_ID = 'network scan' # the task 
-WELLS = [0,1] # list of wells between 0-5
+WELLS = [0] # list of wells between 0-5
 
 # saving 
-SAVE_DIR = '/home/mxwbio/Desktop/HAL/data/CGRASS' # ex. "/tmp"
+SAVE_DIR = '/home/mxwbio/Data/Batch_1_-_Fall_2025_MaxOne/250922/P004028/NetworkScan' # ex. "/tmp"
 H5_FILENAME = 'NSplus_test'
 
 # network scan parameters
-REC_LENGTH = 20 # recording length in seconds
-PATH_TO_AS = '' # this holds the activity scan data for all wells for the specified chip
+REC_LENGTH = 60 # recording length in seconds
+PATH_TO_AS = '/home/mxwbio/Data/Batch_1_-_Fall_2025_MaxOne/250922/P004028/ActivityScan/000020/data.raw.h5' # this holds the activity scan data for all wells for the specified chip
 REC_ELECS = None # dictionary {well:[recording_electrodes]}
 
 # logging
-DESCRIPTION = ''
+DESCRIPTION = 'Testing AS->NS pipeline and metadata'
 
 if __name__=='__main__':
+
+    os.makedirs(SAVE_DIR, exist_ok=True)
     
     device = hal.get_system_type()
     if device==0:
-        print("MaxOne")
-    elif device==1:
-        print("MaxTwo")
+        print(device, "MaxOne")
+    else:
+        print(device, "MaxTwo")
 
     if REC_ELECS is None and PATH_TO_AS!='':
         # Determine recording electrodes from activity scans
-        REC_ELECS = es.select_electrodes(PATH_TO_AS)
+        REC_ELECS = es.select_electrodes(PATH_TO_AS, SAVE_DIR)
 
     # initialize wells 
     for well in WELLS:

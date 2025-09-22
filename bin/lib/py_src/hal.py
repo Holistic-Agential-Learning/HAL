@@ -19,7 +19,10 @@ def get_system_type():
     :return: Returns 0 for MaxOne and 1 for MaxTwo
     :rtype: int
     """
-    return int(mx.send("wellplate_query_version"))
+    with mx.comm.api_context() as api:
+        system_type = int(api.send("wellplate_query_version"))
+
+    return system_type
     
 
 def build_frequency_list(num_levels: int, lower: float, upper: float) -> List[float]:
@@ -219,6 +222,8 @@ def init_well(well: int, rec_elecs: List[int] | str, stim_elecs: List[int], conn
 
     if connect:
         stimulation_units = connect_stim_units_to_stim_electrodes(stim_elecs, array)
+    else:
+        stimulation_units = None
     
     array.download()
     time.sleep(mx.Timing.waitAfterDownload)
