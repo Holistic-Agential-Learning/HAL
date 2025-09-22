@@ -362,7 +362,7 @@ def network_scan_results(data, savepath:str, savefilename: str = None):
         if savefilename:
             plt.savefig(savepath+f'/{savefilename}_well{well}.png', bbox_inches='tight', dpi=300)
         else:
-            plt.savefig(savepath+f'/well{well}_network_cgrass.png', bbox_inches='tight', dpi=300)
+            plt.savefig(savepath+f'/well{well}_network.png', bbox_inches='tight', dpi=300)
         plt.close()
 
 def save_network(data: dict, savepath: str, savefilename: str = None):
@@ -379,6 +379,7 @@ def select_electrodes(AS_filepath: str, save_path:str=None):
 
     # TODO: pass in a 'wells' parameter which lets you select from the h5 file which wells you'd like to process in case you don't want to do all of them.
 
+
     # Activity scan
     data = load_activity_scan(AS_filepath)
     data = get_active_electrodes(data)
@@ -386,8 +387,8 @@ def select_electrodes(AS_filepath: str, save_path:str=None):
 
     # Network scan
     data = network_selection(data)
-    network_scan_results(data, savepath=AS_filepath.split('/data.raw.h5')[0])
-    save_network(data, savepath=AS_filepath.split('/data.raw.h5')[0])
+    network_scan_results(data, savepath=AS_filepath.split('/ActivityScan')[0]+'/NetworkScan')
+    save_network(data, savepath=AS_filepath.split('/ActivityScan')[0]+'/NetworkScan')
 
     rec_elecs = {}
     for well in data:
