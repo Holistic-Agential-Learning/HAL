@@ -12,6 +12,16 @@ sys.path.append(top_level_dir)
 
 import bin.lib.py_src.config as cfg
 
+def get_system_type():
+    """
+    Queries the wellplate version
+
+    :return: Returns 0 for MaxOne and 1 for MaxTwo
+    :rtype: int
+    """
+    return int(mx.send("wellplate_query_version"))
+    
+
 def build_frequency_list(num_levels: int, lower: float, upper: float) -> List[float]:
     """creates a list of stimulation frequencies for frequency game. Given the 
     inclusive bounds and the number of levels, it automatically generates 
@@ -213,7 +223,6 @@ def init_well(well: int, rec_elecs: List[int] | str, stim_elecs: List[int], conn
     array.download()
     time.sleep(mx.Timing.waitAfterDownload)
     mx.offset()
-    time.sleep(mx.Timing.waitInMX2Offset) # NOTE: there's a different wait for M1s
     mx.clear_events() # Empty event-buffer before adding anything to it
 
     if power_up:
@@ -292,7 +301,6 @@ def init_wells(wells: List[int], rec_elecs: List[int] | str, stim_elecs: List[in
     array.download()
     time.sleep(mx.Timing.waitAfterDownload)
     mx.offset()
-    time.sleep(mx.Timing.waitInMX2Offset) # NOTE: there's a different wait for M1s
     mx.clear_events() # Empty event-buffer before adding anything to it
 
     if power_up:
